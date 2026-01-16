@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BarberShop.Core.Models
+﻿namespace BarberShop.Core.Models
 {
-    internal class Cliente
+    public class Cliente
     {
+        public long Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string Telefone { get; set; } = string.Empty; // Chave para identificar o cliente
+        public string UserId { get; set; } = string.Empty;
     }
 }
+
