@@ -37,4 +37,3 @@ BarberShop.Api: Porta de entrada da aplicação e endpoints.
 📝 Diário de Bordo (Logs de Evolução)
 Dia 1 (16/01/2026): Iniciei a estrutura da solução seguindo o exemplo do projeto Dima do curso do Balta. Criei o projeto .Core e as classes dentro da pasta Models.
 
-Próximo passo: Configurar o BarberShopContext na camada de Infra e rodar o primeiro Migration.
