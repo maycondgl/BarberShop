@@ -1,5 +1,29 @@
+using BarberShop.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var Connection = builder
+    .Configuration
+    .GetConnectionString("Connection") ?? string.Empty;
+
+builder.Services.AddDbContext<BarberShopContext>(
+    x =>
+    {
+        x.UseSqlServer(Connection);
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen( x =>
+{
+    x.CustomSchemaIds(n => n.FullName);
+});
+builder.Services.AddTransient<Handler>();
+
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapPost(
     "/v1/agendamento", 
@@ -27,10 +51,11 @@ public class AgendamentoResponse
     public string CorteTitulo { get; set; } = string.Empty;
     public DateTime Data { get; set; }
     public string Tempo { get; set; } = string.Empty;
-    public bool IsCompleted { get; set; }
+    public int Status { get; set; } = 1;
 }
 
-public class Handler { 
+public class Handler
+{
     public AgendamentoResponse Handle(Request request)
     {
         return new AgendamentoResponse

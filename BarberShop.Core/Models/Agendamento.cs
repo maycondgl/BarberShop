@@ -1,4 +1,6 @@
-﻿namespace BarberShop.Core.Models
+﻿using BarberShop.Core.Enums;
+
+namespace BarberShop.Core.Models
 {
     public class Agendamento
     {
@@ -6,8 +8,11 @@
         public long ClienteId { get; set; }
         public long CorteId { get; set; }
         public DateTime Data { get; set; }
-        public string Tempo { get; set; } = string.Empty;
-        public bool IsCompleted { get; set; } = false;
+        public TimeSpan Tempo { get; set; }
+        public EStatusAgendamento Status { get; set; } = EStatusAgendamento.Pendente;
         public string UserId { get; set; } = string.Empty;
+
+        public virtual Cliente Cliente { get; set; } = null!;
+        public virtual Corte Corte { get; set; } = null!;
     }
 }
