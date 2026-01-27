@@ -24,10 +24,6 @@ namespace BarberShop.Api.Data.Mappings
             builder.Property(x => x.DuracaoMinutos)
                 .IsRequired();
 
-            builder.Property(x => x.UserId)
-                .IsRequired()
-                .HasMaxLength(450);
-
         }
     }
 }

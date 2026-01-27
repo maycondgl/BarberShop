@@ -9,6 +9,7 @@ namespace BarberShop.Core.Models
         public long CorteId { get; set; }
         public DateTime Data { get; set; }
         public TimeSpan Tempo { get; set; }
+        public decimal ValorPago { get; set; }
         public EStatusAgendamento Status { get; set; } = EStatusAgendamento.Pendente;
         public string UserId { get; set; } = string.Empty;
 
