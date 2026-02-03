@@ -1,6 +1,7 @@
 using BarberShop.Api.Data;
 using BarberShop.Core.Enums;
 using BarberShop.Core.Models;
+using BarberShop.Core.Requests.Clientes;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +30,7 @@ app.UseSwaggerUI();
 
 app.MapPost(
     "/v1/agendamento", async
-    (Request request, Handler handler) =>
+    (CreateAgendamentoRequest request, AgendamentoHandler handler) =>
      {
         var result = await handler.Handle(request);
          if (result is null)
@@ -43,7 +44,7 @@ app.MapPost(
 
      });
 
-app.MapPost("/v1/clientes", async (ClienteRequest request, BarberShopContext context) =>
+app.MapPost("/v1/clientes", async (CreateClienteRequest request, BarberShopContext context) =>
 {
     var cliente = new Cliente
     {
@@ -58,7 +59,7 @@ app.MapPost("/v1/clientes", async (ClienteRequest request, BarberShopContext con
     return Results.Created($"/v1/clientes/{cliente.Id}", cliente);
 });
 
-app.MapPost("/v1/cortes", async (CorteRequest request, BarberShopContext context) =>
+app.MapPost("/v1/cortes", async (CreateCorteRequest request, BarberShopContext context) =>
 {
     if (request.Role != "Admin")
         return Results.StatusCode(403);
@@ -80,74 +81,3 @@ app.MapPost("/v1/cortes", async (CorteRequest request, BarberShopContext context
 
 
 app.Run();
-
-public class Request
-{
-        public long ClienteId { get; set; }
-        public long CorteId { get; set; }
-        public DateTime Data { get; set; }
-}
-
-public class AgendamentoResponse
-{
-    public long Id { get; set; }
-    public string ClienteNome { get; set; } = string.Empty;
-    public string CorteTitulo { get; set; } = string.Empty;
-    public DateTime Data { get; set; }
-    public TimeSpan Tempo { get; set; }
-    public decimal Valor { get; set; }
-    public string Status { get; set; } = string.Empty;
-}
-
-public class Handler(BarberShopContext context)
-{
-    public async Task<AgendamentoResponse> Handle(Request request)
-    {
-        var corte = await context.Cortes.FindAsync(request.CorteId);
-        var cliente = await context.Clientes.FindAsync(request.ClienteId);
-
-        if (cliente is null)
-            return null;
-        if (corte is null)
-            throw new Exception("Corte não encontrado");
-
-        var agendamento = new Agendamento()
-        {
-            ClienteId = cliente.Id,
-            CorteId = corte.Id,
-            Data = request.Data,
-            Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos),
-            ValorPago = corte.Preco,
-            Status = EStatusAgendamento.Pendente
-        };
-
-        context.Agendamentos.Add(agendamento);
-        await context.SaveChangesAsync();
-
-        return new AgendamentoResponse
-        {
-            Id = agendamento.Id,
-            ClienteNome = cliente.Nome,
-            CorteTitulo = corte.Titulo,
-            Data = agendamento.Data,
-            Tempo = agendamento.Tempo,
-            Valor = agendamento.ValorPago,
-            Status = agendamento.Status.ToString()
-        };
-    }
-}
-
-public class ClienteRequest
-{
-    public string Nome { get; set; } = string.Empty;
-    public string Telefone { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
-}
-
-public class CorteRequest
-{
-    public string Titulo { get; set; } = string.Empty;
-    public decimal Preco { get; set; }
-    public int DuracaoMinutos { get; set; }
-    public string Role { get; set; } = string.Empty;
-}
