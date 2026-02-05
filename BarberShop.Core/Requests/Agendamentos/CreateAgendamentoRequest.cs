@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BarberShop.Core.Requests.Clientes
+namespace BarberShop.Core.Requests.Agendamentos
 {
     public class CreateAgendamentoRequest : Request
     {

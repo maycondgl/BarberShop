@@ -1,4 +1,4 @@
-﻿namespace BarberShop.Core.Requests.Agendamentos
+﻿namespace BarberShop.Core.Requests.Cortes
 {
     public class DeleteCorteRequest
     {

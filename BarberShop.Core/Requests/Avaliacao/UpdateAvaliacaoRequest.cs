@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BarberShop.Core.Requests.Clientes
+namespace BarberShop.Core.Requests.Avaliacao
 {
     public class UpdateAvaliacaoRequest : Request
     {

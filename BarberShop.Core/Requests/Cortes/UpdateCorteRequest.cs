@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BarberShop.Core.Requests.Clientes
+namespace BarberShop.Core.Requests.Cortes
 {
     public class UpdateCorteRequest : Request
     {

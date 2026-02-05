@@ -8,7 +8,7 @@ namespace BarberShop.Api.Data
         : DbContext(options)
     {
         public DbSet<Agendamento> Agendamentos { get; set; } = null!;
-        public DbSet<Avaliacao> Avalicoes { get; set; } = null!;
+        public DbSet<Avaliacao> Avaliacoes { get; set; } = null!;
         public DbSet<Cliente> Clientes { get; set; } = null!;
         public DbSet<Corte> Cortes { get; set; } = null!;
 

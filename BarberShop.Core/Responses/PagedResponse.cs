@@ -1,5 +1,4 @@
-﻿using BarberShop.Core.Requests;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace BarberShop.Core.Responses
 {
