@@ -7,11 +7,11 @@ namespace BarberShop.Core.Handlers
 {
     public interface IAgendamentoHandler
     {
-        Task<Response<AgendamentoResponse>> CreateAsync(CreateAgendamentoRequest request);
-        Task<Response<Agendamento>> UpdateAsync(UpdateAgendamentoRequest request);
-        Task<Response<Agendamento>> DeleteAsync(DeleteAgendamentoRequest request);
-        Task<Response<Agendamento>> GetByIdAsync(GetAgendamentoByIdRequest request);
-        Task<Response<List<Agendamento>>> GetAllAsync(GetAllAgendamentoRequest request);
+        Task<Response<AgendamentoResponse?>> CreateAsync(CreateAgendamentoRequest request);
+        Task<Response<AgendamentoResponse?>> UpdateAsync(UpdateAgendamentoRequest request);
+        Task<Response<AgendamentoResponse?>> DeleteAsync(long id);
+        Task<Response<Agendamento?>> GetByIdAsync(GetAgendamentoByIdRequest request);
+        Task<PagedResponse<List<Agendamento>>> GetAllAsync(GetAllAgendamentoRequest request);
 
 
     }

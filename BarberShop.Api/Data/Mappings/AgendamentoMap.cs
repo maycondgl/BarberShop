@@ -22,13 +22,18 @@ namespace BarberShop.Api.Data.Mappings
                 .WithMany()
                 .HasForeignKey(x => x.CorteId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Property(x => x.Tempo)
+                .IsRequired();
+
+            builder.Property(x => x.Valor)
+                .HasColumnName("Valor")
+                .IsRequired()
+                .HasColumnType("DECIMAL(10,2)");
 
             builder.Property(x => x.Data)
                 .IsRequired()
                 .HasColumnType("DATETIME2");
-
-            builder.Property(x => x.Tempo)
-                .IsRequired();
 
             builder.Property(x => x.Status)
                 .IsRequired()

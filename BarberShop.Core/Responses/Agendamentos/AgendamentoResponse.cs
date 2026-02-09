@@ -7,7 +7,7 @@ namespace BarberShop.Core.Responses.Agendamentos;
     long ClienteId,
     long CorteId,
     DateTime Data,
-    decimal ValorPago,
+    decimal Valor,
     int TempoMinutos,
     string Status
 );

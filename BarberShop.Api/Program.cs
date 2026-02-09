@@ -8,6 +8,7 @@ using BarberShop.Core.Requests.Clientes;
 using BarberShop.Core.Requests.Cortes;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Agendamentos;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,15 +36,80 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapPost(
-    "/v1/agendamento", async Task<Response<AgendamentoResponse>>
-    (CreateAgendamentoRequest request, IAgendamentoHandler handler) 
+    "/v1/agendamento", async
+    (CreateAgendamentoRequest request, 
+    IAgendamentoHandler handler) 
         => {
             return await handler.CreateAsync(request);
-    }
-        )
+    })
     .WithName("Agendamento: Create")
     .WithSummary("Cadastra um novo serviço de corte")
-    .Produces<Agendamento>(201)
+    .Produces<Response<AgendamentoResponse?>>(201)
+    .Produces(403);
+
+app.MapPut(
+    "/v1/agendamento/{id}", async
+    (long id, 
+    [FromBody]UpdateAgendamentoRequest request, 
+    IAgendamentoHandler handler)
+        => {
+            request.Id = id;
+            return await handler.UpdateAsync(request);
+        }
+        )
+    .WithName("Agendamento: Update")
+    .WithSummary("Atualiza um novo serviço de corte")
+    .Produces<Response<AgendamentoResponse?>>(200)
+    .Produces(404)
+    .Produces(403);
+
+app.MapDelete(
+    "/v1/agendamento/{id}", async
+    (long id,
+    IAgendamentoHandler handler)
+        =>
+    {
+        return await handler.DeleteAsync(id);
+    })
+    .WithName("Agendamento: Delete")
+    .WithSummary("Remove um novo serviço de corte")
+    .Produces<Response<AgendamentoResponse?>>(200)
+    .Produces(404)
+    .Produces(403);
+
+app.MapGet(
+    "/v1/agendamento", async
+    ( IAgendamentoHandler handler)
+        =>
+    {
+        var request = new GetAllAgendamentoRequest
+        {
+            UserId = "10003"
+        };
+        return await handler.GetAllAsync(request);
+    })
+    .WithName("Agendamento: Get All")
+    .WithSummary("Retorna todos os serviços de corte")
+    .Produces<PagedResponse<AgendamentoResponse?>>(200)
+    .Produces(404)
+    .Produces(403);
+
+app.MapGet(
+    "/v1/agendamento/{id}", async
+    (long id,
+    IAgendamentoHandler handler)
+        =>
+    {
+        var request = new GetAgendamentoByIdRequest
+        {
+            Id = id
+        };
+        return await handler.GetByIdAsync(request);
+    })
+    .WithName("Agendamento: Get By Id")
+    .WithSummary("Retorna um novo serviço de corte")
+    .Produces<Response<AgendamentoResponse?>>(200)
+    .Produces(404)
     .Produces(403);
 
 app.MapPost("/v1/clientes", async 
