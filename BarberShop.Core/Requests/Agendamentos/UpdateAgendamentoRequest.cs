@@ -2,7 +2,7 @@
 
 namespace BarberShop.Core.Requests.Agendamentos
 {
-    public class UpdateAgendamentoRequest : Request
+    public class UpdateAgendamentoRequest
     {
         public long Id { get; set; }
 

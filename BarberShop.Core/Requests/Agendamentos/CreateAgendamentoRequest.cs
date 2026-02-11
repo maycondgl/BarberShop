@@ -2,7 +2,7 @@
 
 namespace BarberShop.Core.Requests.Agendamentos
 {
-    public class CreateAgendamentoRequest : Request
+    public class CreateAgendamentoRequest
     {
         [Required(ErrorMessage = "O cliente é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "ID do cliente inválido")]

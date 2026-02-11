@@ -6,7 +6,6 @@ using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Agendamentos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Validations;
 
 namespace BarberShop.Api.Handlers
 {
@@ -172,7 +171,9 @@ namespace BarberShop.Api.Handlers
                 var query = _context
                     .Agendamentos
                     .AsNoTracking()
-                    .Where(x => x.UserId == request.UserId)
+                     .Include(x => x.Cliente)
+                    .Include(x => x.Corte)
+                    // .Where(x => x.UserId == request.UserId)
                     .OrderBy(x => x.ClienteId);
 
                 var agendamentos = await query

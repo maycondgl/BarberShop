@@ -1,6 +1,6 @@
 ﻿namespace BarberShop.Core.Requests.Agendamentos
 {
-    public class GetAgendamentoByIdRequest : Request
+    public class GetAgendamentoByIdRequest
     {
         public long Id { get; set; }
     }
