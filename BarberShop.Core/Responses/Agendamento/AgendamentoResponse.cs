@@ -1,6 +1,4 @@
-﻿using BarberShop.Core.Enums;
-
-namespace BarberShop.Core.Responses.Agendamentos;
+﻿namespace BarberShop.Core.Responses.Agendamento;
 
     public record AgendamentoResponse(
     long Id,

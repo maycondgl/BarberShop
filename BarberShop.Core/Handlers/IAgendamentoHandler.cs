@@ -1,7 +1,7 @@
 ﻿using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
-using BarberShop.Core.Responses.Agendamentos;
+using BarberShop.Core.Responses.Agendamento;
 
 namespace BarberShop.Core.Handlers
 {

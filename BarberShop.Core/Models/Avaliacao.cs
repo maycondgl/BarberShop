@@ -3,10 +3,11 @@
     public class Avaliacao
     {
         public long Id { get; set; }
-        public int Estrelas { get; set; } // Nota de 1 a 5
-        public string Comentario { get; set; } = string.Empty;
-        public long ClienteId { get; set; } // Referência ao cliente que avaliou
+        public long ClienteId { get; set; }
+        public int Estrelas { get; set; }
+        public string? Comentario { get; set; } = string.Empty;
         public DateTime Data { get; set; } = DateTime.Now;
+        public string UserId { get; set; } = string.Empty;
 
         public virtual Cliente Cliente { get; set; } = null!;
     }

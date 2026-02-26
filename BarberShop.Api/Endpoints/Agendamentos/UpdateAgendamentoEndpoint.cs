@@ -2,7 +2,7 @@
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
-using BarberShop.Core.Responses.Agendamentos;
+using BarberShop.Core.Responses.Agendamento;
 
 namespace BarberShop.Api.Endpoints.Agendamentos
 {
@@ -25,7 +25,6 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             long id)
         {
             request.Id = id;
-            
 
 
             var result = await handler.UpdateAsync(request);

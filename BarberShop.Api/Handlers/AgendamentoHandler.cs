@@ -4,7 +4,7 @@ using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
-using BarberShop.Core.Responses.Agendamentos;
+using BarberShop.Core.Responses.Agendamento;
 using Microsoft.EntityFrameworkCore;
 
 namespace BarberShop.Api.Handlers

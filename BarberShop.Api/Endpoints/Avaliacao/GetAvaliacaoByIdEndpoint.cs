@@ -6,26 +6,31 @@ using BarberShop.Core.Responses.Avaliacao;
 
 namespace BarberShop.Api.Endpoints.Avaliacao
 {
-    public class CreateAvaliacaoEndpoint : IEndpoint
+    public class GetAvaliacaoByIdEndpoint : IEndpoint
     {
         public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/", HandleAsync)
-            .WithName("Avaliações: Create")
-            .WithSummary("Avaliar um novo corte")
-            .WithDescription("Avaliar um novo serviço de corte")
-            .WithOrder(1)
+        => app.MapGet("/{id}", HandleAsync)
+            .WithName("Avaliação: Get By Id")
+            .WithSummary("Recupera uma avaliação")
+            .WithDescription("Recupera uma avaliação")
+            .WithOrder(4)
             .Produces<Response<AvaliacaoResponse?>>(200)
             .Produces<Response<AvaliacaoResponse?>>(404)
             .Produces<Response<AvaliacaoResponse?>>(500);
 
+
         private static async Task<IResult> HandleAsync(
             IAvaliacaoHandler handler,
-            CreateAvaliacaoRequest request)
+            long id)
         {
-            var result = await handler.CreateAsync(request);
+            var request = new GetAvaliacaoByIdRequest
+            {
+                Id = id
+            };
+            var result = await handler.GetByIdAsync(request);
             return result.IsSuccess
-              ? Results.Created($"/{result.Data?.Id}", result)
-              : Results.BadRequest(result);
+              ? TypedResults.Ok(result)
+              : TypedResults.BadRequest(result);
         }
     }
-    }
+}

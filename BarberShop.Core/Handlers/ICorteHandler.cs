@@ -1,15 +1,16 @@
 ﻿using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Cortes;
 using BarberShop.Core.Responses;
+using BarberShop.Core.Responses.Corte;
 
 namespace BarberShop.Core.Handlers
 {
     public interface ICorteHandler
     {
-        Task<Response<Corte>> CreateAsync(CreateCorteRequest request);
-        Task<Response<Corte>> UpdateAsync(UpdateCorteRequest request);
-        Task<Response<Corte>> DeleteAsync(DeleteCorteRequest request);
-        Task<Response<Corte>> GetByIdAsync(GetCorteByIdRequest request);
-        Task<Response<List<Corte>>> GetAllAsync(GetAllCorteRequest request);
+        Task<Response<CorteResponse?>> CreateAsync(CreateCorteRequest request);
+        Task<Response<CorteResponse?>> UpdateAsync(UpdateCorteRequest request);
+        Task<Response<CorteResponse?>> DeleteAsync(long id);
+        Task<Response<Corte?>> GetByIdAsync(GetCorteByIdRequest request);
+        Task<Response<List<CorteResponse?>>> GetAllAsync(GetAllCorteRequest request);
     }
 }

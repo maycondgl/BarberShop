@@ -4,8 +4,7 @@ using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
-using BarberShop.Core.Responses.Agendamentos;
-using Microsoft.AspNetCore.Builder;
+using BarberShop.Core.Responses.Agendamento;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BarberShop.Api.Endpoints.Agendamentos

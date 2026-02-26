@@ -4,6 +4,8 @@ namespace BarberShop.Core.Requests.Avaliacao
 {
     public class UpdateAvaliacaoRequest : Request
     {
+        public long Id { get; set; }
+
         [Required(ErrorMessage = "A nota é obrigatória")]
         [Range(1, 5, ErrorMessage = "A nota deve ser entre 1 e 5 estrelas")]
         public int Estrelas { get; set; }
