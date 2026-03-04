@@ -23,6 +23,9 @@ builder.Services.AddSwaggerGen( x =>
 });
 builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
 builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
+builder.Services.AddTransient<IClienteHandler, ClienteHandler>();
+builder.Services.AddTransient<ICorteHandler, CorteHandler>();
+
 
 var app = builder.Build();
 

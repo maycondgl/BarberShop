@@ -4,6 +4,8 @@ namespace BarberShop.Core.Requests.Clientes
 {
     public class UpdateClienteRequest : Request
     {
+        public long Id { get; set; }
+
         [Required(ErrorMessage = "Nome Obrigatório!")]
         [StringLength(60, ErrorMessage = "O nome pode ter no máximo 60 caracteres")]
         public string Nome { get; set; } = string.Empty;

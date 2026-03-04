@@ -6,5 +6,7 @@
         public string Titulo { get; set; } = string.Empty;
         public decimal Preco { get; set; }
         public int DuracaoMinutos { get; set; }
+        public string Role { get; set; }
+
     }
 }

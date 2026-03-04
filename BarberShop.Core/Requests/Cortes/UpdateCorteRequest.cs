@@ -4,6 +4,8 @@ namespace BarberShop.Core.Requests.Cortes
 {
     public class UpdateCorteRequest : Request
     {
+        public long Id { get; set; }
+
         [Required(ErrorMessage = "O título do corte é obrigatório")]
         [StringLength(80, MinimumLength = 3, ErrorMessage = "O título deve ter entre 3 e 80 caracteres")]
         public string Titulo { get; set; } = string.Empty;

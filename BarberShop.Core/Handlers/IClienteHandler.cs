@@ -11,6 +11,6 @@ namespace BarberShop.Core.Handlers
         Task<Response<ClienteResponse?>> UpdateAsync(UpdateClienteRequest request);
         Task<Response<ClienteResponse?>> DeleteAsync(long id);
         Task<Response<Cliente?>> GetByIdAsync(GetClienteByIdRequest request);
-        Task<Response<List<ClienteResponse?>>> GetAllAsync(GetAllClienteRequest request);
+        Task<PagedResponse<List<Cliente>>> GetAllAsync(GetAllClienteRequest request);
     }
 }

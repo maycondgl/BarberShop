@@ -6,26 +6,30 @@ using BarberShop.Core.Responses.Cliente;
 
 namespace BarberShop.Api.Endpoints.Clientes
 {
-        public class CreateClienteEndpoint : IEndpoint
+   public class UpdateClienteEndpoint : IEndpoint
         {
             public static void Map(IEndpointRouteBuilder app)
-            => app.MapPost("/", HandleAsync)
-                .WithName("Clientes: Create")
-                .WithSummary("Novo cliente")
-                .WithDescription("Criar um novo cliente")
-                .WithOrder(1)
+            => app.MapPut("/{id}", HandleAsync)
+                .WithName("Cliente: Update")
+                .WithSummary("Atualiza um cliente")
+                .WithDescription("Atualiza um cliente criado")
+                .WithOrder(2)
                 .Produces<Response<ClienteResponse?>>(200)
                 .Produces<Response<ClienteResponse?>>(404)
                 .Produces<Response<ClienteResponse?>>(500);
 
+
             private static async Task<IResult> HandleAsync(
                 IClienteHandler handler,
-                CreateClienteRequest request)
+                UpdateClienteRequest request,
+                long id)
             {
-                var result = await handler.CreateAsync(request);
+                request.Id = id;
+
+                var result = await handler.UpdateAsync(request);
                 return result.IsSuccess
-                  ? Results.Created($"/{result.Data?.Id}", result)
-                  : Results.BadRequest(result);
+                  ? TypedResults.Ok(result)
+                  : TypedResults.BadRequest(result);
             }
         }
     }

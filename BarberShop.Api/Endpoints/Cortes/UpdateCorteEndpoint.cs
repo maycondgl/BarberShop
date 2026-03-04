@@ -6,26 +6,30 @@ using BarberShop.Core.Responses.Corte;
 
 namespace BarberShop.Api.Endpoints.Cortes
 {
-    public class CreateCorteEndpoint : IEndpoint
+    public class UpdateCorteEndpoint : IEndpoint
     {
         public static void Map(IEndpointRouteBuilder app)
-            => app.MapPost("/", HandleAsync)
-                .WithName("Cortes: Create")
-                .WithSummary("Novo corte")
-                .WithDescription("Criar um novo corte")
-                .WithOrder(1)
+            => app.MapPut("/{id}", HandleAsync)
+                .WithName("Corte: Update")
+                .WithSummary("Atualiza um corte")
+                .WithDescription("Atualiza um corte")
+                .WithOrder(2)
                 .Produces<Response<CorteResponse?>>(200)
                 .Produces<Response<CorteResponse?>>(404)
                 .Produces<Response<CorteResponse?>>(500);
 
+
         private static async Task<IResult> HandleAsync(
             ICorteHandler handler,
-            CreateCorteRequest request)
+            UpdateCorteRequest request,
+            long id)
         {
-            var result = await handler.CreateAsync(request);
+            request.Id = id;
+
+            var result = await handler.UpdateAsync(request);
             return result.IsSuccess
-              ? Results.Created($"/{result.Data?.Id}", result)
-              : Results.BadRequest(result);
+              ? TypedResults.Ok(result)
+              : TypedResults.BadRequest(result);
         }
     }
 }
