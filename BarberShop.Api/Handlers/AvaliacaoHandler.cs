@@ -19,8 +19,8 @@ namespace BarberShop.Api.Handlers
         public async Task<Response<AvaliacaoResponse?>> CreateAsync(CreateAvaliacaoRequest request)
         {
             try{
-                var cliente = await _context.Clientes
-                .FirstOrDefaultAsync(x => x.Id == request.ClienteId);
+                var cliente = await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
                 if (cliente == null)
                     return new Response<AvaliacaoResponse?>(null, 404, "Cliente não encontrado");
@@ -30,11 +30,10 @@ namespace BarberShop.Api.Handlers
 
                 var avaliacao = new Avaliacao
                 {
-                    ClienteId = request.ClienteId,
+                    UserId = request.UserId,
                     Estrelas = request.Estrelas,
                     Comentario = request.Comentario,
-                    Data = DateTime.UtcNow,
-                    UserId = "sistema"
+                    Data = DateTime.UtcNow
                 };
 
                 await _context.Avaliacoes.AddAsync(avaliacao);
@@ -42,7 +41,7 @@ namespace BarberShop.Api.Handlers
 
                 var responseData = new AvaliacaoResponse(
                   avaliacao.Id,
-                  avaliacao.ClienteId,
+                  avaliacao.UserId,
                   avaliacao.Estrelas,
                   avaliacao.Comentario,
                   avaliacao.Data
@@ -66,26 +65,25 @@ namespace BarberShop.Api.Handlers
                 if (avaliacao is null)
                     return new Response<AvaliacaoResponse?>(null, 404, "Avaliação não encontrado");
 
-                var cliente = await _context.Clientes
+                var cliente = await _context.Users
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == request.ClienteId);
+                    .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
                 if (cliente is null)
                     return new Response<AvaliacaoResponse?>(null, 404, "Cliente não encontrado");
 
-                avaliacao.ClienteId = request.ClienteId;
+                avaliacao.UserId = request.UserId;
                 avaliacao.Estrelas = request.Estrelas;
                 avaliacao.Comentario = request.Comentario;
 
                 avaliacao.Data = DateTime.UtcNow;
-                avaliacao.UserId = "sistema";
 
                 _context.Avaliacoes.Update(avaliacao);
                 await _context.SaveChangesAsync();
 
                 var response = new AvaliacaoResponse(
                     avaliacao.Id,
-                    avaliacao.ClienteId,
+                    avaliacao.UserId,
                     avaliacao.Estrelas,
                     avaliacao.Comentario,
                     avaliacao.Data
@@ -112,7 +110,7 @@ namespace BarberShop.Api.Handlers
 
                 var response = new AvaliacaoResponse(
                     avaliacao.Id,
-                    avaliacao.ClienteId,
+                    avaliacao.UserId,
                     avaliacao.Estrelas,
                     avaliacao.Comentario,
                     avaliacao.Data
@@ -155,7 +153,7 @@ namespace BarberShop.Api.Handlers
                 var query = _context
                    .Avaliacoes
                    .AsNoTracking()
-                    .Include(x => x.Cliente)
+                    .Include(x => x.UserId)
                    // .Include(x => x.Comentario)
                    // .Where(x => x.UserId == request.UserId)
                    .OrderBy(x => x.Id);

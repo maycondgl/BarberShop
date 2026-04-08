@@ -1,8 +1,11 @@
 ﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.Models;
 using BarberShop.Core.Handlers;
+using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Avaliacao;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Avaliacao;
+using System.Security.Claims;
 
 namespace BarberShop.Api.Endpoints.Avaliacao
 {
@@ -20,11 +23,18 @@ namespace BarberShop.Api.Endpoints.Avaliacao
 
 
         private static async Task<IResult> HandleAsync(
+            ClaimsPrincipal user,
             IAvaliacaoHandler handler,
             long id)
         {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
             var request = new GetAvaliacaoByIdRequest
             {
+                UserId = userId,
                 Id = id
             };
             var result = await handler.GetByIdAsync(request);

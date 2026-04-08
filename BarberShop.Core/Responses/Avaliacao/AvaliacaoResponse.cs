@@ -2,7 +2,7 @@
 {
    public record AvaliacaoResponse(
    long Id,
-   long ClienteId,
+   long UserId,
    int Estrelas,
    string? Comentario,
    DateTime Data

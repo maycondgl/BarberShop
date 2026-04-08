@@ -1,7 +1,6 @@
 ﻿using BarberShop.Api.common.Api;
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
-using BarberShop.Api.Endpoints.Clientes;
 using BarberShop.Api.Endpoints.Cortes;
 
 namespace BarberShop.Api.Endpoints
@@ -31,15 +30,6 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<GetAvaliacaoByIdEndpoint>()
                .MapEndpoint<GetAllAvaliacaoEndpoint>();
 
-            endpoints.MapGroup("v1/clientes")
-               .WithTags("clientes")
-               //.RequireAuthorization()
-               .MapEndpoint<CreateClienteEndpoint>()
-               .MapEndpoint<UpdateClienteEndpoint>()
-               .MapEndpoint<DeleteClienteEndpoint>()
-               .MapEndpoint<GetClienteByIdEndpoint>()
-               .MapEndpoint<GetAllClienteEndpoint>();
-
             endpoints.MapGroup("v1/cortes")
                .WithTags("cortes")
                //.RequireAuthorization()
@@ -48,6 +38,7 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<DeleteCorteEndpoint>()
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();
+
 
         }
         private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

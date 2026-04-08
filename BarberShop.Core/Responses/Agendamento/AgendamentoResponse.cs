@@ -2,7 +2,7 @@
 
     public record AgendamentoResponse(
     long Id,
-    long ClienteId,
+    long UserId,
     long CorteId,
     DateTime Data,
     decimal Valor,

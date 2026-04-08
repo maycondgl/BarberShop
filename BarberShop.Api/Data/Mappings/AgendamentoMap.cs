@@ -1,4 +1,5 @@
-﻿using BarberShop.Core.Models;
+﻿using BarberShop.Api.Models;
+using BarberShop.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,9 +14,9 @@ namespace BarberShop.Api.Data.Mappings
 
             builder.HasKey(x => x.Id);
 
-            builder.HasOne(x => x.Cliente)
+            builder.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x => x.ClienteId)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Corte)

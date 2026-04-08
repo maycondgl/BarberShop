@@ -15,6 +15,6 @@ namespace BarberShop.Core.Requests.Avaliacao
 
         [Required(ErrorMessage = "O identificador do cliente é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "Cliente inválido")]
-        public long ClienteId { get; set; }
+        public long UserId { get; set; }
     }
 }

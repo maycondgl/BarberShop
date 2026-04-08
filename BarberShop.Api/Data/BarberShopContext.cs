@@ -22,11 +22,11 @@ namespace BarberShop.Api.Data
     {
         public DbSet<Agendamento> Agendamentos { get; set; } = null!;
         public DbSet<Avaliacao> Avaliacoes { get; set; } = null!;
-        public DbSet<Cliente> Clientes { get; set; } = null!;
         public DbSet<Corte> Cortes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         }

@@ -3,6 +3,7 @@ using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Agendamento;
+using System.Security.Claims;
 
 namespace BarberShop.Api.Endpoints.Agendamentos
 {
@@ -20,10 +21,17 @@ namespace BarberShop.Api.Endpoints.Agendamentos
 
 
         private static async Task<IResult> HandleAsync(
+            ClaimsPrincipal user,
             IAgendamentoHandler handler,
             UpdateAgendamentoRequest request,
             long id)
         {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
+            request.UserId = userId;
             request.Id = id;
 
 

@@ -1,4 +1,5 @@
-﻿using BarberShop.Core.Models;
+﻿using BarberShop.Api.Models;
+using BarberShop.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,9 +20,9 @@ namespace BarberShop.Api.Data.Mappings
             builder.Property(x => x.Comentario)
                 .HasMaxLength(500);
 
-            builder.HasOne(x => x.Cliente)
+            builder.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x => x.ClienteId)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(x => x.Data)

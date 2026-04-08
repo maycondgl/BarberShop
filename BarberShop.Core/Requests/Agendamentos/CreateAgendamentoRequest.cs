@@ -6,7 +6,7 @@ namespace BarberShop.Core.Requests.Agendamentos
     {
         [Required(ErrorMessage = "O cliente é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "ID do cliente inválido")]
-        public long ClienteId { get; set; }
+        public long UserId { get; set; }
 
         [Required(ErrorMessage = "O corte é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "ID do corte inválido")]
