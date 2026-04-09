@@ -2,8 +2,8 @@
 {
     public class GetAllAvaliacaoRequest : PagedRequest
     {
-        public long UserId { get; set; }
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
+        public new long UserId { get; set; }
+        public new int PageNumber { get; set; }
+        public new int PageSize { get; set; }
     }
 }

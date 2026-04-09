@@ -2,7 +2,7 @@
 {
     public class GetAvaliacaoByIdRequest : Request
     {
-        public long UserId { get; set; }
+        public new long UserId { get; set; }
         public long Id { get; set; }
     }
 }

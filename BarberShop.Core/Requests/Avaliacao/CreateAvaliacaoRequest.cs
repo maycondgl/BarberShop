@@ -6,7 +6,7 @@ namespace BarberShop.Core.Requests.Avaliacao
     {
         [Required(ErrorMessage = "O identificador do cliente é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "Cliente inválido")]
-        public long UserId { get; set; }
+        public new long UserId { get; set; }
 
         [Required(ErrorMessage = "A nota é obrigatória")]
         [Range(1, 5, ErrorMessage = "A nota deve ser entre 1 e 5 estrelas")]

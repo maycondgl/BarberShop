@@ -2,6 +2,8 @@
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
+using BarberShop.Api.Endpoints.Identity;
+using BarberShop.Api.Models;
 
 namespace BarberShop.Api.Endpoints
 {
@@ -11,6 +13,10 @@ namespace BarberShop.Api.Endpoints
         {
             var endpoints = app
                 .MapGroup("");
+
+            endpoints.MapGroup("/")
+                .WithTags("Health Check")
+                .MapGet("/", () => new { message = "OK" });
 
             endpoints.MapGroup("v1/agendamentos")
                 .WithTags("Agendamentos")
@@ -39,7 +45,14 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();
 
+            endpoints.MapGroup("v1/identity")
+                .WithTags("Identity")
+                .MapIdentityApi<User>();
 
+            endpoints.MapGroup("v1/identity")
+                .WithTags("Identity")
+                .MapEndpoint<LogoutEndpoint>()
+                .MapEndpoint<GetRolesEndpoint>();
         }
         private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)
             where TEndpoint : IEndpoint
