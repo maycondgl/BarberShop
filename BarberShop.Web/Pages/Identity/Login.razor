@@ -1,0 +1,47 @@
+﻿@page "/entrar"
+@layout HeadlessLayout
+
+
+<PageTitle>BarberShop - Entrar</PageTitle>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" sm="12" md="8" lg="6" xl="6" xxl="6">
+        <MudPaper Class="mud-width-full pa-8">
+
+            <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                <img src="imgs/Essencia Da Beleza (2).png"
+                     alt="BarberShop - Gestão de Barbearia"
+                     width="200" />
+            </MudStack>
+
+            <MudForm @ref="_mudForm">
+                <MudTextField
+                    T="string" 
+                    Label="E-mail"
+                    InputType="InputType.Email"
+                    Required="true"
+                    RequiredError="Informe o E-mail"
+                              Validation="@(new EmailAddressAttribute{ErrorMessage="E-mail inválido"})" />
+
+               <MudTextField T="string"
+                   Label="Senha"
+                   InputType="InputType.Password"
+                   Required="true"
+                              RequiredError="Senha inválida" />
+            </MudForm>
+
+            <div class="d-flex mt-8">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary">ENTRAR</MudButton>
+                <MudSpacer/>
+                <MudButton Href="/comecar">REGISTRAR</MudButton>
+
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    MudForm? _mudForm;
+
+}

@@ -1,34 +1,116 @@
-🪒 BarberShop - Sistema de Agendamento
-Este projeto é uma aplicação de gestão para barbearias desenvolvida com o ecossistema .NET, focando em boas práticas de arquitetura e design de software. O projeto é fruto dos meus estudos práticos no curso Fullstack .NET do Balta.io.
+# 💈 BarberShop API & Web
 
-🎯 Objetivo
-Construir uma solução robusta para o gerenciamento de agendamentos, serviços e clientes, aplicando conceitos de Domain-Driven Design (DDD) e Always Valid Domain Models.
+Projeto desenvolvido com **ASP.NET Core + Blazor** com o objetivo de simular um sistema completo de barbearia, incluindo cadastro de clientes, cortes e agendamentos.
 
-🛠️ Tecnologias e Conceitos
-C# / .NET 8/9: Linguagem e framework principal.
+---
 
-DDD (Domain-Driven Design): Organização em camadas para separação de responsabilidades.
+## 📌 Objetivo
 
-OOP (Programação Orientada a Objetos): Modelagem de entidades ricas.
+Criar uma aplicação web para gerenciamento de uma barbearia, aplicando conceitos como:
 
-Git: Versionamento semântico de código.
+* Endpoints (Minimal API)
+* Entity Framework Core
+* Relacionamentos entre entidades
+* Injeção de Dependência
+* Arquitetura em camadas (API, Core, Web)
+* Consumo de API com Blazor
+* Controle de regras de negócio (ex: apenas admin cria cortes)
 
-🏗️ Estrutura Atual (Camada Core)
-Atualmente, o projeto foca na definição das Entidades de Domínio dentro do projeto BarberShop.Core:
+---
 
-Agendamento: Entidade que orquestra o horário, o cliente e o serviço solicitado.
+## 🛠️ Tecnologias Utilizadas
 
-Cliente: Representação do usuário e seus dados de contato.
+* ASP.NET Core
+* C#
+* Entity Framework Core
+* SQL Server
+* Blazor (MudBlazor)
+* Swagger
+* Git e GitHub
 
-Corte: Catálogo de serviços com descrição e valores.
+---
 
-Avaliação: Lógica para feedback após o serviço concluído.
+## 📂 Estrutura do Projeto
 
-🚀 Próximos Passos
-[ ] Implementar Validações (Contracts/Notifications).
+### 🔹 BarberShop.Api
 
-[ ] Configurar Contexto de Dados com Entity Framework Core.
+* Endpoints
+* Handlers
+* Data (DbContext)
+* Configurações
+* Regras de negócio
 
-[ ] Criar Repositórios e Unidade de Trabalho (Unit of Work).
+### 🔹 BarberShop.Core
 
-[ ] Desenvolver a API (Controllers e Endpoints).
+* Models (Cliente, Corte, Agendamento)
+* Enums (Status do Agendamento)
+* Requests / Responses
+* Handlers compartilhados
+
+### 🔹 BarberShop.Web
+
+* Interface com Blazor
+* Layouts (MudBlazor)
+* Páginas (Login, Registro, Home)
+* Integração com API
+
+---
+
+## ⚙️ Funcionalidades
+
+* ✅ Cadastro de clientes
+* ✅ Cadastro de cortes (**somente admin**)
+* ✅ Agendamento de horários
+* ✅ Cálculo automático de preço e duração
+* ✅ Tema claro/escuro (Dark Mode)
+* ✅ Interface moderna com MudBlazor
+
+---
+
+## ▶️ Como executar o projeto
+
+```bash
+# Restaurar pacotes
+dotnet restore
+
+# Executar API
+dotnet run --project BarberShop.Api
+
+# Executar Web
+dotnet run --project BarberShop.Web
+```
+
+---
+
+## 🔐 Regras de Negócio
+
+* Apenas usuários com perfil **Admin** podem criar cortes
+* O cliente escolhe a data do agendamento
+* O sistema define automaticamente:
+
+  * Valor do corte
+  * Tempo de duração
+  * Status inicial (Pendente)
+
+---
+
+## 📸 Interface
+
+Interface construída com foco em um design moderno, utilizando paleta **preto + amarelo (estilo barbearia premium)**.
+
+---
+
+## 🚀 Melhorias Futuras
+
+* Autenticação com JWT
+* Controle de usuários e permissões
+* Dashboard administrativo
+* Histórico de agendamentos
+* Integração com pagamentos
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por você 💪
+Projeto para estudo e evolução como desenvolvedor .NET

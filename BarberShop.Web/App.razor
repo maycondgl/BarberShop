@@ -1,0 +1,13 @@
+﻿<HeadContent>
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</HeadContent>
+
+<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+       @* <FocusOnNavigate RouteData="@routeData" Selector="h1" />*@
+
+    </Found>
+
+</Router>
