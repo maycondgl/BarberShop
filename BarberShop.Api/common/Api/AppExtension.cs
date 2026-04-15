@@ -6,7 +6,7 @@
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.MapSwagger().RequireAuthorization();
+            app.MapSwagger();
 
         }
 

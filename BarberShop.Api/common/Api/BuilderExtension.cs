@@ -34,11 +34,15 @@ namespace BarberShop.Api.common.Api
 
         public static void AddSecurity(this WebApplicationBuilder builder)
         {
-            builder.Services
-            .AddAuthentication(IdentityConstants.ApplicationScheme)
-            .AddIdentityCookies();
+
+            builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+                .AddIdentityCookies(); 
 
             builder.Services.AddAuthorization();
+
+            builder.Services.AddIdentityCore<User>()
+                .AddRoles<IdentityRole<long>>()
+                .AddEntityFrameworkStores<BarberShopContext>();
         }
 
         public static void AddDataContexts(this WebApplicationBuilder builder)
@@ -78,6 +82,7 @@ namespace BarberShop.Api.common.Api
             builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
             builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
             builder.Services.AddTransient<ICorteHandler, CorteHandler>();
+            builder.Services.AddTransient<AccountHandler>();
         }  
 
     }

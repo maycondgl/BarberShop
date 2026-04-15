@@ -1,9 +1,12 @@
 ﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.Endpoints.Accounts;
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
 using BarberShop.Api.Endpoints.Identity;
 using BarberShop.Api.Models;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace BarberShop.Api.Endpoints
 {
@@ -47,12 +50,18 @@ namespace BarberShop.Api.Endpoints
 
             endpoints.MapGroup("v1/identity")
                 .WithTags("Identity")
-                .MapIdentityApi<User>();
+                //.MapIdentityApi<User>();
 
-            endpoints.MapGroup("v1/identity")
-                .WithTags("Identity")
+                .MapEndpoint<RegisterEndpoint>()
+                .MapEndpoint<LoginEndpoint>()
                 .MapEndpoint<LogoutEndpoint>()
-                .MapEndpoint<GetRolesEndpoint>();
+                .MapEndpoint<GetRolesEndpoint>()
+                .MapEndpoint<ForgotPasswordEndpoint>() 
+                .MapEndpoint<ResetPasswordEndpoint>()
+
+
+            .MapPost("/refresh", (ClaimsPrincipal user, SignInManager<User> signInManager) => {
+             });
         }
         private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)
             where TEndpoint : IEndpoint

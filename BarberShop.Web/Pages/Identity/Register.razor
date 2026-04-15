@@ -16,6 +16,16 @@
 
             <MudForm @ref="_mudForm">
                 <MudTextField T="string"
+                              Label="Nome Completo"
+                              Required="true" />
+
+                <MudTextField T="string"
+                              Label="Número"
+                              InputType="InputType.Telephone"
+                              Required="true"
+                              RequiredError="Número inválido" />
+
+                <MudTextField T="string"
                               Label="E-mail"
                               InputType="InputType.Email"
                               Required="true"

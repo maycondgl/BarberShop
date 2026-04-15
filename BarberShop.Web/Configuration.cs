@@ -4,6 +4,10 @@ namespace BarberShop.Web
 {
     public static class Configuration
     {
+        public const string HttpClientName = "BarberShop";
+
+        public static string BackendUrl { get; set; } = "http://localhost:5131";
+
         public static MudTheme Theme = new()
         {
             Palette = new PaletteLight()
