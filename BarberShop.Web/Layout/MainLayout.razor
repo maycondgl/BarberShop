@@ -7,18 +7,28 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
-    <MudAppBar>
-        BarberShop
-        <MudSpacer />
-        <MudSwitch @bind-Value="_isDarkMode" />
-    </MudAppBar>
-    <MudMainContent>
-        <MudContainer>
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+<AuthorizeView>
+    <Authorized>
+        <MudLayout>
+            <MudAppBar>
+                BarberShop
+                <MudSpacer />
+                <MudText Typo="Typo.caption">
+                    @context.User.Identity?.Name
+                </MudText>
+                <MudSwitch @bind-Value="_isDarkMode" />
+            </MudAppBar>
+            <MudMainContent>
+                <MudContainer>
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+    <NotAuthorized>
+        <LoginRedirect/>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
 

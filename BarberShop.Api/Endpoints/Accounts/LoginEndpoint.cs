@@ -11,12 +11,12 @@ public class LoginEndpoint : IEndpoint
         => app.MapPost("/login", HandleAsync);
 
     private static async Task<IResult> HandleAsync(
-    [FromQuery] bool? useCookies,          // Vai para o topo (Parameters)
-    [FromQuery] bool? useSessionCookies,   // Vai para o topo (Parameters)
-    [FromBody] LoginRequest body,      // Vai para o JSON (Request Body)
+    [FromQuery] bool? useCookies,     
+    [FromQuery] bool? useSessionCookies,  
+    [FromBody] LoginRequest body,      
     AccountHandler handler)
     {
-        var meuRequest = new BarberShop.Core.Requests.Account.LoginRequest
+        var meuRequest = new LoginRequest
         {
             Email = body.Email,
             Senha = body.Senha

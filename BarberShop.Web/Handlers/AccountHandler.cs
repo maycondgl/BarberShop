@@ -21,15 +21,17 @@ namespace BarberShop.Web.Handlers
         public async Task<Response<string>> RegisterAsync(RegisterRequest request)
         {
             var result = await _client.PostAsJsonAsync("v1/identity/register", request);
+            var body = await result.Content.ReadAsStringAsync();
+
             return result.IsSuccessStatusCode
-                ? new Response<string>("Cadastro realizado com sucesso!", 201, "Cadastro realizado com sucesso!")
-                : new Response<string>(null, 400, "Não foi possível fazer o seu cadastro");
+                ? new Response<string>(body, 201, "Cadastro realizado com sucesso!")
+                : new Response<string>(body, (int)result.StatusCode, body);
         }
 
         public async Task LogoutAsync()
         {
             var emptyContent = new StringContent("{}", Encoding.UTF8, "application/json");
-            await _client.PostAsJsonAsync("v1/identity/logout", emptyContent);
+            await _client.PostAsync("v1/identity/logout", emptyContent);
         }
 
     }

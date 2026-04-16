@@ -50,7 +50,7 @@ namespace BarberShop.Api.Endpoints
 
             endpoints.MapGroup("v1/identity")
                 .WithTags("Identity")
-                //.MapIdentityApi<User>();
+                //MapIdentityApi<User>();
 
                 .MapEndpoint<RegisterEndpoint>()
                 .MapEndpoint<LoginEndpoint>()
@@ -58,6 +58,8 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<GetRolesEndpoint>()
                 .MapEndpoint<ForgotPasswordEndpoint>() 
                 .MapEndpoint<ResetPasswordEndpoint>()
+                .MapEndpoint<GetInfoEndpoint>() 
+                .MapEndpoint<TwoFactorEndpoint>()
 
 
             .MapPost("/refresh", (ClaimsPrincipal user, SignInManager<User> signInManager) => {
