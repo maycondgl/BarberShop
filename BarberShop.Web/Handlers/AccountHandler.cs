@@ -1,4 +1,5 @@
 ﻿using BarberShop.Core.Handlers;
+using BarberShop.Core.Requests;
 using BarberShop.Core.Requests.Account;
 using BarberShop.Core.Responses;
 using System.Net.Http.Json;
@@ -34,5 +35,26 @@ namespace BarberShop.Web.Handlers
             await _client.PostAsync("v1/identity/logout", emptyContent);
         }
 
+        public async Task<Response<string>> UpdateProfileAsync(UpdateProfileRequest request)
+        {
+            var result = await _client.PutAsJsonAsync("v1/identity/profile", request);
+
+            if (result.IsSuccessStatusCode)
+                return new Response<string>("Perfil atualizado com sucesso!", 200, "Perfil atualizado com sucesso!");
+
+            var body = await result.Content.ReadAsStringAsync();
+            return new Response<string>(body, (int)result.StatusCode, body);
+        }
+
+        public async Task<Response<string>> DeleteProfileAsync()
+        {
+            var result = await _client.DeleteAsync("v1/identity/profile");
+
+            if (result.IsSuccessStatusCode)
+                return new Response<string>("Conta excluída com sucesso!", 200, "Conta excluída com sucesso!");
+
+            var body = await result.Content.ReadAsStringAsync();
+            return new Response<string>(body, (int)result.StatusCode, body);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.Endpoints.Account;
 using BarberShop.Api.Endpoints.Accounts;
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
@@ -60,6 +61,8 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<ResetPasswordEndpoint>()
                 .MapEndpoint<GetInfoEndpoint>() 
                 .MapEndpoint<TwoFactorEndpoint>()
+                .MapEndpoint<UpdateProfileEndpoint>()
+                .MapEndpoint<DeleteProfileEndpoint>()
 
 
             .MapPost("/refresh", (ClaimsPrincipal user, SignInManager<User> signInManager) => {

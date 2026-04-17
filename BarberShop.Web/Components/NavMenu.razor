@@ -1,0 +1,39 @@
+﻿@using MudBlazor
+
+<MudStack Spacing="2" Class="pa-4">
+
+    <div class="d-flex justify-center pa-4">
+        <img src="imgs/Essencia Da Beleza (2).png" width="180" />
+    </div>
+
+    <MudText Typo="Typo.subtitle2" Class="pa-2">
+        Menu
+    </MudText>
+
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+            Início
+        </MudNavLink>
+
+        <MudNavLink Href="/agendamentos" Icon="@Icons.Material.Filled.Event">
+            Agendamentos
+        </MudNavLink>
+
+        <MudNavLink Href="/cortes" Icon="@Icons.Material.Filled.ContentCut">
+            Cortes
+        </MudNavLink>
+
+        <MudNavLink Href="/avaliacoes" Icon="@Icons.Material.Filled.StarRate">
+            Avaliações
+        </MudNavLink>
+
+        <MudNavLink Href="/perfil" Icon="@Icons.Material.Filled.Person">
+            Meu Perfil
+        </MudNavLink>
+
+        <MudNavLink Href="/sair" Icon="@Icons.Material.Filled.Logout">
+            Sair
+        </MudNavLink>
+    </MudNavMenu>
+
+</MudStack>

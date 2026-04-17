@@ -13,22 +13,32 @@ namespace BarberShop.Web
             Palette = new PaletteLight()
             {
                 Primary = "#FFC107",
-                Secondary = "#FF8F00",
-                Background = "#FFFFFF",
+
                 AppbarBackground = "#FFC107",
-                Surface = "#FFFFFF",
                 AppbarText = "#000000",
-                TextPrimary = "#000000",
-                PrimaryContrastText = "000000",
-                DrawerText = Colors.Shades.Black,
-                DrawerBackground = Colors.Yellow.Darken3
+
+                DrawerBackground = "#FFFFFF",
+                DrawerText = "#111111",
+                DrawerIcon = "#111111",
+
+                Background = "#F5F5F5",
+                Surface = "#FFFFFF",
+
+                TextPrimary = "#111111",
+                TextSecondary = "#444444",
+
+                PrimaryContrastText = "#000000"
+
             },
 
             PaletteDark = new PaletteDark()
             {
                 Primary = "#FFC107",
-                AppbarBackground = "#121212",
-                AppbarText = "#FFC107"
+                Secondary = "#FFB300",
+                Background = "#121212",
+                Surface = "#1E1E1E",
+                AppbarBackground = "#1E1E1E",
+                DrawerBackground = "#1A1A1A"
             }
         };
     }
