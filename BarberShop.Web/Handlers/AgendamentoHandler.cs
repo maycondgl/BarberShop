@@ -41,5 +41,6 @@ namespace BarberShop.Web.Handlers
             => await _client.GetFromJsonAsync<PagedResponse<List<Agendamento>>>("v1/agendamentos")
                 ?? new PagedResponse<List<Agendamento>>(null, 400, "Não foi possível obter os agendamentos");  
         //test test
+        //test
     }
 }
