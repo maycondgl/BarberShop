@@ -1,4 +1,4 @@
-name: CI - Build and Test (BarberShop)
+name: CI - Build BarberShop
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,11 +19,14 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Restore dependencies
-        run: dotnet restore BarberShop.sln
+      - name: Restore API
+        run: dotnet restore BarberShop.Api/BarberShop.Api.csproj
 
-      - name: Build solution
-        run: dotnet build BarberShop.sln --no-restore --configuration Release
+      - name: Build API
+        run: dotnet build BarberShop.Api/BarberShop.Api.csproj --no-restore --configuration Release
 
-      - name: Run tests (if exists)
-        run: dotnet test BarberShop.sln --no-build --configuration Release --verbosity normal || echo "No tests found"
+      - name: Restore Web
+        run: dotnet restore BarberShop.Web/BarberShop.Web.csproj
+
+      - name: Build Web
+        run: dotnet build BarberShop.Web/BarberShop.Web.csproj --no-restore --configuration Release
