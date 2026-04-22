@@ -12,6 +12,8 @@ namespace BarberShop.Core.Handlers
         Task<Response<AgendamentoResponse?>> DeleteAsync(long id);
         Task<Response<Agendamento?>> GetByIdAsync(GetAgendamentoByIdRequest request);
         Task<PagedResponse<List<Agendamento>>> GetAllAsync(GetAllAgendamentoRequest request);
+        Task<PagedResponse<List<AgendamentoResponse>?>> GetByPeriodAsync(
+            GetAgendamentoByPeriodRequest request);
 
 
     }

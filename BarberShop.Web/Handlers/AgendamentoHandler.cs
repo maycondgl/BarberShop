@@ -38,9 +38,21 @@ namespace BarberShop.Web.Handlers
             ?? new Response<Agendamento?>(null, 400, "Não foi possível obter agendamento");
 
         public async Task<PagedResponse<List<Agendamento>>> GetAllAsync(GetAllAgendamentoRequest request)
-            => await _client.GetFromJsonAsync<PagedResponse<List<Agendamento>>>("v1/agendamentos")
-                ?? new PagedResponse<List<Agendamento>>(null, 400, "Não foi possível obter os agendamentos");  
-        //test test
-        //test
+     => await _client.GetFromJsonAsync<PagedResponse<List<Agendamento>>>(
+         $"v1/agendamentos?pageNumber={request.PageNumber}&pageSize={request.PageSize}")
+         ?? new PagedResponse<List<Agendamento>>(null, 400, "Não foi possível obter os agendamentos");
+
+        public async Task<PagedResponse<List<AgendamentoResponse>?>> GetByPeriodAsync(
+                    GetAgendamentoByPeriodRequest request)
+        {
+            return await _client
+                .GetFromJsonAsync<PagedResponse<List<AgendamentoResponse>?>>(
+                    $"v1/agendamentos/period?startDate={request.StartDate:yyyy-MM-dd}" +
+                    $"&endDate={request.EndDate:yyyy-MM-dd}" +
+                    $"&pageNumber={request.PageNumber}" +
+                    $"&pageSize={request.PageSize}")
+                ?? new PagedResponse<List<AgendamentoResponse>?>(
+                    null, 400, "Não foi possível obter os agendamentos");
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace BarberShop.Api.Endpoints.Agendamentos
     public class GetAgendamentoByIdEndpoint : IEndpoint
     {
         public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{id}", HandleAsync)
+        => app.MapGet("/{id:long}", HandleAsync)
             .WithName("Agendamentos: Get By Id")
             .WithSummary("Recupera um agendamento")
             .WithDescription("Recupera um serviço de corte")

@@ -1,0 +1,42 @@
+﻿@page "/agendamentos/adicionar"
+@inherits CreateAgendamentoPage
+
+<MudText Typo="Typo.h3">Novo Agendamento</MudText>
+<MudPaper Class="pa-8 mt-4">
+    <EditForm Model="@InputModel" OnSubmit="OnValidSubmitAsync">
+        <DataAnnotationsValidator />
+
+        <MudSelect T="long"
+                   Label="Tipo de Corte"
+                   HelperText="Campo obrigatório"
+                   @bind-Value="InputModel.CorteId"
+                   Class="mt-4">
+
+            @foreach (var corte in Cortes)
+            {
+                <MudSelectItem T="long" Value="@corte.Id">@corte.Titulo</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudDatePicker Label="Data do Agendamento"
+                       Date="@InputModel.Data"
+                       DateChanged="@((DateTime? d) => { InputModel.Data = d ?? DateTime.Today; })"
+                       MinDate="DateTime.Today"
+                       Required="true"
+                       Class="mt-4" />
+
+        <MudTimePicker Label="Horário do Agendamento"
+                       @bind-Time="_horario"
+                       Required="true"
+                       Class="mt-4" />
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="mt-6">
+            Agendar
+        </MudButton>
+
+
+    </EditForm>
+</MudPaper>

@@ -1,0 +1,16 @@
+﻿@page "/agendamentos"
+@inherits ListAgendamentoPage
+
+<MudText Typo="Typo.h3">Agendamentos</MudText>
+
+<ul>
+    @foreach (var agendamento in Agendamentos)
+    {
+        <li>
+            @agendamento.Data.ToString("dd/MM/yyyy HH:mm") -
+            @agendamento.Corte.Titulo -
+            @agendamento.Valor.ToString("C") -
+            @agendamento.Status
+        </li>
+    }
+</ul>

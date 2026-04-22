@@ -28,8 +28,11 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<CreateAgendamentoEndpoint>()
                 .MapEndpoint<UpdateAgendamentoEndpoint>()
                 .MapEndpoint<DeleteAgendamentoEndpoint>()
+                .MapEndpoint<GetAgendamentoByPeriodEndpoint>()
                 .MapEndpoint<GetAgendamentoByIdEndpoint>()
                 .MapEndpoint<GetAllAgendamentoEndpoint>();
+                
+
 
             endpoints.MapGroup("v1/avaliacoes")
                .WithTags("Avaliações")

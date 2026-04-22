@@ -1,5 +1,6 @@
 ﻿using BarberShop.Api.Data;
 using BarberShop.Core.Enums;
+using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
@@ -189,6 +190,29 @@ namespace BarberShop.Api.Handlers
             {
                 return new PagedResponse<List<Agendamento>>(null, 500, "Não foi possível consultar os agendamentos");
             }
+        }
+
+        public async Task<PagedResponse<List<AgendamentoResponse>?>> GetByPeriodAsync(
+            GetAgendamentoByPeriodRequest request)
+        {
+            var startDate = request.StartDate ?? DateTime.Now.GetFirstDayOfMonth();
+            var endDate = request.EndDate ?? DateTime.Now.GetLastDayOfMonth();
+
+            var query = _context.Agendamentos
+                .AsNoTracking()
+                .Where(a => a.Data >= startDate && a.Data <= endDate)
+                .OrderBy(a => a.Data);
+
+            var count = await query.CountAsync();
+
+            var agendamentos = await query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new PagedResponse<List<AgendamentoResponse>?>(
+                agendamentos.Select(a => (AgendamentoResponse)a).ToList(),
+                count, request.PageNumber, request.PageSize);
         }
 
 
