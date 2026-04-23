@@ -112,5 +112,5 @@ Interface construída com foco em um design moderno, utilizando paleta **preto +
 
 ## 👨‍💻 Autor
 
-Desenvolvido por você 💪
+Desenvolvido por Maycon Douglas Sousa Leite
 Projeto para estudo e evolução como desenvolvedor .NET
