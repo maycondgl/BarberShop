@@ -2,15 +2,64 @@
 @inherits ListAgendamentoPage
 
 <MudText Typo="Typo.h3">Agendamentos</MudText>
+<div class="d-flex justify-end">
+    <MudButton 
+        Variant="Variant.Filled" 
+        Color="Color.Primary" 
+        StartIcon="@Icons.TwoTone.Add"
+               Href="/agendamentos/adicionar">
+        Novo Agendamento</MudButton>
+</div>
 
-<ul>
-    @foreach (var agendamento in Agendamentos)
-    {
-        <li>
-            @agendamento.Data.ToString("dd/MM/yyyy HH:mm") -
-            @agendamento.Corte.Titulo -
-            @agendamento.Valor.ToString("C") -
-            @agendamento.Status
-        </li>
-    }
-</ul>
+<MudDataGrid 
+    Class="mt-4"
+    Items="@Agendamentos"
+    Filterable="true"
+    QuickFilter="Filter"
+    Hideable="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Agendamentos</MudText>
+        <MudSpacer />
+        <MudTextField 
+            @bind-Value="SearchTerm"
+            Placeholder="Filtrar ..."
+            Adornment="Adornment.Start"
+            AdornmentIcon="@Icons.Material.Filled.Search"
+            Immediate="true"
+            IconSize="Size.Medium"
+            Class="mt-0"
+        ></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="#" />
+        <PropertyColumn Property="x => x.Corte.Titulo" Title="Nome do Corte" />
+        <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
+        <PropertyColumn Property="x => x.Tempo" Title="Duração do Corte" />
+        <TemplateColumn Title="Valor">
+            <CellTemplate>
+                @context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Status" Title="Status" />
+        <TemplateColumn>
+            <CellTemplate>
+                <div style="display: flex; align-items: center; gap: 8px">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Href="@($"/agendamentos/editar/{context.Item.Id}")"
+                                   Color="Color.Primary"
+                                   Size="Size.Small" 
+                                   Style="padding: 0; margin: 0;" />
+
+                    <MudIconButton 
+                                   Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   aria-label="Excluir"
+                                   Size="Size.Small"
+                                   OnClick="() => OnDeleteButtonClickedAsync(context.Item.Id, context.Item.Corte.Titulo)" 
+                                   Style="padding: 0; margin: 0;" />
+                </div>
+            </CellTemplate>
+
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
