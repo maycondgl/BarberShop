@@ -6,8 +6,6 @@ namespace BarberShop.Core.Requests.Agendamentos
     {
         public long Id { get; set; }
 
-        [Required(ErrorMessage = "O cliente é obrigatório")]
-        [Range(1, long.MaxValue, ErrorMessage = "ID do cliente inválido")]
         public long UserId { get; set; }
 
         [Required(ErrorMessage = "O corte é obrigatório")]
@@ -16,8 +14,6 @@ namespace BarberShop.Core.Requests.Agendamentos
 
         [Required(ErrorMessage = "A data e hora são obrigatórias")]
         [DataType(DataType.DateTime)]
-        [Range(typeof(DateTime), "2024-01-01", "2100-12-31",
-        ErrorMessage = "Data inválida")]
         public DateTime Data { get; set; }
     }
 }

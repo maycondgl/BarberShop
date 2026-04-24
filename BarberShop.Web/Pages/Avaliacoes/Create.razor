@@ -1,0 +1,59 @@
+﻿@page "/avaliacoes/adicionar/{AgendamentoId:long}"
+@using MudBlazor
+@using BarberShop.Core.Requests.Avaliacao
+@inherits CreateAvaliacaoPage
+
+<MudText Typo="Typo.h3" Class="mb-4">Avaliar Serviço</MudText>
+
+<MudPaper Class="pa-8 mt-4" Elevation="4">
+    <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+        <DataAnnotationsValidator />
+
+        <MudGrid>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                    Você está avaliando o serviço realizado em <b>@InputModel.Data.ToString("dd/MM/yyyy")</b>
+                </MudAlert>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex flex-column align-center py-4">
+                <MudText Typo="Typo.h6">Sua nota para o corte</MudText>
+                <MudRating @bind-SelectedValue="InputModel.Estrelas"
+                           MaxValue="5"
+                           FullIcon="@Icons.Material.Filled.Star"
+                           EmptyIcon="@Icons.Material.Filled.StarBorder"
+                           Color="Color.Warning"
+                           Size="Size.Large" />
+                <ValidationMessage For="@(() => InputModel.Estrelas)" />
+            </MudItem>
+
+            <MudTextField Label="Conte-nos o que achou do serviço"
+                          For="@(() => InputModel.Comentario)"
+                          @bind-Value="InputModel.Comentario"
+                          Variant="Variant.Outlined"
+                          Lines="4"
+                          Counter="200"
+                          MaxLength="200"
+                          Immediate="true"
+                          HelperText="Sua opinião é muito importante para nós." />
+
+            <MudItem xs="12" Class="d-flex justify-end mt-4">
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="@IsBusy"
+                           Size="Size.Large">
+                    @if (IsBusy)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">Enviando...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Publicar Avaliação</MudText>
+                    }
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>

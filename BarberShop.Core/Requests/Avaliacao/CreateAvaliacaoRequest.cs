@@ -4,6 +4,10 @@ namespace BarberShop.Core.Requests.Avaliacao
 {
     public class CreateAvaliacaoRequest : Request
     {
+        public long AgendamentoId { get; set; }
+
+        public DateTime Data { get; set; }
+
         [Required(ErrorMessage = "O identificador do cliente é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "Cliente inválido")]
         public new long UserId { get; set; }

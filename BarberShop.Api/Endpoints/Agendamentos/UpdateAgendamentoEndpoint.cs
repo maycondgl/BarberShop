@@ -31,9 +31,8 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             if (!long.TryParse(userIdClaim, out var userId))
                 return Results.Unauthorized();
 
-            request.UserId = userId;
             request.Id = id;
-
+            request.UserId = userId;
 
             var result = await handler.UpdateAsync(request);
             return result.IsSuccess

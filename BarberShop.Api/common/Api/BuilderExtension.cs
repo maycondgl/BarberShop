@@ -40,7 +40,10 @@ namespace BarberShop.Api.common.Api
 
             builder.Services.AddAuthorization();
 
-            builder.Services.AddIdentityCore<User>()
+            builder.Services.AddIdentityCore<User>((options =>
+            {
+                options.SignIn.RequireConfirmedEmail = false;
+            }))
                 .AddRoles<IdentityRole<long>>()
                 .AddEntityFrameworkStores<BarberShopContext>();
         }

@@ -38,7 +38,7 @@ namespace BarberShop.Api.Handlers
                     Data = request.Data,
                     Valor = corte.Preco,
                     Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos),
-                    Status = EStatusAgendamento.Pendente
+                    Status = EStatusAgendamento.Concluido
                 };
 
                 _context.Agendamentos.Add(agendamento);
@@ -68,7 +68,7 @@ namespace BarberShop.Api.Handlers
             {
                 var agendamento = await _context
                     .Agendamentos
-                    .FirstOrDefaultAsync(x => x.Id == request.Id);
+                    .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId);
 
                 if (agendamento is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Agendamento não encontrado");
@@ -76,13 +76,10 @@ namespace BarberShop.Api.Handlers
                 var corte = await _context.Cortes
                         .FirstOrDefaultAsync(x => x.Id == request.CorteId);
 
-                var clienteExiste = await _context.Users
-                    .AnyAsync(x => x.Id == request.UserId);
+                if (corte is null)
+                    return new Response<AgendamentoResponse?>(null, 404, "Corte não encontrado");
 
-                if (corte is null || !clienteExiste)
-                    return new Response<AgendamentoResponse?>(null, 404, "Cliente ou corte não encontrado");
 
-                agendamento.UserId = request.UserId;
                 agendamento.CorteId = request.CorteId;
                 agendamento.Data = request.Data;
 
