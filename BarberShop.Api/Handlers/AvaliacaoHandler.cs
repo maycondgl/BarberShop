@@ -153,9 +153,9 @@ namespace BarberShop.Api.Handlers
                 var query = _context
                    .Avaliacoes
                    .AsNoTracking()
-                    .Include(x => x.UserId)
+                   //.Include(x => x.UserId)
                    // .Include(x => x.Comentario)
-                   // .Where(x => x.UserId == request.UserId)
+                   .Where(x => x.UserId == request.UserId)
                    .OrderBy(x => x.Id);
 
                 var avaliacoes = await query

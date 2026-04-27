@@ -1,0 +1,47 @@
+﻿@page "/pagamento/{Id:long}"
+@inherits PixPage
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="3">
+
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+
+            <MudText Typo="Typo.h5">Pagamento via Pix</MudText>
+            <MudText Typo="Typo.h4" Color="Color.Primary">
+                @Valor.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                Agendamento #@Id
+            </MudText>
+
+            <MudImage Src="@QrCodeUrl"
+                      Width="250" Height="250"
+                      Alt="QR Code Pix"
+                      Elevation="2" />
+
+            <MudText Typo="Typo.subtitle2">Ou copie a chave Pix:</MudText>
+
+            <MudTextField Value="@ChavePix"
+                          ReadOnly="true"
+                          Variant="Variant.Outlined"
+                          FullWidth="true"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                          OnAdornmentClick="CopiarChave" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       OnClick="CopiarChave"
+                       StartIcon="@Icons.Material.Filled.ContentCopy">
+                Copiar Chave Pix
+            </MudButton>
+
+            <MudButton Variant="Variant.Text"
+                       OnClick="@(() => NavigationManager.NavigateTo("/agendamentos"))">
+                Voltar
+            </MudButton>
+
+        </MudStack>
+    </MudPaper>
+</MudContainer>

@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\Avaliacoes\" />
     <Folder Include="Pages\Cortes\" />
   </ItemGroup>
 

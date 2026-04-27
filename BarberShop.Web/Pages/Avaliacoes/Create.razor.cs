@@ -64,7 +64,7 @@ namespace BarberShop.Web.Pages.Avaliacoes
             }
         }
 
-        public async Task OnValidSubmitAsync()
+        public async Task OnValidSubmitAsync(EditContext context)
         { 
             IsBusy = true;
             try

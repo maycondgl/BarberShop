@@ -1,5 +1,6 @@
 ﻿@page "/agendamentos"
 @inherits ListAgendamentoPage
+@inject NavigationManager NavigationManager
 
 <MudText Typo="Typo.h3">Agendamentos</MudText>
 <div class="d-flex justify-end">
@@ -57,6 +58,11 @@
                                    Size="Size.Small"
                                    OnClick="() => OnDeleteButtonClickedAsync(context.Item.Id, context.Item.Corte.Titulo)" 
                                    Style="padding: 0; margin: 0;" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Pix"
+                                   Color="Color.Success"
+                                   Title="Pagar com Pix"
+                                   OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
                 </div>
             </CellTemplate>
 
