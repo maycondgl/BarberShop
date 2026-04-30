@@ -31,6 +31,13 @@
             Meu Perfil
         </MudNavLink>
 
+        <AuthorizeView Roles="Admin">
+            <MudText Typo="Typo.subtitle2" Class="pa-2 mt-2">Admin</MudText>
+            <MudNavLink Href="/admin/agendamentos" Icon="@Icons.Material.Filled.AdminPanelSettings">
+                Gerenciar Agendamentos
+            </MudNavLink>
+        </AuthorizeView>
+
         <MudNavLink Href="/sair" Icon="@Icons.Material.Filled.Logout">
             Sair
         </MudNavLink>

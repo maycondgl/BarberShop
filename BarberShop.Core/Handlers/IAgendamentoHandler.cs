@@ -14,7 +14,8 @@ namespace BarberShop.Core.Handlers
         Task<PagedResponse<List<Agendamento>>> GetAllAsync(GetAllAgendamentoRequest request);
         Task<PagedResponse<List<AgendamentoResponse>?>> GetByPeriodAsync(
             GetAgendamentoByPeriodRequest request);
-
+        Task<PagedResponse<List<AgendamentoResponse>>> GetAllAdminAsync(GetAllAgendamentoRequest request);
+        Task<Response<AgendamentoResponse?>> UpdateStatusAsync(UpdateStatusAgendamentoRequest request);
 
     }
 }

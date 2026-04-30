@@ -7,7 +7,9 @@ public record AgendamentoResponse(
     DateTime Data,
     decimal Valor,
     int TempoMinutos,
-    string Status
+    string Status,
+    string NomeCliente,
+    string CorteTitulo = ""
 )
 {
     public static implicit operator AgendamentoResponse(Models.Agendamento agendamento)
@@ -18,7 +20,9 @@ public record AgendamentoResponse(
             agendamento.Data,
             agendamento.Valor,
             (int)agendamento.Tempo.TotalMinutes,
-            agendamento.Status.ToString()
+            agendamento.Status.ToString(),
+            agendamento.NomeCliente,
+            agendamento.Corte?.Titulo ?? "Sem corte"
         );
 }
 

@@ -3,8 +3,10 @@
    public record AvaliacaoResponse(
    long Id,
    long UserId,
+   long AgendamentoId,
    int Estrelas,
    string? Comentario,
-   DateTime Data
+   DateTime Data,
+   string NomeCliente
 );
 }

@@ -1,0 +1,57 @@
+﻿@page "/avaliacoes"
+@using BarberShop.Core.Responses.Avaliacao
+@using BarberShop.Web.Pages.Avaliacoes
+@inherits ListAvaliacaoPublicPage
+
+<MudText Typo="Typo.h3" Class="mb-6">Avaliações dos Clientes</MudText>
+
+@if (IsBusy)
+{
+    <MudGrid>
+        @for (int i = 0; i < 6; i++)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudSkeleton Height="24px" Width="60%" />
+                        <MudSkeleton Height="20px" Width="40%" Class="mt-2" />
+                        <MudSkeleton Height="60px" Class="mt-2" />
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (!Avaliacoespublic.Any())
+{
+    <MudAlert Severity="Severity.Info">Nenhuma avaliação encontrada.</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var av in Avaliacoespublic)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="3">
+                    <MudCardContent>
+                        <div class="d-flex align-center gap-2 mb-2">
+                            <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                @av.NomeCliente.FirstOrDefault()
+                            </MudAvatar>
+                            <MudText Typo="Typo.subtitle1"><b>@av.NomeCliente</b></MudText>
+                        </div>
+                        <MudRating ReadOnly="true"
+                                   SelectedValue="@av.Estrelas"
+                                   MaxValue="5"
+                                   Color="Color.Warning"
+                                   Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Class="mt-2">@av.Comentario</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                            @av.Data.ToString("dd/MM/yyyy")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}

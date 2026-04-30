@@ -1,5 +1,6 @@
 ﻿using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
+using BarberShop.Core.Requests;
 using BarberShop.Core.Requests.Avaliacao;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Avaliacao;
@@ -32,13 +33,37 @@ namespace BarberShop.Web.Handlers
                 ?? new Response<AvaliacaoResponse?>(null, 400, "Falha ao excluir a avaliação");
         }
         public async Task<Response<Avaliacao?>> GetByIdAsync(GetAvaliacaoByIdRequest request)
-            => await _client.GetFromJsonAsync<Response<Avaliacao?>>($"v1/avaliacoes/{request.Id}")
-            ?? new Response<Avaliacao?>(null, 400, "Não foi possível obter a avaliação");
+        { 
+            var response = await _client.GetAsync($"v1/avaliacoes/{request.Id}");
 
-        public async Task<PagedResponse<List<Avaliacao>>> GetAllAsync(GetAllAvaliacaoRequest request)
-                => await _client.GetFromJsonAsync<PagedResponse<List<Avaliacao>>>(
-                    $"v1/avaliacoes?pageNumber={request.PageNumber}&pageSize={request.PageSize}")
-                ?? new PagedResponse<List<Avaliacao>>(null, 400, "Não foi possível obter as avaliações");
+            if (!response.IsSuccessStatusCode)
+                return new Response<Avaliacao?>(null, (int) response.StatusCode, "Não foi possível obter a avaliação");
 
+            return await response.Content.ReadFromJsonAsync<Response<Avaliacao?>>()
+                ?? new Response<Avaliacao?>(null, 400, "Não foi possível obter a avaliação");
+        }
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllAsync(GetAllAvaliacaoRequest request)
+        {
+            var response = await _client.GetAsync(
+                $"v1/avaliacoes?pageNumber={request.PageNumber}&pageSize={request.PageSize}");
+
+            if (!response.IsSuccessStatusCode)
+                return new PagedResponse<List<AvaliacaoResponse>>(null, (int)response.StatusCode, "Não foi possível obter as avaliações");
+
+            return await response.Content.ReadFromJsonAsync<PagedResponse<List<AvaliacaoResponse>>>()
+                ?? new PagedResponse<List<AvaliacaoResponse>>(null, 400, "Não foi possível obter as avaliações");
+        }
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllPublicAsync(int pageNumber, int pageSize)
+        {
+            var response = await _client.GetAsync(
+                $"v1/public/avaliacoes?pageNumber={pageNumber}&pageSize={pageSize}");
+
+            if (!response.IsSuccessStatusCode)
+                return new PagedResponse<List<AvaliacaoResponse>>(null, (int)response.StatusCode, "Não foi possível obter as avaliações");
+
+            return await response.Content.ReadFromJsonAsync<PagedResponse<List<AvaliacaoResponse>>>()
+                ?? new PagedResponse<List<AvaliacaoResponse>>(null, 400, "Não foi possível obter as avaliações");
+        }
     }
 }

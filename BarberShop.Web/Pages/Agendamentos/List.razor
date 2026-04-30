@@ -1,4 +1,5 @@
 ﻿@page "/agendamentos"
+@using BarberShop.Core.Enums
 @inherits ListAgendamentoPage
 @inject NavigationManager NavigationManager
 
@@ -63,6 +64,29 @@
                                    Color="Color.Success"
                                    Title="Pagar com Pix"
                                    OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
+
+
+                    @if (context.Item.Status == EStatusAgendamento.Concluido)
+                    {
+                        @if (AgendamentosAvaliados.Contains(context.Item.Id))
+                        {
+                            <MudChip Color="Color.Success"
+                                     Size="Size.Small"
+                                     Icon="@Icons.Material.Filled.Star">
+                                Avaliado
+                            </MudChip>
+                        }
+                        else
+                        {
+                           <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Size="Size.Small"
+                           Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
+                           Style="border-radius: 20px; font-weight: bold; letter-spacing: 1px;">
+                                AVALIAR
+                            </MudButton>
+                        }
+                    }
                 </div>
             </CellTemplate>
 

@@ -11,6 +11,7 @@ namespace BarberShop.Core.Handlers
         Task<Response<AvaliacaoResponse?>> UpdateAsync(UpdateAvaliacaoRequest request);
         Task<Response<AvaliacaoResponse?>> DeleteAsync(long id);
         Task<Response<Avaliacao?>> GetByIdAsync(GetAvaliacaoByIdRequest request);
-        Task<PagedResponse<List<Avaliacao>>> GetAllAsync(GetAllAvaliacaoRequest request);
+        Task<PagedResponse<List<AvaliacaoResponse>>> GetAllAsync(GetAllAvaliacaoRequest request);
+        Task<PagedResponse<List<AvaliacaoResponse>>> GetAllPublicAsync(int pageNumber, int pageSize);
     }
 }

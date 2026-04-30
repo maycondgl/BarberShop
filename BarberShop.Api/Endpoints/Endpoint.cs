@@ -25,14 +25,19 @@ namespace BarberShop.Api.Endpoints
             endpoints.MapGroup("v1/agendamentos")
                 .WithTags("Agendamentos")
                 //.RequireAuthorization()
+                .MapEndpoint<GetAllAdminAgendamentoEndpoint>()  
+                .MapEndpoint<UpdateStatusAgendamentoEndpoint>()
                 .MapEndpoint<CreateAgendamentoEndpoint>()
                 .MapEndpoint<UpdateAgendamentoEndpoint>()
                 .MapEndpoint<DeleteAgendamentoEndpoint>()
                 .MapEndpoint<GetAgendamentoByPeriodEndpoint>()
                 .MapEndpoint<GetAgendamentoByIdEndpoint>()
                 .MapEndpoint<GetAllAgendamentoEndpoint>();
-                
 
+            endpoints.MapGroup("v1/public/avaliacoes")
+                .WithTags("Avaliações Públicas")
+                .AllowAnonymous()
+                .MapEndpoint<GetAllPublicAvaliacaoEndpoint>();
 
             endpoints.MapGroup("v1/avaliacoes")
                .WithTags("Avaliações")
@@ -42,6 +47,7 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<DeleteAvaliacaoEndpoint>()
                .MapEndpoint<GetAvaliacaoByIdEndpoint>()
                .MapEndpoint<GetAllAvaliacaoEndpoint>();
+               
 
             endpoints.MapGroup("v1/cortes")
                .WithTags("cortes")
@@ -52,13 +58,16 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();
 
+
+
             endpoints.MapGroup("v1/identity")
                 .WithTags("Identity")
                 //MapIdentityApi<User>();
 
+                .MapEndpoint<MeEndpoint>()
                 .MapEndpoint<RegisterEndpoint>()
                 .MapEndpoint<LoginEndpoint>()
-                .MapEndpoint<LogoutEndpoint>()
+                .MapEndpoint<LogoutEndpoint>() 
                 .MapEndpoint<GetRolesEndpoint>()
                 .MapEndpoint<ForgotPasswordEndpoint>() 
                 .MapEndpoint<ResetPasswordEndpoint>()

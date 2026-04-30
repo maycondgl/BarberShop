@@ -38,7 +38,7 @@ namespace BarberShop.Api.Handlers
                     Data = request.Data,
                     Valor = corte.Preco,
                     Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos),
-                    Status = EStatusAgendamento.Concluido
+                    Status = EStatusAgendamento.Pendente
                 };
 
                 _context.Agendamentos.Add(agendamento);
@@ -51,7 +51,8 @@ namespace BarberShop.Api.Handlers
                      agendamento.Data,
                      agendamento.Valor,
                      (int)agendamento.Tempo.TotalMinutes,
-                     agendamento.Status.ToString()
+                     agendamento.Status.ToString(),
+                     agendamento.NomeCliente
                  );
 
                 return new Response<AgendamentoResponse?>(response, 201, "Agendamento criado");
@@ -98,7 +99,8 @@ namespace BarberShop.Api.Handlers
                     agendamento.Data,
                     agendamento.Valor,
                     (int)agendamento.Tempo.TotalMinutes,
-                    agendamento.Status.ToString()
+                    agendamento.Status.ToString(),
+                    agendamento.NomeCliente
                   );
 
                 return new Response<AgendamentoResponse?>(response, 200, "Agendamento atualizado");
@@ -127,7 +129,9 @@ namespace BarberShop.Api.Handlers
                     agendamento.Data,
                     agendamento.Valor,
                     (int)agendamento.Tempo.TotalMinutes,
-                    agendamento.Status.ToString()
+                    agendamento.Status.ToString(),
+                    agendamento.NomeCliente,
+                    agendamento.Corte.Titulo
                 );
 
                 _context.Agendamentos.Remove(agendamento);
@@ -176,6 +180,12 @@ namespace BarberShop.Api.Handlers
                     .Take(request.PageSize)
                     .ToListAsync();
 
+                foreach (var a in agendamentos)
+                {
+                    var user = await _context.Users.FindAsync(a.UserId);
+                    a.NomeCliente = user?.NomeCompleto ?? "Desconhecido";
+                }
+
                 var count = await query.CountAsync();
 
                 return new PagedResponse<List<Agendamento>>(agendamentos,
@@ -212,6 +222,74 @@ namespace BarberShop.Api.Handlers
                 count, request.PageNumber, request.PageSize);
         }
 
+        public async Task<PagedResponse<List<AgendamentoResponse>>> GetAllAdminAsync(GetAllAgendamentoRequest request)
+        {
+            try
+            {
+                var query = _context
+                    .Agendamentos
+                    .AsNoTracking()
+                    .Include(x => x.Corte)
+                    .OrderByDescending(x => x.Data);
+
+                var agendamentos = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToListAsync();
+
+                var responses = new List<AgendamentoResponse>();
+                foreach (var a in agendamentos)
+                {
+                    var corteTitulo = await _context.Cortes
+                        .Where(c => c.Id == a.CorteId)
+                        .Select(c => c.Titulo)
+                        .FirstOrDefaultAsync() ?? "Sem corte";
+
+                    var user = await _context.Users.FindAsync(a.UserId);
+                    responses.Add(new AgendamentoResponse(
+                        a.Id,
+                        a.UserId,
+                        a.CorteId,
+                        a.Data,
+                        a.Valor,
+                        (int)a.Tempo.TotalMinutes,
+                        a.Status.ToString(),
+                        user?.NomeCompleto ?? "Desconhecido",
+                        corteTitulo
+                    ));
+                }
+
+                var count = await query.CountAsync();
+
+                return new PagedResponse<List<AgendamentoResponse>>(responses, count, request.PageNumber, request.PageSize);
+            }
+            catch
+            {
+                return new PagedResponse<List<AgendamentoResponse>>(null, 500, "Não foi possível consultar os agendamentos");
+            }
+        }
+
+        public async Task<Response<AgendamentoResponse?>> UpdateStatusAsync(UpdateStatusAgendamentoRequest request)
+        {
+            try
+            {
+                var agendamento = await _context.Agendamentos
+                    .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+                if (agendamento is null)
+                    return new Response<AgendamentoResponse?>(null, 404, "Agendamento não encontrado");
+
+                agendamento.Status = request.Status;
+                _context.Agendamentos.Update(agendamento);
+                await _context.SaveChangesAsync();
+
+                return new Response<AgendamentoResponse?>(null, 200, "Status atualizado com sucesso");
+            }
+            catch
+            {
+                return new Response<AgendamentoResponse?>(null, 500, "Erro ao atualizar status");
+            }
+        }
 
     }
 }

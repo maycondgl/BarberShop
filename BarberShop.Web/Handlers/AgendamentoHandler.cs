@@ -54,5 +54,17 @@ namespace BarberShop.Web.Handlers
                 ?? new PagedResponse<List<AgendamentoResponse>?>(
                     null, 400, "Não foi possível obter os agendamentos");
         }
+
+        public async Task<PagedResponse<List<AgendamentoResponse>>> GetAllAdminAsync(GetAllAgendamentoRequest request)
+           => await _client.GetFromJsonAsync<PagedResponse<List<AgendamentoResponse>>>(
+               $"v1/agendamentos/admin?pageNumber={request.PageNumber}&pageSize={request.PageSize}")
+           ?? new PagedResponse<List<AgendamentoResponse>>(null, 400, "Não foi possível obter os agendamentos");
+
+        public async Task<Response<AgendamentoResponse?>> UpdateStatusAsync(UpdateStatusAgendamentoRequest request)
+        {
+            var result = await _client.PatchAsJsonAsync($"v1/agendamentos/{request.Id}/status", request);
+            return await result.Content.ReadFromJsonAsync<Response<AgendamentoResponse?>>()
+                ?? new Response<AgendamentoResponse?>(null, 400, "Falha ao atualizar status");
+        }
     }
 }

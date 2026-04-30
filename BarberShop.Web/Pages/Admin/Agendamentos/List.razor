@@ -1,0 +1,76 @@
+﻿@page "/admin/agendamentos"
+@using BarberShop.Core.Responses.Agendamento
+@inherits ListAdminAgendamentoPage
+@using System.Globalization
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <MudText Typo="Typo.h3">Gerenciar Agendamentos</MudText>
+
+        <MudDataGrid
+            Class="mt-4"
+            Items="@Agendamentos"
+            Filterable="true"
+            QuickFilter="Filter"
+            Hideable="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Todos os Agendamentos</MudText>
+                <MudSpacer />
+                <MudTextField
+                    @bind-Value="SearchTerm"
+                    Placeholder="Filtrar ..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    Immediate="true"
+                    IconSize="Size.Medium"
+                    Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="#" />
+                <PropertyColumn Property="x => x.NomeCliente" Title="Cliente" />
+                <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
+                <PropertyColumn Property="x => x.CorteTitulo" Title="Nome do Corte" />
+
+                <TemplateColumn Title="Valor">
+                    <CellTemplate Context="agendamento">
+                        @agendamento.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                    </CellTemplate>
+                </TemplateColumn>
+                
+                <PropertyColumn Property="x => x.Status" Title="Status" />
+
+                <TemplateColumn Title="Ações">
+                    <CellTemplate Context="agendamento">
+                        <div style="display: flex; align-items: center; gap: 8px">
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       Size="Size.Small"
+                                       OnClick="@(() => OnAceitarClickedAsync(agendamento.Item.Id))"
+                                       Disabled="@(agendamento.Item.Status != "Pendente")">
+                                Aceitar
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => OnConcluirClickedAsync(agendamento.Item.Id))"
+                                       Disabled="@(agendamento.Item.Status == "Concluido")">
+                                Concluir
+                            </MudButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnDeleteClickedAsync(agendamento.Item.Id))"
+                                           Style="padding: 0; margin: 0;" />
+                        </div>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error">Acesso negado.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>

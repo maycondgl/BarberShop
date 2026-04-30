@@ -34,18 +34,24 @@ namespace BarberShop.Api.common.Api
 
         public static void AddSecurity(this WebApplicationBuilder builder)
         {
-
             builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-                .AddIdentityCookies(); 
+                .AddIdentityCookies();
 
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy =>
+                    policy.RequireRole("Admin"));
+            });
 
-            builder.Services.AddIdentityCore<User>((options =>
+            builder.Services.AddIdentityCore<User>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
-            }))
-                .AddRoles<IdentityRole<long>>()
-                .AddEntityFrameworkStores<BarberShopContext>();
+            })
+            .AddRoles<IdentityRole<long>>()
+            .AddRoleManager<RoleManager<IdentityRole<long>>>()
+            .AddSignInManager<SignInManager<User>>()
+            .AddEntityFrameworkStores<BarberShopContext>()
+            .AddDefaultTokenProviders();
         }
 
         public static void AddDataContexts(this WebApplicationBuilder builder)

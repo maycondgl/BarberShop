@@ -34,8 +34,8 @@ namespace BarberShop.Web.Pages.Avaliacoes
         public IAgendamentoHandler AgendamentoHandler { get; set; } = null!;
 
         #endregion
-        
 
+        #region Methods
         protected override async Task OnInitializedAsync()
         {
             var agendamentosResult = await AgendamentoHandler.GetAllAsync(
@@ -43,7 +43,7 @@ namespace BarberShop.Web.Pages.Avaliacoes
 
             if (agendamentosResult.IsSuccess)
                 Agendamentos = agendamentosResult.Data?
-                    .Where(x => x.Status == EStatusAgendamento.Concluido)
+                    .Where(x => x.Status == EStatusAgendamento.Aceito)
                     .ToList() ?? new();
 
             var avaliacoesResult = await Handler.GetAllAsync(
@@ -54,5 +54,6 @@ namespace BarberShop.Web.Pages.Avaliacoes
                     .Select(x => x.AgendamentoId)
                     .ToList() ?? new();
         }
+        #endregion
     }
 }

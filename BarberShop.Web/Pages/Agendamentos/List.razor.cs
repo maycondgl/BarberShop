@@ -1,6 +1,8 @@
 ﻿using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
+using BarberShop.Core.Requests.Avaliacao;
+using BarberShop.Web.Handlers;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -13,10 +15,14 @@ namespace BarberShop.Web.Pages.Agendamentos
         public bool IsBusy { get; set; } = false;
         public List<Agendamento> Agendamentos { get; set; } = [];
         public string SearchTerm { get; set; } = String.Empty;
+        public List<long> AgendamentosAvaliados { get; set; } = new();
 
         #endregion
 
         #region Services
+
+        [Inject]
+        public IAvaliacaoHandler AvaliacaoHandler { get; set; } = null!;
 
         [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
@@ -36,6 +42,7 @@ namespace BarberShop.Web.Pages.Agendamentos
             IsBusy = true;
             try
             {
+
                 var request = new GetAllAgendamentoRequest
                 {
                     PageNumber = 1,
@@ -44,6 +51,14 @@ namespace BarberShop.Web.Pages.Agendamentos
                 var result = await Handler.GetAllAsync(request);
                 if (result.IsSuccess)
                     Agendamentos = result.Data ?? new List<Agendamento>();
+
+                var avaliacoes = await AvaliacaoHandler.GetAllAsync(
+                new GetAllAvaliacaoRequest { PageNumber = 1, PageSize = 100 });
+
+                if (avaliacoes.IsSuccess)
+                    AgendamentosAvaliados = avaliacoes.Data?
+                        .Select(x => x.AgendamentoId)
+                        .ToList() ?? new();
             }
             catch (Exception ex)
             {

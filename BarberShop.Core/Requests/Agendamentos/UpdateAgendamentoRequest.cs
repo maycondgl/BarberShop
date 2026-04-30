@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BarberShop.Core.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace BarberShop.Core.Requests.Agendamentos
 {
@@ -15,5 +16,7 @@ namespace BarberShop.Core.Requests.Agendamentos
         [Required(ErrorMessage = "A data e hora são obrigatórias")]
         [DataType(DataType.DateTime)]
         public DateTime Data { get; set; }
+
+        public EStatusAgendamento Status { get; set; }
     }
 }

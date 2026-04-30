@@ -20,73 +20,32 @@ namespace BarberShop.Web.Security
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             _isAuthenticated = false;
-            var user = new ClaimsPrincipal(new ClaimsIdentity());
 
-            var userInfo = await GetUser();
-            if (userInfo is null)
-                return new AuthenticationState(user);
+            var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
-            var claims = await GetClaims(userInfo);
+            MeResponse? me;
 
-            var id = new ClaimsIdentity(claims, nameof(CookieAuthenticationStateProvider));
-            user = new ClaimsPrincipal(id);
+            try
+            {
+                me = await _client.GetFromJsonAsync<MeResponse>("v1/identity/me");
+            }
+            catch
+            {
+                return new AuthenticationState(anonymous);
+            }
+
+            if (me is null || !me.IsAuthenticated)
+                return new AuthenticationState(anonymous);
+
+            var claims = me.Claims
+                .Select(x => new Claim(x.Type, x.Value))
+                .ToList();
+
+            var identity = new ClaimsIdentity(claims, "Cookies");
+            var user = new ClaimsPrincipal(identity);
 
             _isAuthenticated = true;
             return new AuthenticationState(user);
-
         }
-
-        private async Task<User?> GetUser()
-            {
-                try
-                {
-                    return await _client.GetFromJsonAsync<User?>("v1/identity/manage/info");
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-
-        private async Task<List<Claim>> GetClaims(User user)
-            {
-                var claims = new List<Claim>()
-                {
-                    new (ClaimTypes.Name, user.Email),
-                    new (ClaimTypes.Email, user.Email),
-
-                };
-
-                claims.AddRange(
-                user.Claims.Where(x =>
-                x.Key != ClaimTypes.Name &&
-                x.Key != ClaimTypes.Email)
-                .Select(x => new Claim(x.Key, x.Value))
-                );
-
-                RoleClaim[]? roles;
-                try
-                {
-                    roles = await _client.GetFromJsonAsync<RoleClaim[]>("v1/identity/roles");
-                }
-                catch
-                {
-                    return claims;
-                }
-                foreach (var role in roles ?? [])
-                {
-                    if (!string.IsNullOrEmpty(role.Type) && !string.IsNullOrEmpty(role.Value))
-                        claims.Add(new Claim(
-                            role.Type,
-                            role.Value,
-                            role.ValueType,
-                            role.Issuer,
-                            role.OriginalIssuer));
-                }
-            
-
-                return claims;
-           
-            }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BarberShop.Core.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BarberShop.Core.Models
 {
@@ -13,5 +14,8 @@ namespace BarberShop.Core.Models
         public EStatusAgendamento Status { get; set; } = EStatusAgendamento.Pendente;
         
         public virtual Corte Corte { get; set; } = null!;
+
+        [NotMapped]
+        public string NomeCliente { get; set; } = string.Empty;
     }
 }

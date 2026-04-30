@@ -18,7 +18,8 @@ namespace BarberShop.Api.Handlers
         }
         public async Task<Response<AvaliacaoResponse?>> CreateAsync(CreateAvaliacaoRequest request)
         {
-            try{
+            try
+            {
                 var cliente = await _context.Users
                 .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
@@ -31,6 +32,7 @@ namespace BarberShop.Api.Handlers
                 var avaliacao = new Avaliacao
                 {
                     UserId = request.UserId,
+                    AgendamentoId = request.AgendamentoId,
                     Estrelas = request.Estrelas,
                     Comentario = request.Comentario,
                     Data = DateTime.UtcNow
@@ -42,13 +44,15 @@ namespace BarberShop.Api.Handlers
                 var responseData = new AvaliacaoResponse(
                   avaliacao.Id,
                   avaliacao.UserId,
+                  avaliacao.AgendamentoId,
                   avaliacao.Estrelas,
                   avaliacao.Comentario,
-                  avaliacao.Data
+                  avaliacao.Data,
+                  avaliacao.NomeCliente
               );
                 return new Response<AvaliacaoResponse?>(responseData, 201, "Avaliação registrada com sucesso!");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new Response<AvaliacaoResponse?>(null, 400, ex.InnerException?.Message ?? ex.Message);
             }
@@ -84,9 +88,11 @@ namespace BarberShop.Api.Handlers
                 var response = new AvaliacaoResponse(
                     avaliacao.Id,
                     avaliacao.UserId,
+                    avaliacao.AgendamentoId,
                     avaliacao.Estrelas,
                     avaliacao.Comentario,
-                    avaliacao.Data
+                    avaliacao.Data,
+                    avaliacao.NomeCliente
                   );
 
                 return new Response<AvaliacaoResponse?>(response, 200, "Avaliação atualizado");
@@ -111,9 +117,11 @@ namespace BarberShop.Api.Handlers
                 var response = new AvaliacaoResponse(
                     avaliacao.Id,
                     avaliacao.UserId,
+                    avaliacao.AgendamentoId,
                     avaliacao.Estrelas,
                     avaliacao.Comentario,
-                    avaliacao.Data
+                    avaliacao.Data,
+                    avaliacao.NomeCliente
                 );
 
                 _context.Avaliacoes.Remove(avaliacao);
@@ -126,7 +134,7 @@ namespace BarberShop.Api.Handlers
                 return new Response<AvaliacaoResponse?>(null, 500, "Não foi possível excluir a avaliação");
             }
         }
-        
+
         public async Task<Response<Avaliacao?>> GetByIdAsync(GetAvaliacaoByIdRequest request)
         {
             try
@@ -146,7 +154,7 @@ namespace BarberShop.Api.Handlers
             }
         }
 
-        public async Task<PagedResponse<List<Avaliacao>>> GetAllAsync(GetAllAvaliacaoRequest request)
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllAsync(GetAllAvaliacaoRequest request)
         {
             try
             {
@@ -163,17 +171,71 @@ namespace BarberShop.Api.Handlers
                     .Take(request.PageSize)
                     .ToListAsync();
 
+                var responses = new List<AvaliacaoResponse>();
+                foreach (var av in avaliacoes)
+                {
+                    var user = await _context.Users.FindAsync(av.UserId);
+                    responses.Add(new AvaliacaoResponse(
+                        av.Id,
+                        av.UserId,
+                        av.AgendamentoId,
+                        av.Estrelas,
+                        av.Comentario,
+                        av.Data,
+                        user?.NomeCompleto ?? "Desconhecido"
+                    ));
+                }
+
                 var count = await query.CountAsync();
 
-                return new PagedResponse<List<Avaliacao>>(avaliacoes,
+                return new PagedResponse<List<AvaliacaoResponse>>(responses,
                     count,
                     request.PageNumber,
                     request.PageSize);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return new PagedResponse<List<Avaliacao>>(null, 500, "Erro: " + ex.Message);
+                return new PagedResponse<List<AvaliacaoResponse>>(null, 500, "Erro: " + ex.Message);
             }
         }
-    }        
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllPublicAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                var query = _context
+                    .Avaliacoes
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.Data);
+
+                var avaliacoes = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var responses = new List<AvaliacaoResponse>();
+                foreach (var av in avaliacoes)
+                {
+                    var user = await _context.Users.FindAsync(av.UserId);
+                    responses.Add(new AvaliacaoResponse(
+                        av.Id,
+                        av.UserId,
+                        av.AgendamentoId,
+                        av.Estrelas,
+                        av.Comentario,
+                        av.Data,
+                        user?.NomeCompleto ?? "Desconhecido"
+                    ));
+                }
+
+                var count = await query.CountAsync();
+                return new PagedResponse<List<AvaliacaoResponse>>(responses, count, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERRO: {ex.Message} | Inner: {ex.InnerException?.Message}");
+                return new PagedResponse<List<AvaliacaoResponse>>(null, 500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+    }
 }

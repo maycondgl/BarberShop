@@ -14,7 +14,7 @@ namespace BarberShop.Web.Pages.Avaliacoes
 
         public bool IsBusy { get; set; } = false;
         public CreateAvaliacaoRequest InputModel { get; set; } = new();
-       
+        public List<Agendamento> Agendamentos { get; set; } = [];
         public Agendamento? AgendamentoSelecionado { get; set; }
         [Parameter] public long AgendamentoId { get; set; }
 
@@ -23,7 +23,7 @@ namespace BarberShop.Web.Pages.Avaliacoes
         #region Services
 
         [Inject]
-        public IAvaliacaoHandler Handler { get; set; } = null!;
+        public IAvaliacaoHandler AvaliacaoHandler { get; set; } = null!;
 
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
@@ -36,8 +36,7 @@ namespace BarberShop.Web.Pages.Avaliacoes
 
         #endregion
 
-        #region Methods
-
+        #region Override
 
         protected override async Task OnInitializedAsync()
         {
@@ -64,12 +63,16 @@ namespace BarberShop.Web.Pages.Avaliacoes
             }
         }
 
+        #endregion
+
+        #region Methods
+
         public async Task OnValidSubmitAsync(EditContext context)
         { 
             IsBusy = true;
             try
             {
-                var result = await Handler.CreateAsync(InputModel);
+                var result = await AvaliacaoHandler.CreateAsync(InputModel);
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("Avaliação enviada com sucesso!", Severity.Success);

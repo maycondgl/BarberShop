@@ -1,4 +1,6 @@
-﻿namespace BarberShop.Core.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BarberShop.Core.Models
 {
     public class Avaliacao
     {
@@ -8,6 +10,9 @@
         public int Estrelas { get; set; }
         public string? Comentario { get; set; } = string.Empty;
         public DateTime Data { get; set; } = DateTime.Now;
+
+        [NotMapped] 
+        public string NomeCliente { get; set; } = string.Empty;
 
     }
 }
