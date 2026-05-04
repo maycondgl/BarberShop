@@ -2,7 +2,6 @@
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Avaliacao;
-using BarberShop.Web.Handlers;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -27,8 +26,6 @@ namespace BarberShop.Web.Pages.Agendamentos
         [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
 
-        [Inject]
-        public IDialogService DialogService { get; set; } = null!;
 
         [Inject]
         public IAgendamentoHandler Handler { get; set; } = null!;
@@ -73,34 +70,6 @@ namespace BarberShop.Web.Pages.Agendamentos
         #endregion
 
         #region Methods
-
-        public async void OnDeleteButtonClickedAsync(long id, string corte)
-        {
-            var result = await DialogService.ShowMessageBox(
-                "ATENÇÃO",
-                $"Ao prosseguir o agendamento {id} será excluído. Esta é uma ação irreversível! Deseja continuar?",
-                yesText: "EXCLUIR",
-                cancelText: "Cancelar");
-
-            if (result is true)
-                await OnDeleteAsync(id);
-
-            StateHasChanged();
-        }
-
-        public async Task OnDeleteAsync(long id) 
-        {
-            try
-            {
-                await Handler.DeleteAsync(id);
-                Agendamentos.RemoveAll(x => x.Id == id);
-                Snackbar.Add("Agendamento excluído", Severity.Success);
-            }
-            catch(Exception ex)
-            {
-                Snackbar.Add(ex.Message, Severity.Error);
-            }
-        }
 
         public Func<Agendamento, bool> Filter => agendamento =>
         {

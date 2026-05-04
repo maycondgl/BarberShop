@@ -12,7 +12,8 @@
             Items="@Agendamentos"
             Filterable="true"
             QuickFilter="Filter"
-            Hideable="true">
+            Hideable="true"
+            ColumnResizeMode="ResizeMode.Column">
 
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Todos os Agendamentos</MudText>
@@ -69,6 +70,38 @@
                 </TemplateColumn>
             </Columns>
         </MudDataGrid>
+
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5">Pesquisar Histórico (Últimas Semanas)</MudText>
+        <MudPaper Class="mt-2 pa-4 d-flex align-center" Elevation="0" Style="gap: 16px;">
+            <MudSelect T="int" Label="Período" Variant="Variant.Outlined" @bind-Value="SemanaRange">
+                @foreach (var option in SemanaRangeOptions)
+                {
+                    <MudSelectItem Value="@option">Últimas @option semana(s)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Search" OnClick="OnPesquisarPeriodoClickedAsync">
+                Pesquisar Histórico
+            </MudButton>
+        </MudPaper>
+
+        @if (AgendamentosHistorico.Count > 0)
+        {
+            <MudDataGrid Class="mt-4" Items="@AgendamentosHistorico" Filterable="false">
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="#" />
+                    <PropertyColumn Property="x => x.NomeCliente" Title="Cliente" />
+                    <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
+                    <PropertyColumn Property="x => x.CorteTitulo" Title="Nome do Corte" />
+                    <TemplateColumn Title="Valor">
+                        <CellTemplate Context="agendamento">
+                            @agendamento.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Status" Title="Status" />
+                </Columns>
+            </MudDataGrid>
+        }
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">Acesso negado.</MudAlert>

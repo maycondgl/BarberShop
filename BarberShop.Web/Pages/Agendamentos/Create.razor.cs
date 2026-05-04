@@ -13,13 +13,16 @@ namespace BarberShop.Web.Pages.Agendamentos
         #region Properties
 
         public bool IsBusy { get; set; } = false;
-        public CreateAgendamentoRequest InputModel { get; set; } = new();
+        public CreateAgendamentoRequest InputModel { get; set; } = new()
+        {
+            Data = DateTime.Today
+        };
 
         #endregion
 
-        #region Services
+    #region Services
 
-        [Inject]
+    [Inject]
         public IAgendamentoHandler Handler { get; set; } = null!;
 
         [Inject]

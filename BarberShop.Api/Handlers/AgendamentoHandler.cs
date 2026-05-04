@@ -117,6 +117,7 @@ namespace BarberShop.Api.Handlers
             {
                 var agendamento = await _context
                     .Agendamentos
+                    .Include(x => x.Corte)
                     .FirstOrDefaultAsync(x => x.Id == id);
 
                 if (agendamento is null)
@@ -131,7 +132,7 @@ namespace BarberShop.Api.Handlers
                     (int)agendamento.Tempo.TotalMinutes,
                     agendamento.Status.ToString(),
                     agendamento.NomeCliente,
-                    agendamento.Corte.Titulo
+                    agendamento.Corte?.Titulo ?? "Sem corte"
                 );
 
                 _context.Agendamentos.Remove(agendamento);

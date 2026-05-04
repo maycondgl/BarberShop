@@ -14,8 +14,11 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             .WithName("Agendamentos: Delete")
             .WithSummary("Exclui um agendamento")
             .WithDescription("Exclui um serviço de corte")
+            .RequireAuthorization()
             .WithOrder(3)
             .Produces<Response<AgendamentoResponse?>>(200)
+            .Produces<Response<AgendamentoResponse?>>(401)
+            .Produces<Response<AgendamentoResponse?>>(403)
             .Produces<Response<AgendamentoResponse?>>(404)
             .Produces<Response<AgendamentoResponse?>>(500);
 
@@ -30,11 +33,14 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             if (!long.TryParse(userIdClaim, out var userId))
                 return Results.Unauthorized();
 
-            var request = new DeleteAgendamentoRequest
-            {
-                UserId = userId,
-                Id = id
-            };
+            var agendamentoResult = await handler.GetByIdAsync(new GetAgendamentoByIdRequest { Id = id });
+            if (!agendamentoResult.IsSuccess || agendamentoResult.Data is null)
+                return TypedResults.NotFound(new Response<AgendamentoResponse?>(null, 404, "Agendamento não encontrado"));
+
+            if (agendamentoResult.Data.UserId != userId)
+                return TypedResults.BadRequest(new Response<AgendamentoResponse?>(null, 403, "Você não pode excluir este agendamento"));
+
+
             var result = await handler.DeleteAsync(id);
             return result.IsSuccess
               ? TypedResults.Ok(result)
