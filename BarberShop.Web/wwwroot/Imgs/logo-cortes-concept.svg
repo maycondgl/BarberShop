@@ -1,0 +1,16 @@
+<svg width="360" height="360" viewBox="0 0 360 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="360" rx="36" fill="#111112"/>
+  <path d="M180 42L252 78V162C252 219 222 270 180 304C138 270 108 219 108 162V78L180 42Z" stroke="#FFC107" stroke-width="5"/>
+  <path d="M136 132L224 220" stroke="#FFC107" stroke-width="8" stroke-linecap="round"/>
+  <path d="M224 132L136 220" stroke="#FFC107" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="125" cy="121" r="18" stroke="#FFC107" stroke-width="7"/>
+  <circle cx="235" cy="121" r="18" stroke="#FFC107" stroke-width="7"/>
+  <path d="M180 92L197 130H163L180 92Z" fill="#FFC107"/>
+  <path d="M119 249H241" stroke="#FFC107" stroke-width="4" stroke-linecap="round"/>
+  <text x="180" y="282" text-anchor="middle" fill="#FFC107" font-family="Georgia, serif" font-size="26" font-weight="700" letter-spacing="2">
+    ESSENCIA
+  </text>
+  <text x="180" y="310" text-anchor="middle" fill="#D89F00" font-family="Georgia, serif" font-size="18" font-weight="700" letter-spacing="4">
+    DA BELEZA
+  </text>
+</svg>

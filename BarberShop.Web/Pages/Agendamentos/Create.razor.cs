@@ -18,6 +18,10 @@ namespace BarberShop.Web.Pages.Agendamentos
             Data = DateTime.Today
         };
 
+        [Parameter]
+        [SupplyParameterFromQuery(Name = "corteId")]
+        public long? CorteId { get; set; }
+
         #endregion
 
     #region Services
@@ -49,6 +53,9 @@ namespace BarberShop.Web.Pages.Agendamentos
             var result = await CorteHandler.GetAllAsync(request);
             if (result.IsSuccess)
                 Cortes = result.Data ?? new List<Corte>();
+
+            if (CorteId is > 0 && Cortes.Any(corte => corte.Id == CorteId.Value))
+                InputModel.CorteId = CorteId.Value;
         }
 
         #endregion

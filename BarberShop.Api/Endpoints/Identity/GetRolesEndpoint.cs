@@ -13,7 +13,7 @@ namespace BarberShop.Api.Endpoints.Identity
 
         private static Task<IResult> Handle(ClaimsPrincipal user)
         {
-            if (user.Identity is null || user.Identity.IsAuthenticated)
+            if (user.Identity is null || !user.Identity.IsAuthenticated)
                 return Task.FromResult(Results.Unauthorized());
 
             var identity = (ClaimsIdentity)user.Identity;
