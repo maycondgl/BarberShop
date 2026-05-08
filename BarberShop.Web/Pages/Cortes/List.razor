@@ -19,14 +19,13 @@
                     Escolha seu estilo
                 </MudText>
                 <MudText Typo="Typo.body1" Style="max-width: 660px; color: rgba(255,255,255,.72); margin-top: 8px;">
-                    Veja referencias de cortes, compare valores e escolha o visual ideal antes de agendar.
+                    Veja referências de cortes, compare valores e escolha o visual ideal antes de agendar.
                 </MudText>
             </div>
-
             <div style="border-radius: 26px; border: 1px solid rgba(255,193,7,.28); background: rgba(255,193,7,.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 160px; color: #ffc107; text-align: center;">
                 <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Large" />
-                <MudText Typo="Typo.subtitle1" Style="font-weight: 800;">@Cortes.Count estilos disponiveis</MudText>
-                <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,.62);">Catalogo visual</MudText>
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 800;">@Catalogo.Count estilos disponíveis</MudText>
+                <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,.62);">Catálogo visual</MudText>
             </div>
         </div>
     </MudPaper>
@@ -37,7 +36,7 @@
             @for (var i = 0; i < 6; i++)
             {
                 <MudItem xs="12" sm="6" lg="4">
-                    <MudSkeleton Height="380px" Style="border-radius: 28px;" />
+                    <MudSkeleton Height="380px" Style="border-radius: 32px;" />
                 </MudItem>
             }
         </MudGrid>
@@ -45,54 +44,45 @@
     else if (!Cortes.Any())
     {
         <MudAlert Severity="Severity.Info" Class="mt-6">
-            Nenhum corte encontrado. Cadastre os cortes na API para montar o catalogo.
+            Nenhum corte encontrado. Cadastre os cortes na API para montar o catálogo.
         </MudAlert>
     }
     else
     {
-        <MudGrid Spacing="4">
-            @foreach (var corte in Catalogo)
-            {
+        <div style="padding: 0 16px;">
+            <div class="cc-grid">
+                @foreach (var corte in Catalogo)
+                {
+                    <div class="@GetCardClass(corte.Id)"
+                         @onclick="() => SelectImage(corte.Id)">
 
-                <MudItem xs="12" sm="6" lg="4">
-                    <MudCard Elevation="0"
-                             SStyle="height: 100%; overflow: hidden; border-radius: 28px; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(180deg, #242427, #181819); box-shadow: 0 20px 46px rgba(0,0,0,.30); transition: .18s ease;">
-                        <div style="@corte.MediaStyle">
-                            <MudImage Src="Imgs/corte-de-cabelo-social-2.png"
-                                      Style="width: 100%; height: 210px; object-fit: cover;" />
+                        <div class="cc-card__glow"></div>
 
+                        <div class="cc-card__img-wrap">
+                            <img src="@corte.ImagemUrl" alt="@corte.Titulo" />
                         </div>
 
-
-                        <MudCardContent Style="padding: 22px;">
-                            <MudText Typo="Typo.h5" Style="font-weight: 800;">@corte.Titulo</MudText>
-                            <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,.62); margin-top: 6px;">
-                                Referencia visual para o cliente conhecer o resultado antes de marcar horario.
-                            </MudText>
-
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
-                                <MudChip Size="Size.Small" Style="background: rgba(255,255,255,.10); color: rgba(255,255,255,.84);">
-                                    @FormatDuration(corte.DuracaoMinutos)
-                                </MudChip>
-                                <MudChip Size="Size.Small" Style="background: rgba(255,193,7,.16); color: #ffc107;">
-                                    @FormatPrice(corte.Preco)
-                                </MudChip>
+                        <div class="cc-card__body">
+                            <span class="cc-card__eyebrow">Corte</span>
+                            <h3 class="cc-card__title">@corte.Titulo</h3>
+                            <p class="cc-card__desc">
+                                Escolha este estilo para seu próximo agendamento.
+                            </p>
+                            <div class="cc-chips">
+                                <span class="cc-chip cc-chip--time">@FormatDuration(corte.DuracaoMinutos)</span>
+                                <span class="cc-chip cc-chip--price">@FormatPrice(corte.Preco)</span>
                             </div>
-                        </MudCardContent>
+                            <button class="cc-card__btn"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => ScheduleCut(corte.Id)">
+                                ✂ Agendar
+                            </button>
+                        </div>
 
-                        <MudCardActions Style="padding: 0 22px 22px; gap: 10px;">
-
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       StartIcon="@Icons.Material.Filled.Event"
-                                       OnClick="@(() => ScheduleCut(corte.Id))">
-                                Agendar corte
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
+                    </div>
+                }
+            </div>  
+        </div> 
 
         <MudPaper Elevation="0"
                   Class="pa-6 mt-6"
@@ -100,23 +90,22 @@
             <MudText Typo="Typo.overline" Style="color: #ffc107; letter-spacing: .18em; font-weight: 800;">
                 Valores
             </MudText>
-            <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 18px;">Tabela de Precos</MudText>
-
+            <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 18px;">Tabela de Preços</MudText>
             <MudTable Items="@Catalogo" Hover="true" Style="overflow: hidden; border-radius: 20px; background: #181819;">
                 <HeaderContent>
                     <MudTh>Corte</MudTh>
-                    <MudTh>Duracao</MudTh>
+                    <MudTh>Duração</MudTh>
                     <MudTh>Valor</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Corte">@context.Titulo</MudTd>
-                    <MudTd DataLabel="Duracao">@FormatDuration(context.DuracaoMinutos)</MudTd>
+                    <MudTd DataLabel="Duração">@FormatDuration(context.DuracaoMinutos)</MudTd>
                     <MudTd DataLabel="Valor">@FormatPrice(context.Preco)</MudTd>
                     <MudTd DataLabel="Agendar">
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
-                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Event"
                                    OnClick="@(() => ScheduleCut(context.Id))">
                             Agendar
                         </MudButton>
