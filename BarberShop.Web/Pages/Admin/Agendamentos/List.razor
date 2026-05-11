@@ -6,102 +6,283 @@
 <AuthorizeView Roles="Admin">
     <Authorized>
         <MudText Typo="Typo.h3">Gerenciar Agendamentos</MudText>
+        <MudGrid Class="mt-4 mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="admin-stat-card">
+                    <MudIcon Icon="@Icons.Material.Filled.Today"
+                    Class="admin-stat-icon"
+                    Color="Color.Warning"
+                    Size="Size.Large" /> 
 
-        <MudDataGrid
-            Class="mt-4"
-            Items="@Agendamentos"
-            Filterable="true"
-            QuickFilter="Filter"
-            Hideable="true"
-            ColumnResizeMode="ResizeMode.Column">
+                    <MudText Class="admin-stat-title">Agendamentos Hoje</MudText>
+                    <MudText Class="admin-stat-value">@TotalHoje</MudText>
+                </MudPaper>
+            </MudItem>
 
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Todos os Agendamentos</MudText>
-                <MudSpacer />
-                <MudTextField
-                    @bind-Value="SearchTerm"
-                    Placeholder="Filtrar ..."
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    Immediate="true"
-                    IconSize="Size.Medium"
-                    Class="mt-0" />
-            </ToolBarContent>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="admin-stat-card">
+                    <MudIcon Icon="@Icons.Material.Filled.PendingActions"
+                             Class="admin-stat-icon"
+                             Color="Color.Warning"
+                             Size="Size.Large" />
+                    <MudText Class="admin-stat-title">Pendentes</MudText>
+                    <MudText Class="admin-stat-value">@TotalPendentes</MudText>
+                </MudPaper>
+            </MudItem>
 
-            <Columns>
-                <PropertyColumn Property="x => x.Id" Title="#" />
-                <PropertyColumn Property="x => x.NomeCliente" Title="Cliente" />
-                <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
-                <PropertyColumn Property="x => x.CorteTitulo" Title="Nome do Corte" />
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="admin-stat-card">
+                    <MudIcon Icon="@Icons.Material.Filled.PendingActions"
+                             Class="admin-stat-icon"
+                             Color="Color.Warning"
+                             Size="Size.Large" />
+                    <MudText Class="admin-stat-title">Concluídos</MudText>
+                    <MudText Class="admin-stat-value">@TotalConcluidosSemana</MudText>
+                </MudPaper>
+            </MudItem>
 
-                <TemplateColumn Title="Valor">
-                    <CellTemplate Context="agendamento">
-                        @agendamento.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-                    </CellTemplate>
-                </TemplateColumn>
-                
-                <PropertyColumn Property="x => x.Status" Title="Status" />
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="admin-stat-card">
+                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney"
+                             Class="admin-stat-icon"
+                             Color="Color.Warning"
+                             Size="Size.Large" />
+                    <MudText Class="admin-stat-title">Faturamento</MudText>
+                    <MudText Class="admin-stat-value">
+                        @FaturamentoSemana.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
+                </MudPaper>
+            </MudItem>
 
-                <TemplateColumn Title="Ações">
-                    <CellTemplate Context="agendamento">
-                        <div style="display: flex; align-items: center; gap: 8px">
-
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Success"
-                                       Size="Size.Small"
-                                       OnClick="@(() => OnAceitarClickedAsync(agendamento.Item.Id))"
-                                       Disabled="@(agendamento.Item.Status != "Pendente")">
-                                Aceitar
-                            </MudButton>
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       Size="Size.Small"
-                                       OnClick="@(() => OnConcluirClickedAsync(agendamento.Item.Id))"
-                                       Disabled="@(agendamento.Item.Status == "Concluido")">
-                                Concluir
-                            </MudButton>
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                           Color="Color.Error"
-                                           Size="Size.Small"
-                                           OnClick="@(() => OnDeleteClickedAsync(agendamento.Item.Id))"
-                                           Style="padding: 0; margin: 0;" />
+        </MudGrid>
+        <MudGrid Class="admin-grid" Spacing="3">
+            <MudItem xs="12" >
+                <MudPaper Class="admin-panel admin-table-panel">
+                    <div class="admin-table-toolbar">
+                        <div class="admin-table-title">
+                            <MudIcon Icon="@Icons.Material.Filled.EventNote" Color="Color.Warning" Size="Size.Small" />
+                            <MudText Typo="Typo.h6">Agendamentos Pendentes</MudText>
                         </div>
-                    </CellTemplate>
-                </TemplateColumn>
-            </Columns>
-        </MudDataGrid>
 
-        <MudDivider Class="my-6" />
-        <MudText Typo="Typo.h5">Pesquisar Histórico (Últimas Semanas)</MudText>
-        <MudPaper Class="mt-2 pa-4 d-flex align-center" Elevation="0" Style="gap: 16px;">
-            <MudSelect T="int" Label="Período" Variant="Variant.Outlined" @bind-Value="SemanaRange">
-                @foreach (var option in SemanaRangeOptions)
-                {
-                    <MudSelectItem Value="@option">Últimas @option semana(s)</MudSelectItem>
-                }
-            </MudSelect>
-            <MudButton Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Search" OnClick="OnPesquisarPeriodoClickedAsync">
-                Pesquisar Histórico
-            </MudButton>
-        </MudPaper>
+                        <div class="admin-table-controls">
+                            <MudTextField @bind-Value="SearchTerm"
+                                          Placeholder="Buscar agendamento..."
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          Immediate="true"
+                                          IconSize="Size.Small"
+                                          Class="admin-search-field"
+                                          Margin="Margin.Dense"
+                                          Variant="Variant.Outlined" />
 
-        @if (AgendamentosHistorico.Count > 0)
-        {
-            <MudDataGrid Class="mt-4" Items="@AgendamentosHistorico" Filterable="false">
-                <Columns>
-                    <PropertyColumn Property="x => x.Id" Title="#" />
-                    <PropertyColumn Property="x => x.NomeCliente" Title="Cliente" />
-                    <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
-                    <PropertyColumn Property="x => x.CorteTitulo" Title="Nome do Corte" />
-                    <TemplateColumn Title="Valor">
-                        <CellTemplate Context="agendamento">
-                            @agendamento.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <PropertyColumn Property="x => x.Status" Title="Status" />
-                </Columns>
-            </MudDataGrid>
-        }
+                            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <ActivatorContent>
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Warning"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.FilterAlt"
+                                               Class="admin-filter-btn">
+                                        Filtros
+                                    </MudButton>
+                                </ActivatorContent>
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => SetStatusFilter(string.Empty))">Todos</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetStatusFilter("Pendente"))">Pendentes</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetStatusFilter("Aceito"))">Aceitos</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
+                        </div>
+                    </div>
+
+                    <div class="admin-table-scroll">
+                        <table class="admin-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>Data e Horário</th>
+                                    <th>Corte</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var agendamento in PagedAgendamentos)
+                                {
+                                    <tr>
+                                        <td>@agendamento.Id</td>
+                                        <td>
+                                            <div class="admin-client-cell">
+                                                <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                                <span>
+                                                    <strong>@agendamento.NomeCliente</strong>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="admin-date-cell">
+                                                <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                                <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                            </div>
+                                        </td>
+                                        <td>@agendamento.CorteTitulo</td>
+                                        <td>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</td>
+                                        <td>
+                                            <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                                        </td>
+                                        <td>
+                                            <div class="admin-actions">
+
+                                                <MudButton Variant="Variant.Filled"
+                                                           Color="Color.Success"
+                                                           Size="Size.Small"
+                                                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                                                           Class="action-btn"
+                                                           OnClick="@(() => OnAceitarClickedAsync(agendamento.Id))"
+                                                           Disabled="@(agendamento.Status != "Pendente")">
+                                                    Aceitar
+                                                </MudButton>
+                                                <MudButton Variant="Variant.Filled"
+                                                           Color="Color.Primary"
+                                                           Size="Size.Small"
+                                                           StartIcon="@Icons.Material.Filled.DoneAll"
+                                                           Class="action-btn"
+                                                           OnClick="@(() => OnConcluirClickedAsync(agendamento.Id))"
+                                                           Disabled="@IsConcluido(agendamento.Status)">
+                                                    Concluir
+                                                </MudButton>
+
+                                                <MudTooltip Text="Excluir agendamento">
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                   Color="Color.Error"
+                                                                   Size="Size.Small"
+                                                                   OnClick="@(() => OnDeleteClickedAsync(agendamento.Id))" />
+                                                </MudTooltip>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-table-footer">
+                        <span>@FilteredAgendamentos.Count @ResultLabel(FilteredAgendamentos.Count)</span>
+                        <div class="admin-pager">
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Disabled="@(PendingPage == 1)"
+                                           OnClick="PreviousPendingPage" />
+                            <span>@PendingPage</span>
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Disabled="@(PendingPage >= PendingTotalPages)"
+                                           OnClick="NextPendingPage" />
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" >
+                <MudPaper Class="admin-panel admin-table-panel">
+                    <div class="admin-table-toolbar">
+                        <div class="admin-table-title">
+                            <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Warning" Size="Size.Small" />
+                            <MudText Typo="Typo.h6">Histórico de Agendamentos</MudText>
+                        </div>
+
+                        <div class="admin-table-controls">
+                            <MudSelect T="int"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Dense="true"
+                                       Class="admin-period-select"
+                                       @bind-Value="SemanaRange">
+                                @foreach (var option in SemanaRangeOptions)
+                                {
+                                    <MudSelectItem Value="@option">Últimas @option semana(s)</MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Warning"
+                                       StartIcon="@Icons.Material.Filled.Search"
+                                       Size="Size.Small"
+                                       Class="admin-history-btn"
+                                       OnClick="OnPesquisarPeriodoClickedAsync">
+                                Pesquisar
+                            </MudButton>
+                        </div>
+                    </div>
+
+                    <div class="admin-history-range">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
+                        <span>@HistoricoPeriodoLabel</span>
+                    </div>
+
+                    <div class="admin-table-scroll">
+                        <table class="admin-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>Data e Horário</th>
+                                    <th>Corte</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var agendamento in PagedHistorico)
+                                {
+                                    <tr>
+                                        <td>@agendamento.Id</td>
+                                        <td>
+                                            <div class="admin-client-cell">
+                                                <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                                <span>
+                                                    <strong>@agendamento.NomeCliente</strong>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="admin-date-cell">
+                                                <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                                <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                            </div>
+                                        </td>
+                                        <td>@agendamento.CorteTitulo</td>
+                                        <td>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</td>
+                                        <td>
+                                            <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-table-footer">
+                        <span>@AgendamentosHistorico.Count @ResultLabel(AgendamentosHistorico.Count)</span>
+                        <div class="admin-pager">
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Disabled="@(HistoryPage == 1)"
+                                           OnClick="PreviousHistoryPage" />
+                            <span>@HistoryPage</span>
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Disabled="@(HistoryPage >= HistoryTotalPages)"
+                                           OnClick="NextHistoryPage" />
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">Acesso negado.</MudAlert>

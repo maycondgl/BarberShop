@@ -14,11 +14,57 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
 
         public bool IsBusy { get; set; } = false;
         public List<AgendamentoResponse> TodosAgendamentos { get; set; } = [];
+        public List<AgendamentoResponse> Pendentes { get; set; } = [];
         public List<AgendamentoResponse> Agendamentos { get; set; } = [];
         public List<AgendamentoResponse> AgendamentosHistorico { get; set; } = [];
-        public string SearchTerm { get; set; } = string.Empty;
+
+        private string _searchTerm = string.Empty;
+
+        public string SearchTerm
+        {
+            get => _searchTerm;
+            set
+            {
+                _searchTerm = value;
+                PendingPage = 1;
+            }
+        }
+
+        public string StatusFilter { get; set; } = string.Empty;
+        public int TotalHoje { get; set; }
+        public int TotalPendentes { get; set; }
+        public int TotalConcluidosSemana { get; set; }
+        public decimal FaturamentoSemana { get; set; }
         public int SemanaRange { get; set; } = 1;
         public List<int> SemanaRangeOptions { get; } = [1, 2, 3];
+        public DateTime HistoricoStartDate { get; set; } = DateTime.Today.AddDays(-6);
+        public DateTime HistoricoEndDate { get; set; } = DateTime.Today;
+        public int PendingPage { get; set; } = 1;
+        public int HistoryPage { get; set; } = 1;
+        public int PageSize { get; set; } = 4;
+
+        public List<AgendamentoResponse> FilteredAgendamentos =>
+            Agendamentos
+                .Where(Filter)
+                .Where(x => string.IsNullOrWhiteSpace(StatusFilter) ||
+                            x.Status.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+        public List<AgendamentoResponse> PagedAgendamentos =>
+            FilteredAgendamentos
+                .Skip((PendingPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
+        public List<AgendamentoResponse> PagedHistorico =>
+            AgendamentosHistorico
+                .Skip((HistoryPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
+        public int PendingTotalPages => Math.Max(1, (int)Math.Ceiling(FilteredAgendamentos.Count / (double)PageSize));
+        public int HistoryTotalPages => Math.Max(1, (int)Math.Ceiling(AgendamentosHistorico.Count / (double)PageSize));
+        public string HistoricoPeriodoLabel => $"{HistoricoStartDate:dd/MM/yyyy} até {HistoricoEndDate:dd/MM/yyyy}";
 
         #endregion
 
@@ -57,10 +103,63 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         public Func<AgendamentoResponse, bool> Filter => x =>
             string.IsNullOrWhiteSpace(SearchTerm) ||
             x.NomeCliente.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-            x.Status.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase);
+            x.Status.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+            x.CorteTitulo.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase);
 
         public async Task OnPesquisarPeriodoClickedAsync()
-            => LoadHistoricoByWeeks();
+        {
+            LoadHistoricoByWeeks();
+            await Task.CompletedTask;
+        }
+
+        public void SetStatusFilter(string status)
+        {
+            StatusFilter = status;
+            PendingPage = 1;
+        }
+
+        public void PreviousPendingPage()
+            => PendingPage = Math.Max(1, PendingPage - 1);
+
+        public void NextPendingPage()
+            => PendingPage = Math.Min(PendingTotalPages, PendingPage + 1);
+
+        public void PreviousHistoryPage()
+            => HistoryPage = Math.Max(1, HistoryPage - 1);
+
+        public void NextHistoryPage()
+            => HistoryPage = Math.Min(HistoryTotalPages, HistoryPage + 1);
+
+        public string ResultLabel(int count)
+            => count == 1 ? "resultado" : "resultados";
+
+        public string GetInitials(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "?";
+
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length == 1
+                ? parts[0][..1].ToUpperInvariant()
+                : $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+        }
+
+        public string GetStatusText(string status)
+            => IsConcluido(status) ? "Concluído" : status;
+
+        public string GetStatusClass(string status)
+        {
+            if (status == "Pendente")
+                return "admin-status admin-status--pending";
+
+            if (status == "Aceito")
+                return "admin-status admin-status--accepted";
+
+            if (IsConcluido(status))
+                return "admin-status admin-status--done";
+
+            return "admin-status";
+        }
 
         private async Task LoadAdminAgendamentosAsync()
         {
@@ -78,8 +177,26 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                     .OrderByDescending(x => x.Data)
                     .ToList();
                 Agendamentos = TodosAgendamentos
-                    .Where(x => x.Status != "Concluido")
+                    .Where(x => !IsConcluido(x.Status))
                     .ToList();
+
+                var hoje = DateTime.Today;
+                var inicioSemana = hoje.AddDays(-7);
+
+                TotalHoje = TodosAgendamentos
+                    .Count(x => x.Data.Date == hoje);
+
+                TotalPendentes = TodosAgendamentos
+                    .Count(x => x.Status == "Pendente");
+
+                TotalConcluidosSemana = TodosAgendamentos
+                    .Count(x => IsConcluido(x.Status) && x.Data.Date >= inicioSemana);
+
+                FaturamentoSemana = TodosAgendamentos
+                    .Where(x => IsConcluido(x.Status) && x.Data.Date >= inicioSemana)
+                    .Sum(x => x.Valor);
+
+                LoadHistoricoByWeeks(showSnackbar: false);
             }
             else
             {
@@ -87,19 +204,25 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             }
         }
 
-        private void LoadHistoricoByWeeks()
+        private void LoadHistoricoByWeeks(bool showSnackbar = true)
         {
-            var endDate = DateTime.Today;
-            var startDate = endDate.AddDays(-(SemanaRange * 7) + 1);
+            HistoricoEndDate = DateTime.Today;
+            HistoricoStartDate = HistoricoEndDate.AddDays(-(SemanaRange * 7) + 1);
+            HistoryPage = 1;
 
             AgendamentosHistorico = TodosAgendamentos
-                .Where(x => x.Data.Date >= startDate && x.Data.Date <= endDate)
+                .Where(x => IsConcluido(x.Status) &&
+                            x.Data.Date >= HistoricoStartDate &&
+                            x.Data.Date <= HistoricoEndDate)
                 .OrderByDescending(x => x.Data)
                 .ToList();
 
-            Snackbar.Add(
-                $"Histórico de {startDate:dd/MM/yyyy} até {endDate:dd/MM/yyyy}",
-                Severity.Info);
+            if (showSnackbar)
+            {
+                Snackbar.Add(
+                    $"Histórico de {HistoricoStartDate:dd/MM/yyyy} até {HistoricoEndDate:dd/MM/yyyy}",
+                    Severity.Info);
+            }
         }
 
         public async Task OnAceitarClickedAsync(long id)
@@ -141,7 +264,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                 Snackbar.Add(result.Message ?? "Erro", Severity.Error);
         }
 
-
         public async Task OnDeleteClickedAsync(long id)
         {
             var result = await Handler.DeleteAsync(id);
@@ -153,6 +275,11 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             else
                 Snackbar.Add(result.Message ?? "Erro", Severity.Error);
         }
+
+        public static bool IsConcluido(string status)
+            => status.Equals("Concluido", StringComparison.OrdinalIgnoreCase) ||
+               status.Equals("Concluído", StringComparison.OrdinalIgnoreCase);
+
     }
 
         #endregion
