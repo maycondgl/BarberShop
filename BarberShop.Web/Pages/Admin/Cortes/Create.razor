@@ -1,0 +1,90 @@
+﻿@page "/admin/cortes/criar"
+@using BarberShop.Web.Pages.Admin.Cortes
+@using System.Globalization
+@inherits CreateCortePage
+@attribute [Authorize(Roles = "Admin")]
+
+
+<MudText Typo="Typo.h3">Criar Corte</MudText>
+
+<MudPaper Class="pa-6 mt-4" Elevation="2">
+    <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+        <DataAnnotationsValidator />
+
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Nome do corte"
+                              @bind-Value="InputModel.Titulo"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudNumericField T="decimal"
+                                 Label="Preço"
+                                 @bind-Value="InputModel.Preco"
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudNumericField T="int"
+                                 Label="Duração em minutos"
+                                 @bind-Value="InputModel.DuracaoMinutos"
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="URL da imagem"
+                              @bind-Value="InputModel.ImagemUrl"
+                              Variant="Variant.Outlined"
+                              Placeholder="Imgs/americano.png" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <InputFile OnChange="UploadImage" accept="image/*" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField Label="Descrição"
+                              @bind-Value="InputModel.Descricao"
+                              Variant="Variant.Outlined"
+                              Lines="4" />
+            </MudItem>
+
+            @if (!string.IsNullOrWhiteSpace(InputModel.ImagemUrl))
+            {
+                
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Pré-visualização</MudText>
+
+                    <MudPaper Class="pa-4 mt-2" Style="max-width: 320px; border-radius: 20px;">
+                        <img src="@InputModel.ImagemUrl"
+                             style="width: 100%; height: 220px; object-fit: cover; border-radius: 16px;" />
+
+                        <MudText Typo="Typo.h5" Class="mt-3">@InputModel.Titulo</MudText>
+                        <MudText Typo="Typo.body2">@InputModel.Descricao</MudText>
+
+                        <MudText Typo="Typo.subtitle1" Class="mt-2">
+                            @InputModel.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+
+            <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Href="/admin/cortes">
+                    Voltar
+                </MudButton>
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Disabled="@IsBusy">
+                    Criar Corte
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>

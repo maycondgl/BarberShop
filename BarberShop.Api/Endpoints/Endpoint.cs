@@ -54,6 +54,7 @@ namespace BarberShop.Api.Endpoints
                //.RequireAuthorization()
                .MapEndpoint<CreateCorteEndpoint>()
                .MapEndpoint<UpdateCorteEndpoint>()
+               .MapEndpoint<UploadImagemCorteEndpoint>()
                .MapEndpoint<DeleteCorteEndpoint>()
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();

@@ -24,7 +24,7 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         #endregion
 
-    #region Services
+        #region Services
 
     [Inject]
         public IAgendamentoHandler Handler { get; set; } = null!;

@@ -2,6 +2,7 @@
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Avaliacao;
+using BarberShop.Web.Handlers;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -67,6 +68,21 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
+        public async Task OnDeleteClickedAsync(long id)
+        {
+            var result = await Handler.DeleteAsync(id);
+
+            if (result.IsSuccess)
+            {
+                Agendamentos.RemoveAll(x => x.Id == id);
+
+                Snackbar.Add("Agendamento removido com sucesso", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Erro ao remover agendamento", Severity.Error);
+            }
+        }
         #endregion
 
         #region Methods

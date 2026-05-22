@@ -31,7 +31,9 @@ namespace BarberShop.Api.Handlers
                     Titulo = request.Titulo,
                     Preco = request.Preco,
                     DuracaoMinutos = request.DuracaoMinutos,
-                    Role = request.Role
+                    Descricao = request.Descricao,
+                    ImagemUrl = request.ImagemUrl,
+                    Ativo = request.Ativo
                 };
 
                 await _context.Cortes.AddAsync(corte);
@@ -42,7 +44,9 @@ namespace BarberShop.Api.Handlers
                     corte.Titulo,
                     corte.Preco,
                     corte.DuracaoMinutos,
-                    corte.Role
+                    corte.Descricao,
+                    corte.ImagemUrl,
+                    corte.Ativo
                     );
                 return new Response<CorteResponse?>(response, 201, "Corte criado com sucesso");
             }
@@ -69,7 +73,9 @@ namespace BarberShop.Api.Handlers
                 corte.Titulo = request.Titulo;
                 corte.Preco = request.Preco;
                 corte.DuracaoMinutos = request.DuracaoMinutos;
-                corte.Role = request.Role;
+                corte.Descricao = request.Descricao;
+                corte.ImagemUrl = request.ImagemUrl;
+                corte.Ativo = request.Ativo;
 
                 await _context.SaveChangesAsync();
 
@@ -78,7 +84,9 @@ namespace BarberShop.Api.Handlers
                     corte.Titulo,
                     corte.Preco,
                     corte.DuracaoMinutos,
-                    corte.Role);
+                    corte.Descricao,
+                    corte.ImagemUrl,
+                    corte.Ativo);
 
                 return new Response<CorteResponse?>(response, 200, "Corte atualizado com sucesso");
             }
@@ -104,7 +112,9 @@ namespace BarberShop.Api.Handlers
                         corte.Titulo,
                         corte.Preco,
                         corte.DuracaoMinutos,
-                        corte.Role
+                        corte.Descricao,
+                        corte.ImagemUrl,
+                        corte.Ativo
                     );
 
                 _context.Cortes.Remove(corte);

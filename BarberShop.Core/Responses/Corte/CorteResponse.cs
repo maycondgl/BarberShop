@@ -4,5 +4,8 @@
       string Titulo,
       Decimal Preco,
       int DuracaoMinutos,
-      string role
+      string Descricao,
+      string ImagemUrl,
+      bool Ativo
+
 );

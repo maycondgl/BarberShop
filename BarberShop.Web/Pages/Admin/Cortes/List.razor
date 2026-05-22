@@ -1,0 +1,39 @@
+﻿@page "/admin/cortes"
+@using BarberShop.Web.Pages.Admin.Cortes
+@inherits ListPageCorte
+@attribute [Authorize(Roles = "Admin")]
+
+<MudText Typo="Typo.h3">Gerenciar Cortes</MudText>
+
+<MudButton Href="/admin/cortes/criar"
+           Variant="Variant.Filled"
+           Color="Color.Warning"
+           StartIcon="@Icons.Material.Filled.Add"
+           Class="my-4">
+    Novo Corte
+</MudButton>
+
+<MudDataGrid Items="@ListaCortes" Hover="true">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="#" />
+        <PropertyColumn Property="x => x.Titulo" Title="Corte" />
+        <PropertyColumn Property="x => x.Preco" Title="Preço" />
+        <PropertyColumn Property="x => x.DuracaoMinutos" Title="Duração" />
+
+        <TemplateColumn Title="Ações">
+            <CellTemplate Context="corte">
+                <MudButton Href="@($"/admin/corte/editar/{corte.Item.Id}")"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary">
+                    Editar
+                </MudButton>
+
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               OnClick="@(() => OnDeleteClickedAsync(corte.Item.Id))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>

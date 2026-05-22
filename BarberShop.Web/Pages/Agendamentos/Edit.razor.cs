@@ -3,7 +3,6 @@ using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Cortes;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 namespace BarberShop.Web.Pages.Agendamentos

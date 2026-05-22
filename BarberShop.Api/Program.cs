@@ -21,6 +21,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSecurity();
+app.UseStaticFiles();
 app.MapEndpoints();
 
 app.Run();

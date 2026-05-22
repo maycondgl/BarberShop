@@ -80,6 +80,11 @@
                                 AVALIAR
                             </MudButton>
                         }
+
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
                     }
                 </div>
             </CellTemplate>

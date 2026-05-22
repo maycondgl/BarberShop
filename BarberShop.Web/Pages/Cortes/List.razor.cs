@@ -103,25 +103,16 @@ namespace BarberShop.Web.Pages.Cortes
         public static string FormatPrice(decimal price)
             => price.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"));
 
-        public static readonly Dictionary<string, string> ImagensPorCorte = new()
-            {
-                { "Corte Social",    "Imgs/corte-de-cabelo-social-2.png" },
-                { "Americano",       "Imgs/americano.png" },
-                { "LowFade",         "Imgs/lowfade.png" },
-                { "Moicano",         "Imgs/moicano.png" },
-                { "BuzzCut",         "Imgs/buzzcut.png" },
-
-            };
-
 
 
         public sealed record CorteCatalogItem(
             long Id,
             string Titulo,
             decimal Preco,
-            int DuracaoMinutos,
-            string MediaStyle,
-            string ImagemUrl)
+            int DuracaoMinutos,  
+            string Descricao,
+            string ImagemUrl,
+            string MediaStyle)
         {
             public static CorteCatalogItem FromCorte(Corte corte, string mediaStyle)
                 => new(
@@ -129,8 +120,11 @@ namespace BarberShop.Web.Pages.Cortes
                     corte.Titulo,
                     corte.Preco,
                     corte.DuracaoMinutos,
-                    mediaStyle,
-                    ImagensPorCorte.GetValueOrDefault(corte.Titulo, "Imgs/corte-de-cabelo-social-2.png"));
+                    corte.Descricao,
+                    string.IsNullOrWhiteSpace(corte.ImagemUrl)
+                    ? "Imgs/corte-de-cabelo-social-2.png"
+                    : corte.ImagemUrl,
+                    mediaStyle);
         }
     }
 }

@@ -6,6 +6,12 @@
 <AuthorizeView Roles="Admin">
     <Authorized>
         <MudText Typo="Typo.h3">Gerenciar Agendamentos</MudText>
+        <MudText Typo="Typo.body1" Style="opacity:.7;">
+            Visualize, aceite e conclua os agendamentos dos clientes.
+        </MudText>
+        <MudText Typo="Typo.body1" Style="opacity:.7;" Color="Color.Primary">
+            ━━━
+        </MudText>
         <MudGrid Class="mt-4 mb-6">
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="admin-stat-card">
@@ -36,7 +42,7 @@
                              Class="admin-stat-icon"
                              Color="Color.Warning"
                              Size="Size.Large" />
-                    <MudText Class="admin-stat-title">Concluídos</MudText>
+                    <MudText Class="admin-stat-title">Concluídos da Semana</MudText>
                     <MudText Class="admin-stat-value">@TotalConcluidosSemana</MudText>
                 </MudPaper>
             </MudItem>
@@ -47,7 +53,7 @@
                              Class="admin-stat-icon"
                              Color="Color.Warning"
                              Size="Size.Large" />
-                    <MudText Class="admin-stat-title">Faturamento</MudText>
+                    <MudText Class="admin-stat-title">Faturamento da Semana</MudText>
                     <MudText Class="admin-stat-value">
                         @FaturamentoSemana.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
                 </MudPaper>

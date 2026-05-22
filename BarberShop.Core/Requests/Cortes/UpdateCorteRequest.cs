@@ -18,7 +18,9 @@ namespace BarberShop.Core.Requests.Cortes
         [Range(1, 480, ErrorMessage = "A duração deve ser entre 1 minuto e 8 horas")]
         public int DuracaoMinutos { get; set; }
 
-        [Required(ErrorMessage = "A Role é obrigatória")]
-        public string Role { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public string ImagemUrl { get; set; } = string.Empty;
+        public bool Ativo { get; set; } = true;
+
     }
 }
