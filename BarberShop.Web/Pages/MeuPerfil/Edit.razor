@@ -1,0 +1,105 @@
+﻿@page "/perfil/editar"
+@attribute [Authorize]
+@inherits EditPerfilPage
+
+<MudText Typo="Typo.h3">Editar Perfil</MudText>
+
+<MudText Typo="Typo.body1" Class="profile-subtitle">
+    Atualize suas informações pessoais.
+</MudText>
+
+@if (IsBusy)
+{
+    <MudPaper Class="pa-8 mt-4">
+        <MudSkeleton Height="55px" />
+        <MudSkeleton Height="110px" />
+        <MudSkeleton Height="55px" />
+        <MudSkeleton Height="110px" />
+        <MudSkeleton Height="55px" />
+    </MudPaper>
+}
+else
+{
+    <MudPaper Class="profile-card" Elevation="0">
+
+        <EditForm Model="@InputModel"
+                  OnValidSubmit="OnValidSubmitAsync">
+            <DataAnnotationsValidator />
+
+            <MudGrid>
+
+                <MudItem xs="12">
+                    <div class="profile-header">
+
+                        <MudAvatar Class="profile-avatar">
+                            @InputModel.Email.FirstOrDefault()
+                        </MudAvatar>
+
+                        <div>
+                            <MudText Typo="Typo.h5" Class="profile-email">
+                                @InputModel.Email
+                            </MudText>
+
+                            <MudText Typo="Typo.body2" Class="profile-muted">
+                                Conta pessoal
+                            </MudText>
+                        </div>
+
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudDivider Class="my-4" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Nome completo"
+                                  @bind-Value="InputModel.Nome"
+                                  Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Person"
+                                  FullWidth="true" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="E-mail"
+                                  @bind-Value="InputModel.Email"
+                                  Variant="Variant.Outlined"
+                                  Disabled="true"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Email"
+                                  FullWidth="true" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Label="Telefone"
+                                  @bind-Value="InputModel.Telefone"
+                                  Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Phone"
+                                  FullWidth="true" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <div class="profile-actions">
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Default"
+                                   Href="/perfil">
+                            Voltar
+                        </MudButton>
+
+                        <MudButton ButtonType="ButtonType.Submit"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Warning"
+                                   Disabled="@IsBusy"
+                                   StartIcon="@Icons.Material.Filled.Save">
+                            Salvar Alterações
+                        </MudButton>
+
+                    </div>
+                </MudItem>
+            </MudGrid>
+            </EditForm>
+            </MudPaper>
+}

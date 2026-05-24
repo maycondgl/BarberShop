@@ -23,4 +23,8 @@
     <ProjectReference Include="..\BarberShop.Core\BarberShop.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Imgs\cortes\" />
+  </ItemGroup>
+
 </Project>

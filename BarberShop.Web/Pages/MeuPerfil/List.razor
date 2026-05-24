@@ -1,0 +1,82 @@
+﻿@page "/perfil"
+@inherits ListPerfilPage
+
+<div class="profile-page">
+    <MudText Typo="Typo.h3" Class="profile-title">Meu Perfil</MudText>
+    <MudText Typo="Typo.body1" Class="profile-subtitle">
+        Visualize e atualize suas informações pessoais.
+    </MudText>
+
+    <MudPaper Class="profile-card" Elevation="0">
+        <div class="profile-header">
+            <MudAvatar Class="profile-avatar">
+                @InputModel.Email.FirstOrDefault()
+            </MudAvatar>
+
+            <div>
+                <MudText Typo="Typo.h5" Class="profile-email">@InputModel.Email</MudText>
+                <MudText Typo="Typo.body2" Class="profile-muted">Conta pessoal</MudText>
+            </div>
+        </div>
+
+        <MudDivider Class="my-6" />
+
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Nome completo"
+                              @bind-Value="InputModel.Nome"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              Disabled="@(!IsEditing)" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="E-mail"
+                              @bind-Value="InputModel.Email"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email"
+                              Disabled="true" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField Label="Telefone"
+                              @bind-Value="InputModel.Telefone"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Phone"
+                              Disabled="@(!IsEditing)" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudButton FullWidth="true"
+                           Variant="Variant.Outlined"
+                           Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.Lock"
+                           Href="/perfil/alterar-senha">
+                    Alterar Senha
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12">
+                <div class="profile-actions">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Edit"
+                               Href="/perfil/editar" >
+                        Editar Dados
+                    </MudButton>
+
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               OnClick="OnDeleteClickedAsync">
+                        Excluir Conta
+                    </MudButton>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</div>

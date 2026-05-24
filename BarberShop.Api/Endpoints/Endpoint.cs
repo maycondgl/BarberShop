@@ -72,9 +72,11 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<GetRolesEndpoint>()
                 .MapEndpoint<ForgotPasswordEndpoint>() 
                 .MapEndpoint<ResetPasswordEndpoint>()
-                .MapEndpoint<GetInfoEndpoint>() 
+                .MapEndpoint<GetInfoEndpoint>()
+                .MapEndpoint<GetProfileEndpoint>()
                 .MapEndpoint<TwoFactorEndpoint>()
                 .MapEndpoint<UpdateProfileEndpoint>()
+                .MapEndpoint<ChangePasswordEndpoint>()
                 .MapEndpoint<DeleteProfileEndpoint>()
 
 

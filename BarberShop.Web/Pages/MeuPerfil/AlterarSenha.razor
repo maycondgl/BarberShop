@@ -1,0 +1,35 @@
+﻿@page "/perfil/alterar-senha"
+@inherits AlterarSenhaPage
+
+<MudText Typo="Typo.h3">Alterar Senha</MudText>
+
+<MudPaper Class="pa-6 mt-4">
+
+    <MudTextField Label="Senha atual"
+                  InputType="InputType.Password"
+                  @bind-Value="InputModel.CurrentPassword" />
+
+    <MudTextField Label="Nova senha"
+                  InputType="InputType.Password"
+                  @bind-Value="InputModel.NewPassword"
+                  Class="mt-4" />
+
+    <MudTextField Label="Confirmar nova senha"
+                  InputType="InputType.Password"
+                  @bind-Value="InputModel.ConfirmPassword"
+                  Class="mt-4" />
+
+    <MudStack Row="true" Class="mt-6">
+        <MudButton Href="/perfil"
+                   Variant="Variant.Outlined">
+            Voltar
+        </MudButton>
+
+        <MudButton OnClick="OnSubmitAsync"
+                   Variant="Variant.Filled"
+                   Color="Color.Warning">
+            Salvar Nova Senha
+        </MudButton>
+    </MudStack>
+
+</MudPaper>

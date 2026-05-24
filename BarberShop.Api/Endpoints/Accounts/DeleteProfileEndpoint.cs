@@ -8,7 +8,7 @@ namespace BarberShop.Api.Endpoints.Account
     public class DeleteProfileEndpoint : IEndpoint
     {
         public static void Map(IEndpointRouteBuilder app)
-            => app.MapDelete("/profile", HandleAsync)
+            => app.MapDelete("/delete-profile", HandleAsync)
                   .RequireAuthorization();
 
         private static async Task<IResult> HandleAsync(
@@ -28,7 +28,8 @@ namespace BarberShop.Api.Endpoints.Account
 
             await signInManager.SignOutAsync();
 
-            var result = await userManager.DeleteAsync(user);
+            user.Ativo = false;
+            var result = await userManager.UpdateAsync(user);
 
             if (!result.Succeeded)
                 return Results.BadRequest(result.Errors);

@@ -7,8 +7,9 @@ using System.Security.Claims;
 public class UpdateProfileEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("/profile", HandleAsync)
-              .RequireAuthorization();
+    => app.MapPut("/update-profile", HandleAsync)
+        .RequireAuthorization()
+        .WithName("Identity: Update Profile");
 
     private static async Task<IResult> HandleAsync(
         ClaimsPrincipal userClaims,
