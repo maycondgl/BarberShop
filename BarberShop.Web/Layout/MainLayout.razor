@@ -1,59 +1,82 @@
-﻿@using BarberShop.Web.Components
 @inherits LayoutComponentBase
 
-<MudThemeProvider 
+<MudThemeProvider
     @ref="_mudThemeProvider"
-    @bind-IsDarkMode="_isDarkMode" 
+    @bind-IsDarkMode="_isDarkMode"
     Theme="Configuration.Theme" />
 <MudSnackbarProvider />
 <MudDialogProvider />
 
 <AuthorizeView>
-    <Authorized>
-        <MudLayout>
-            <MudAppBar>
-                <MudIconButton 
-                    Icon="@Icons.Material.Filled.Menu"
-                    Color="Color.Inherit"
-                    Edge="Edge.Start"
-                    OnClick="ToggleDrawer"/>
-                BarberShop
-                <MudSpacer />
-                <MudText Typo="Typo.caption">
-                    @context.User.Identity?.Name
-                </MudText>
-                <MudSwitch
-                    Color="Color.Inherit"
-                    @bind-Value="_isDarkMode" 
-                    T="bool"
-                    Class="ma-4"
-                    ThumbIcon="@Icons.TwoTone.Lightbulb"
-                    />
-            </MudAppBar>
-            <MudDrawer @bind-Open="@_isDrawerOpened">
-                <NavMenu />
-            </MudDrawer>
-            <MudMainContent>
-                <MudContainer Class="mt-4">
+    <Authorized Context="userContext">
+        <div class="app-shell @(_isDarkMode ? "app-shell--dark" : "app-shell--light")">
+            <header class="app-topbar">
+                <a class="app-brand" href="/">
+                    <img src="Imgs/Essencia Da Beleza (2).png" alt="Essencia da Beleza" />
+                </a>
+
+                <nav class="app-nav" aria-label="Navegacao principal">
+                    <NavLink href="/agendamentos" class="app-nav__link">Agendamentos</NavLink>
+                    <NavLink href="/cortes" class="app-nav__link">Cortes</NavLink>
+                    <NavLink href="/avaliacoes" class="app-nav__link">Avaliacoes</NavLink>
+                    <NavLink href="/perfil" class="app-nav__link">Perfil</NavLink>
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized Context="adminContext">
+                            <div class="app-admin-menu">
+                                <button class="app-nav__link app-admin-menu__trigger" type="button">
+                                    Admin
+                                </button>
+
+                                <div class="app-admin-menu__panel" role="menu" aria-label="Menu admin">
+                                    <span class="app-admin-menu__label">Admin</span>
+                                    <NavLink href="/admin/agendamentos" class="app-admin-menu__item" role="menuitem">
+                                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small" />
+                                        <span>Gerenciar Agendamentos</span>
+                                    </NavLink>
+                                    <NavLink href="/admin/cortes" class="app-admin-menu__item" role="menuitem">
+                                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
+                                        <span>Servicos</span>
+                                    </NavLink>
+                                    <NavLink href="/sair" class="app-admin-menu__item" role="menuitem">
+                                        <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" />
+                                        <span>Sair</span>
+                                    </NavLink>
+                                </div>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </nav>
+
+                <div class="app-nav__actions">
+                    <button class="app-theme-toggle" type="button" @onclick="ToggleTheme">
+                        @(_isDarkMode ? "Tema Claro" : "Tema Escuro")
+                    </button>
+                    <a class="app-nav__action" href="/cortes">Ver Tudo</a>
+                    <a class="app-nav__action" href="/sair">Sair</a>
+                </div>
+            </header>
+
+            <main class="app-main">
+                <section class="app-content">
                     @Body
-                </MudContainer>
-            </MudMainContent>
-        </MudLayout>
+                </section>
+            </main>
+        </div>
     </Authorized>
     <NotAuthorized>
-        <LoginRedirect/>
+        <LoginRedirect />
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
-
-    private bool _isDrawerOpened = true;
     private bool _isDarkMode = true;
     private MudThemeProvider _mudThemeProvider = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender)
+        if (firstRender)
         {
             _isDarkMode = await _mudThemeProvider.GetSystemPreference();
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
@@ -68,7 +91,6 @@
         return Task.CompletedTask;
     }
 
-    private void ToggleDrawer()
-        => _isDrawerOpened = !_isDrawerOpened;
-
+    private void ToggleTheme()
+        => _isDarkMode = !_isDarkMode;
 }

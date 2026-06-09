@@ -27,14 +27,14 @@ namespace BarberShop.Web.Pages.Identity
 
         protected override async Task OnInitializedAsync()
         {
-            if(await AuthenticationStateProvider.CheckAuthenticatedAsync())
+            if (await AuthenticationStateProvider.CheckAuthenticatedAsync())
             {
                 await Handler.LogoutAsync();
                 await AuthenticationStateProvider.GetAuthenticationStateAsync();
                 AuthenticationStateProvider.NotifyAuthenticationStateChanged();
             }
 
-            await base.OnInitializedAsync();
+            NavigationManager.NavigateTo("/entrar", forceLoad: true);
         }
 
         #endregion

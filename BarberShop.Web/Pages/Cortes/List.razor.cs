@@ -12,12 +12,12 @@ namespace BarberShop.Web.Pages.Cortes
     {
         private static readonly string[] MediaStyles =
         [
-            "background: linear-gradient(145deg, rgba(255,193,7,.72), rgba(14,14,15,.32)), url('Imgs/logo.png') center / 50% no-repeat, #202022;",
-            "background: linear-gradient(145deg, rgba(181,111,29,.76), rgba(14,14,15,.42)), url('Imgs/logo.png') center / 50% no-repeat, #202022;",
-            "background: linear-gradient(145deg, rgba(88,96,112,.76), rgba(14,14,15,.42)), url('Imgs/logo.png') center / 50% no-repeat, #202022;",
-            "background: linear-gradient(145deg, rgba(255,179,0,.66), rgba(14,14,15,.48)), url('Imgs/logo.png') center / 50% no-repeat, #202022;",
-            "background: linear-gradient(145deg, rgba(70,70,76,.88), rgba(14,14,15,.46)), url('Imgs/logo.png') center / 50% no-repeat, #202022;",
-            "background: linear-gradient(145deg, rgba(36,36,42,.92), rgba(255,193,7,.24)), url('Imgs/logo.png') center / 50% no-repeat, #202022;"
+            "background: linear-gradient(145deg, rgba(255,193,7,.72), rgba(14,14,15,.32)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;",
+            "background: linear-gradient(145deg, rgba(181,111,29,.76), rgba(14,14,15,.42)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;",
+            "background: linear-gradient(145deg, rgba(88,88,88,.76), rgba(14,14,15,.42)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;",
+            "background: linear-gradient(145deg, rgba(255,179,0,.66), rgba(14,14,15,.48)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;",
+            "background: linear-gradient(145deg, rgba(70,70,70,.88), rgba(14,14,15,.46)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;",
+            "background: linear-gradient(145deg, rgba(36,36,36,.92), rgba(255,193,7,.24)), url('Imgs/Essencia Da Beleza (2).png') center / 58% no-repeat, #202022;"
         ];
 
         [Inject] public ICorteHandler Handler { get; set; } = null!;

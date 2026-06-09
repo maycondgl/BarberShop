@@ -33,11 +33,10 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         public string StatusFilter { get; set; } = string.Empty;
         public int TotalHoje { get; set; }
         public int TotalPendentes { get; set; }
-        public int TotalConcluidosSemana { get; set; }
-        public decimal FaturamentoSemana { get; set; }
-        public int SemanaRange { get; set; } = 1;
-        public List<int> SemanaRangeOptions { get; } = [1, 2, 3];
-        public DateTime HistoricoStartDate { get; set; } = DateTime.Today.AddDays(-6);
+        public int TotalMes { get; set; }
+        public int TotalConcluidosMes { get; set; }
+        public decimal FaturamentoMes { get; set; }
+        public DateTime HistoricoStartDate { get; set; } = new(DateTime.Today.Year, DateTime.Today.Month, 1);
         public DateTime HistoricoEndDate { get; set; } = DateTime.Today;
         public int PendingPage { get; set; } = 1;
         public int HistoryPage { get; set; } = 1;
@@ -106,12 +105,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             x.Status.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
             x.CorteTitulo.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase);
 
-        public async Task OnPesquisarPeriodoClickedAsync()
-        {
-            LoadHistoricoByWeeks();
-            await Task.CompletedTask;
-        }
-
         public void SetStatusFilter(string status)
         {
             StatusFilter = status;
@@ -176,27 +169,40 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                 TodosAgendamentos = result.Data
                     .OrderByDescending(x => x.Data)
                     .ToList();
-                Agendamentos = TodosAgendamentos
-                    .Where(x => !IsConcluido(x.Status))
-                    .ToList();
 
                 var hoje = DateTime.Today;
-                var inicioSemana = hoje.AddDays(-7);
+                var inicioMes = new DateTime(hoje.Year, hoje.Month, 1);
+                var inicioProximoMes = inicioMes.AddMonths(1);
+
+                Agendamentos = TodosAgendamentos
+                    .Where(x => !IsConcluido(x.Status) &&
+                                x.Data.Date >= inicioMes &&
+                                x.Data.Date < inicioProximoMes)
+                    .ToList();
 
                 TotalHoje = TodosAgendamentos
                     .Count(x => x.Data.Date == hoje);
 
                 TotalPendentes = TodosAgendamentos
-                    .Count(x => x.Status == "Pendente");
+                    .Count(x => x.Status == "Pendente" &&
+                                x.Data.Date >= inicioMes &&
+                                x.Data.Date < inicioProximoMes);
 
-                TotalConcluidosSemana = TodosAgendamentos
-                    .Count(x => IsConcluido(x.Status) && x.Data.Date >= inicioSemana);
+                TotalMes = TodosAgendamentos
+                    .Count(x => x.Data.Date >= inicioMes && x.Data.Date < inicioProximoMes);
 
-                FaturamentoSemana = TodosAgendamentos
-                    .Where(x => IsConcluido(x.Status) && x.Data.Date >= inicioSemana)
+                TotalConcluidosMes = TodosAgendamentos
+                    .Count(x => IsConcluido(x.Status) &&
+                                x.Data.Date >= inicioMes &&
+                                x.Data.Date < inicioProximoMes);
+
+                FaturamentoMes = TodosAgendamentos
+                    .Where(x => IsConcluido(x.Status) &&
+                                x.Data.Date >= inicioMes &&
+                                x.Data.Date < inicioProximoMes)
                     .Sum(x => x.Valor);
 
-                LoadHistoricoByWeeks(showSnackbar: false);
+                LoadHistoricoDoMes();
             }
             else
             {
@@ -204,10 +210,10 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             }
         }
 
-        private void LoadHistoricoByWeeks(bool showSnackbar = true)
+        private void LoadHistoricoDoMes()
         {
             HistoricoEndDate = DateTime.Today;
-            HistoricoStartDate = HistoricoEndDate.AddDays(-(SemanaRange * 7) + 1);
+            HistoricoStartDate = new DateTime(HistoricoEndDate.Year, HistoricoEndDate.Month, 1);
             HistoryPage = 1;
 
             AgendamentosHistorico = TodosAgendamentos
@@ -216,13 +222,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                             x.Data.Date <= HistoricoEndDate)
                 .OrderByDescending(x => x.Data)
                 .ToList();
-
-            if (showSnackbar)
-            {
-                Snackbar.Add(
-                    $"Histórico de {HistoricoStartDate:dd/MM/yyyy} até {HistoricoEndDate:dd/MM/yyyy}",
-                    Severity.Info);
-            }
         }
 
         public async Task OnAceitarClickedAsync(long id)
@@ -255,10 +254,7 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             if (result.IsSuccess)
             {
                 Snackbar.Add("Agendamento concluído!", Severity.Success);
-                Agendamentos.RemoveAll(x => x.Id == id);
-                TodosAgendamentos.RemoveAll(x => x.Id == id);
-                AgendamentosHistorico.RemoveAll(x => x.Id == id);
-                StateHasChanged();
+                await LoadAdminAgendamentosAsync();
             }
             else
                 Snackbar.Add(result.Message ?? "Erro", Severity.Error);

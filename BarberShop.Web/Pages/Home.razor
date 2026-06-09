@@ -1,8 +1,74 @@
-﻿@page "/"
-@using Microsoft.AspNetCore.Components.Authorization
+@page "/"
+@layout HeadlessLayout
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Essencia da Beleza | Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<main class="home-page @(_isDarkMode ? "home-page--dark" : "home-page--light")">
+    <nav class="home-nav" aria-label="Navegacao principal">
+        <a class="home-brand" href="/">
+            <img src="Imgs/Essencia Da Beleza (2).png" alt="Essencia da Beleza" />
+        </a>
 
-Welcome to your new app.
+        <div class="home-nav__links">
+            <a href="/agendamentos" class="home-nav__link home-nav__link--active">Agendamentos</a>
+            <a href="/cortes" class="home-nav__link">Cortes</a>
+            <a href="/avaliacoes" class="home-nav__link">Avaliacoes</a>
+            <a href="/perfil" class="home-nav__link">Perfil</a>
+        </div>
+
+        <div class="home-nav__actions">
+            <button class="home-theme-toggle" type="button" @onclick="ToggleTheme">
+                @(_isDarkMode ? "Tema Claro" : "Tema Escuro")
+            </button>
+            <a class="home-nav__action" href="/cortes">Ver Tudo</a>
+        </div>
+    </nav>
+
+    <section class="home-hero" aria-labelledby="home-title">
+        <div class="home-hero__content">
+            <span class="home-pill">Bem-vindo</span>
+            <h1 id="home-title">Estilo que acompanha o seu ritmo</h1>
+            <p>
+                Agende seu horario, escolha o corte ideal e viva uma experiencia de barbearia
+                pensada para quem valoriza cuidado, presenca e acabamento.
+            </p>
+
+            <div class="home-actions">
+                <a class="home-button home-button--primary" href="/agendamentos">Agende Agora</a>
+                <a class="home-button home-button--ghost" href="/cortes">Explorar Cortes</a>
+            </div>
+        </div>
+
+        <div class="home-hero__showcase" aria-label="Corte masculino em destaque">
+            <div class="home-hero__image-frame">
+                <img src="Imgs/corte-de-cabelo-social-2.png" alt="Cliente com corte masculino social" />
+            </div>
+            <div class="home-hero__floating-card">
+                <span>Atendimento</span>
+                <strong>com hora marcada</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-strip" aria-label="Destaques da barbearia">
+        <a href="/agendamentos" class="home-strip__item">
+            <span>01</span>
+            <strong>Agenda simples</strong>
+        </a>
+        <a href="/cortes" class="home-strip__item">
+            <span>02</span>
+            <strong>Cortes em destaque</strong>
+        </a>
+        <a href="/avaliacoes" class="home-strip__item">
+            <span>03</span>
+            <strong>Opinioes reais</strong>
+        </a>
+    </section>
+</main>
+
+@code {
+    private bool _isDarkMode = true;
+
+    private void ToggleTheme()
+        => _isDarkMode = !_isDarkMode;
+}

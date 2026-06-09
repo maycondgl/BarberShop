@@ -12,8 +12,8 @@
         <MudText Typo="Typo.body1" Style="opacity:.7;" Color="Color.Primary">
             ━━━
         </MudText>
-        <MudGrid Class="mt-4 mb-6">
-            <MudItem xs="12" sm="6" md="3">
+        <MudGrid Class="admin-stats-grid mt-4 mb-6">
+            <MudItem xs="12" sm="6">
                 <MudPaper Class="admin-stat-card">
                     <MudIcon Icon="@Icons.Material.Filled.Today"
                     Class="admin-stat-icon"
@@ -25,7 +25,7 @@
                 </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="6" md="3">
+            <MudItem xs="12" sm="6">
                 <MudPaper Class="admin-stat-card">
                     <MudIcon Icon="@Icons.Material.Filled.PendingActions"
                              Class="admin-stat-icon"
@@ -36,26 +36,37 @@
                 </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="6" md="3">
+            <MudItem xs="12" sm="6">
+                <MudPaper Class="admin-stat-card">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth"
+                             Class="admin-stat-icon"
+                             Color="Color.Warning"
+                             Size="Size.Large" />
+                    <MudText Class="admin-stat-title">Agendamentos do Mês</MudText>
+                    <MudText Class="admin-stat-value">@TotalMes</MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
                 <MudPaper Class="admin-stat-card">
                     <MudIcon Icon="@Icons.Material.Filled.PendingActions"
                              Class="admin-stat-icon"
                              Color="Color.Warning"
                              Size="Size.Large" />
-                    <MudText Class="admin-stat-title">Concluídos da Semana</MudText>
-                    <MudText Class="admin-stat-value">@TotalConcluidosSemana</MudText>
+                    <MudText Class="admin-stat-title">Concluídos do Mês</MudText>
+                    <MudText Class="admin-stat-value">@TotalConcluidosMes</MudText>
                 </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="6" md="3">
+            <MudItem xs="12" sm="6">
                 <MudPaper Class="admin-stat-card">
                     <MudIcon Icon="@Icons.Material.Filled.AttachMoney"
                              Class="admin-stat-icon"
                              Color="Color.Warning"
                              Size="Size.Large" />
-                    <MudText Class="admin-stat-title">Faturamento da Semana</MudText>
+                    <MudText Class="admin-stat-title">Faturamento do Mês</MudText>
                     <MudText Class="admin-stat-value">
-                        @FaturamentoSemana.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
+                        @FaturamentoMes.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
                 </MudPaper>
             </MudItem>
 
@@ -107,6 +118,7 @@
                                     <th>Data e Horário</th>
                                     <th>Corte</th>
                                     <th>Valor</th>
+                                    <th>Minutos</th>
                                     <th>Status</th>
                                     <th>Ações</th>
                                 </tr>
@@ -115,7 +127,6 @@
                                 @foreach (var agendamento in PagedAgendamentos)
                                 {
                                     <tr>
-                                        <td>@agendamento.Id</td>
                                         <td>
                                             <div class="admin-client-cell">
                                                 <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
@@ -132,6 +143,7 @@
                                         </td>
                                         <td>@agendamento.CorteTitulo</td>
                                         <td>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</td>
+                                        <td>@agendamento.TempoMinutos min</td>
                                         <td>
                                             <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
                                         </td>
@@ -195,30 +207,7 @@
                     <div class="admin-table-toolbar">
                         <div class="admin-table-title">
                             <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Warning" Size="Size.Small" />
-                            <MudText Typo="Typo.h6">Histórico de Agendamentos</MudText>
-                        </div>
-
-                        <div class="admin-table-controls">
-                            <MudSelect T="int"
-                                       Variant="Variant.Outlined"
-                                       Margin="Margin.Dense"
-                                       Dense="true"
-                                       Class="admin-period-select"
-                                       @bind-Value="SemanaRange">
-                                @foreach (var option in SemanaRangeOptions)
-                                {
-                                    <MudSelectItem Value="@option">Últimas @option semana(s)</MudSelectItem>
-                                }
-                            </MudSelect>
-
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Warning"
-                                       StartIcon="@Icons.Material.Filled.Search"
-                                       Size="Size.Small"
-                                       Class="admin-history-btn"
-                                       OnClick="OnPesquisarPeriodoClickedAsync">
-                                Pesquisar
-                            </MudButton>
+                            <MudText Typo="Typo.h6">Histórico do Mês</MudText>
                         </div>
                     </div>
 
@@ -231,11 +220,11 @@
                         <table class="admin-schedule-table">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Cliente</th>
                                     <th>Data e Horário</th>
                                     <th>Corte</th>
                                     <th>Valor</th>
+                                    <th>Minutos</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -243,7 +232,6 @@
                                 @foreach (var agendamento in PagedHistorico)
                                 {
                                     <tr>
-                                        <td>@agendamento.Id</td>
                                         <td>
                                             <div class="admin-client-cell">
                                                 <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
@@ -260,6 +248,7 @@
                                         </td>
                                         <td>@agendamento.CorteTitulo</td>
                                         <td>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</td>
+                                        <td>@agendamento.TempoMinutos min</td>
                                         <td>
                                             <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
                                         </td>
