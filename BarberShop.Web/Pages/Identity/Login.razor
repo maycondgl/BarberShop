@@ -1,21 +1,20 @@
-﻿@page "/entrar"
+@page "/entrar"
 @layout HeadlessLayout
 @inherits LoginPage
 
-
 <PageTitle>BarberShop - Entrar</PageTitle>
 
-<MudGrid Justify="Justify.Center">
-    <MudItem xs="12" sm="12" md="8" lg="6" xl="6" xxl="6">
-        <MudPaper Class="mud-width-full pa-8">
+<main class="auth-page">
+    <section class="auth-shell auth-shell--login" aria-label="Login">
+        <div class="auth-panel auth-panel--form">
+            <img class="auth-logo" src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
 
-            <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                <img src="imgs/Essencia Da Beleza (2).png"
-                     alt="BarberShop - Gestão de Barbearia"
-                     width="200" />
-            </MudStack>
+            <div class="auth-heading">
+                <h1>Entrar</h1>
+                <p>Acesse sua conta para gerenciar seus agendamentos.</p>
+            </div>
 
-            <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+            <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync" class="auth-form">
                 <DataAnnotationsValidator />
 
                 <MudTextField T="string"
@@ -24,7 +23,10 @@
                               @bind-Value="InputModel.Email"
                               InputType="InputType.Email"
                               Required="true"
-                              RequiredError="E-mail inválido" />
+                              RequiredError="E-mail inválido"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
                 <MudTextField T="string"
                               Label="Senha"
@@ -32,21 +34,35 @@
                               @bind-Value="InputModel.Senha"
                               InputType="InputType.Password"
                               Required="true"
-                              RequiredError="Senha inválida" />
+                              RequiredError="Senha inválida"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
-                <div class="d-flex mt-8">
-                    @if (IsBusy)
-                    {
-                        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
-                    }
-                    else
-                    {
-                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">ENTRAR</MudButton>
-                        <MudSpacer />
-                        <MudButton Href="/comecar">QUERO ME CADASTRAR</MudButton>
-                    }
-                </div>
+                @if (IsBusy)
+                {
+                    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               Class="auth-submit">
+                        Entrar
+                    </MudButton>
+                }
             </EditForm>
-        </MudPaper>
-    </MudItem>
-</MudGrid>
+        </div>
+
+        <aside class="auth-panel auth-panel--accent">
+            <div>
+                <span class="auth-kicker">Novo por aqui?</span>
+                <h2>Crie sua conta</h2>
+                <p>Cadastre-se para agendar cortes, acompanhar horários e viver a experiência Essencia da Beleza.</p>
+            </div>
+
+            <a class="auth-outline-button" href="/comecar">Quero me cadastrar</a>
+        </aside>
+    </section>
+</main>

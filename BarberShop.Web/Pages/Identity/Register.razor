@@ -1,29 +1,41 @@
-﻿@page "/comecar"
+@page "/comecar"
 @layout HeadlessLayout
 @inherits RegisterPage
 
-<PageTitle>BarberShop - Entrar</PageTitle>
+<PageTitle>BarberShop - Criar conta</PageTitle>
 
+<main class="auth-page">
+    <section class="auth-shell auth-shell--register" aria-label="Cadastro">
+        <aside class="auth-panel auth-panel--accent">
+            <div>
+                <span class="auth-kicker">Bem-vindo</span>
+                <h2>Já tem uma conta?</h2>
+                <p>Entre para acessar seus agendamentos e continuar cuidando do seu estilo.</p>
+            </div>
 
-<MudGrid Justify="Justify.Center">
-    <MudItem xs="12" sm="12" md="8" lg="6" xl="6" xxl="6">
-        <MudPaper Class="mud-width-full pa-8">
+            <a class="auth-outline-button" href="/entrar">Fazer login</a>
+        </aside>
 
-            <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                <img src="imgs/Essencia Da Beleza (2).png"
-                     alt="BarberShop - Gestão de Barbearia"
-                     width="200" />
-            </MudStack>
+        <div class="auth-panel auth-panel--form">
+            <img class="auth-logo" src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
 
-            <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+            <div class="auth-heading">
+                <h1>Criar conta</h1>
+                <p>Preencha seus dados para começar a agendar.</p>
+            </div>
+
+            <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync" class="auth-form">
                 <DataAnnotationsValidator />
 
                 <MudTextField T="string"
-                              Label="Nome Completo"
+                              Label="Nome completo"
                               For="@(() => InputModel.Nome)"
                               @bind-Value="InputModel.Nome"
                               Required="true"
-                              RequiredError="Nome inválido" />
+                              RequiredError="Nome inválido"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
                 <MudTextField T="string"
                               Label="Número"
@@ -31,7 +43,10 @@
                               @bind-Value="InputModel.Telefone"
                               InputType="InputType.Telephone"
                               Required="true"
-                              RequiredError="Número inválido" />
+                              RequiredError="Número inválido"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
                 <MudTextField T="string"
                               Label="E-mail"
@@ -39,7 +54,10 @@
                               @bind-Value="InputModel.Email"
                               InputType="InputType.Email"
                               Required="true"
-                              RequiredError="E-mail inválido" />
+                              RequiredError="E-mail inválido"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
                 <MudTextField T="string"
                               Label="Senha"
@@ -47,21 +65,25 @@
                               @bind-Value="InputModel.Senha"
                               InputType="InputType.Password"
                               Required="true"
-                              RequiredError="Senha inválida" />
+                              RequiredError="Senha inválida"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
 
-                <div class="d-flex mt-8">
-                    @if (IsBusy)
-                    {
-                        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
-                    }
-                    else
-                    {
-                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">COMEÇAR</MudButton>
-                        <MudSpacer />
-                        <MudButton Href="/entrar">JÁ TENHO UMA CONTA</MudButton>
-                    }
-                </div>
+                @if (IsBusy)
+                {
+                    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               Class="auth-submit">
+                        Começar
+                    </MudButton>
+                }
             </EditForm>
-        </MudPaper>
-    </MudItem>
-</MudGrid>
+        </div>
+    </section>
+</main>

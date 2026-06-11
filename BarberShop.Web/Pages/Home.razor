@@ -6,22 +6,41 @@
 <main class="home-page @(_isDarkMode ? "home-page--dark" : "home-page--light")">
     <nav class="home-nav" aria-label="Navegacao principal">
         <a class="home-brand" href="/">
-            <img src="Imgs/Essencia Da Beleza (2).png" alt="Essencia da Beleza" />
+            <img src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
         </a>
 
         <div class="home-nav__links">
-            <a href="/agendamentos" class="home-nav__link home-nav__link--active">Agendamentos</a>
-            <a href="/cortes" class="home-nav__link">Cortes</a>
-            <a href="/avaliacoes" class="home-nav__link">Avaliacoes</a>
-            <a href="/perfil" class="home-nav__link">Perfil</a>
+            <NavLink href="/" Match="NavLinkMatch.All" class="home-nav__link">Inicio</NavLink>
+            <NavLink href="/agendamentos" class="home-nav__link">Agendamentos</NavLink>
+            <NavLink href="/cortes" class="home-nav__link">Cortes</NavLink>
+            <NavLink href="/avaliacoes" class="home-nav__link">Avaliacoes</NavLink>
+            <NavLink href="/perfil" class="home-nav__link">Perfil</NavLink>
+
+            <AuthorizeView Roles="Admin">
+                <Authorized Context="adminContext">
+                    <details class="app-admin-menu">
+                        <summary class="home-nav__link app-admin-menu__trigger">
+                            Admin
+                        </summary>
+
+                        <div class="app-admin-menu__panel" role="menu" aria-label="Menu admin">
+                            <span class="app-admin-menu__label">Admin</span>
+                            <NavLink href="/admin/agendamentos" class="app-admin-menu__item" role="menuitem">
+                                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small" />
+                                <span>Gerenciar Agendamentos</span>
+                            </NavLink>
+                            <NavLink href="/admin/cortes" class="app-admin-menu__item" role="menuitem">
+                                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
+                                <span>Servicos</span>
+                            </NavLink>
+                        </div>
+                    </details>
+                </Authorized>
+            </AuthorizeView>
+
+            <NavLink href="/sair" class="home-nav__link">Sair</NavLink>
         </div>
 
-        <div class="home-nav__actions">
-            <button class="home-theme-toggle" type="button" @onclick="ToggleTheme">
-                @(_isDarkMode ? "Tema Claro" : "Tema Escuro")
-            </button>
-            <a class="home-nav__action" href="/cortes">Ver Tudo</a>
-        </div>
     </nav>
 
     <section class="home-hero" aria-labelledby="home-title">
@@ -68,7 +87,4 @@
 
 @code {
     private bool _isDarkMode = true;
-
-    private void ToggleTheme()
-        => _isDarkMode = !_isDarkMode;
 }

@@ -12,10 +12,11 @@
         <div class="app-shell @(_isDarkMode ? "app-shell--dark" : "app-shell--light")">
             <header class="app-topbar">
                 <a class="app-brand" href="/">
-                    <img src="Imgs/Essencia Da Beleza (2).png" alt="Essencia da Beleza" />
+                    <img src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
                 </a>
 
                 <nav class="app-nav" aria-label="Navegacao principal">
+                    <NavLink href="/" Match="NavLinkMatch.All" class="app-nav__link">Inicio</NavLink>
                     <NavLink href="/agendamentos" class="app-nav__link">Agendamentos</NavLink>
                     <NavLink href="/cortes" class="app-nav__link">Cortes</NavLink>
                     <NavLink href="/avaliacoes" class="app-nav__link">Avaliacoes</NavLink>
@@ -23,10 +24,10 @@
 
                     <AuthorizeView Roles="Admin">
                         <Authorized Context="adminContext">
-                            <div class="app-admin-menu">
-                                <button class="app-nav__link app-admin-menu__trigger" type="button">
+                            <details class="app-admin-menu">
+                                <summary class="app-nav__link app-admin-menu__trigger">
                                     Admin
-                                </button>
+                                </summary>
 
                                 <div class="app-admin-menu__panel" role="menu" aria-label="Menu admin">
                                     <span class="app-admin-menu__label">Admin</span>
@@ -38,24 +39,13 @@
                                         <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
                                         <span>Servicos</span>
                                     </NavLink>
-                                    <NavLink href="/sair" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" />
-                                        <span>Sair</span>
-                                    </NavLink>
                                 </div>
-                            </div>
+                            </details>
                         </Authorized>
                     </AuthorizeView>
 
+                    <NavLink href="/sair" class="app-nav__link">Sair</NavLink>
                 </nav>
-
-                <div class="app-nav__actions">
-                    <button class="app-theme-toggle" type="button" @onclick="ToggleTheme">
-                        @(_isDarkMode ? "Tema Claro" : "Tema Escuro")
-                    </button>
-                    <a class="app-nav__action" href="/cortes">Ver Tudo</a>
-                    <a class="app-nav__action" href="/sair">Sair</a>
-                </div>
             </header>
 
             <main class="app-main">
@@ -91,6 +81,4 @@
         return Task.CompletedTask;
     }
 
-    private void ToggleTheme()
-        => _isDarkMode = !_isDarkMode;
 }
