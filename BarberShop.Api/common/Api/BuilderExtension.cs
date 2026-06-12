@@ -22,6 +22,9 @@ namespace BarberShop.Api.common.Api
             Configuration.FrontendUrl = builder.Configuration.GetValue<string>("FrontendUrl") ?? string.Empty;
             Configuration.AdminSetupKey = builder.Configuration.GetValue<string>("AdminSetupKey") ?? string.Empty;
 
+            builder.Services.Configure<Secrets>(
+            builder.Configuration.GetSection("Secrets"));
+
         }
 
         public static void AddDocumentation(this WebApplicationBuilder builder) 
