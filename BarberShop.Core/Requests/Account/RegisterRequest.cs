@@ -18,5 +18,7 @@ namespace BarberShop.Core.Requests.Account
         [MinLength(6, ErrorMessage = "Senha deve ter no mínimo 6 caracteres")]
         public string Senha { get; set; } = string.Empty;
 
+        public string? ChaveAdmin { get; set; }
+
     }
 }

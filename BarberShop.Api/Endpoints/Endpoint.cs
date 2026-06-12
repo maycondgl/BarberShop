@@ -1,6 +1,7 @@
-﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.common.Api;
 using BarberShop.Api.Endpoints.Account;
 using BarberShop.Api.Endpoints.Accounts;
+using BarberShop.Api.Endpoints.Admin;
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
@@ -25,7 +26,7 @@ namespace BarberShop.Api.Endpoints
             endpoints.MapGroup("v1/agendamentos")
                 .WithTags("Agendamentos")
                 //.RequireAuthorization()
-                .MapEndpoint<GetAllAdminAgendamentoEndpoint>()  
+                .MapEndpoint<GetAllAdminAgendamentoEndpoint>()
                 .MapEndpoint<UpdateStatusAgendamentoEndpoint>()
                 .MapEndpoint<CreateAgendamentoEndpoint>()
                 .MapEndpoint<UpdateAgendamentoEndpoint>()
@@ -47,7 +48,6 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<DeleteAvaliacaoEndpoint>()
                .MapEndpoint<GetAvaliacaoByIdEndpoint>()
                .MapEndpoint<GetAllAvaliacaoEndpoint>();
-               
 
             endpoints.MapGroup("v1/cortes")
                .WithTags("cortes")
@@ -59,18 +59,15 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();
 
-
-
             endpoints.MapGroup("v1/identity")
                 .WithTags("Identity")
                 //MapIdentityApi<User>();
-
                 .MapEndpoint<MeEndpoint>()
                 .MapEndpoint<RegisterEndpoint>()
                 .MapEndpoint<LoginEndpoint>()
-                .MapEndpoint<LogoutEndpoint>() 
+                .MapEndpoint<LogoutEndpoint>()
                 .MapEndpoint<GetRolesEndpoint>()
-                .MapEndpoint<ForgotPasswordEndpoint>() 
+                .MapEndpoint<ForgotPasswordEndpoint>()
                 .MapEndpoint<ResetPasswordEndpoint>()
                 .MapEndpoint<GetInfoEndpoint>()
                 .MapEndpoint<GetProfileEndpoint>()
@@ -78,11 +75,17 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<UpdateProfileEndpoint>()
                 .MapEndpoint<ChangePasswordEndpoint>()
                 .MapEndpoint<DeleteProfileEndpoint>()
+                .MapPost("/refresh", (ClaimsPrincipal user, SignInManager<User> signInManager) => {
+                });
 
-
-            .MapPost("/refresh", (ClaimsPrincipal user, SignInManager<User> signInManager) => {
-             });
+            endpoints.MapGroup("v1/admin")
+                .WithTags("Admin")
+                .RequireAuthorization("Admin")
+                .MapEndpoint<GetUsersEndpoint>()
+                .MapEndpoint<AddAdminEndpoint>()
+                .MapEndpoint<RemoveAdminEndpoint>();
         }
+
         private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)
             where TEndpoint : IEndpoint
         {

@@ -48,6 +48,7 @@ namespace BarberShop.Web.Pages.Identity
         {
             try
             {
+                IsBusy = true;
                 var result = await Handler.RegisterAsync(InputModel);
 
                 if (result.IsSuccess)

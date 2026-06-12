@@ -70,6 +70,15 @@
                               Margin="Margin.Dense"
                               Class="auth-field" />
 
+                <MudTextField T="string"
+                              Label="Chave de administrador"
+                              For="@(() => InputModel.ChaveAdmin)"
+                              @bind-Value="InputModel.ChaveAdmin"
+                              InputType="InputType.Password"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
+
                 @if (IsBusy)
                 {
                     <MudProgressCircular Color="Color.Warning" Indeterminate="true" />

@@ -212,8 +212,9 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
 
         private void LoadHistoricoDoMes()
         {
-            HistoricoEndDate = DateTime.Today;
-            HistoricoStartDate = new DateTime(HistoricoEndDate.Year, HistoricoEndDate.Month, 1);
+            var hoje = DateTime.Today;
+            HistoricoStartDate = new DateTime(hoje.Year, hoje.Month, 1);
+            HistoricoEndDate = HistoricoStartDate.AddMonths(1).AddDays(-1);
             HistoryPage = 1;
 
             AgendamentosHistorico = TodosAgendamentos
