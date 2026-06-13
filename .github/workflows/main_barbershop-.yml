@@ -10,6 +10,7 @@ env:
   AZURE_WEBAPP_NAME: barbershop-
   PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
   DOTNET_VERSION: '8.0.x'
+  PUBLISH_DIR: ./publish
 
 jobs:
   build:
@@ -33,18 +34,13 @@ jobs:
         run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ./publish
-
-      - name: Zip publish folder
-        run: |
-          cd ./publish
-          zip -r ../app.zip .
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ${{ env.PUBLISH_DIR }}
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: ./app.zip
+          path: ${{ env.PUBLISH_DIR }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,6 +54,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app
+          path: ./publish
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -70,5 +67,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: Production
-          package: app.zip
+          package: ./publish
