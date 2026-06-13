@@ -9,7 +9,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: barbershop-
   PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
-  DOTNET_VERSION: '8.0.0'
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build:
