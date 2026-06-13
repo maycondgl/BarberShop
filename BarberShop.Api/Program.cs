@@ -22,16 +22,33 @@ app.MapGet("/health", () => Results.Ok(new
     Date = DateTime.UtcNow
 }));
 
-app.MapGet("/config-test", (IOptions<Secrets> options) => Results.Ok(new
+app.MapGet("/config-test", (IConfiguration configuration, IOptions<Secrets> options) => Results.Ok(new
 {
-    HasJwtTokenSecret = !string.IsNullOrWhiteSpace(options.Value.JwtTokenSecret),
-    HasApiKey = !string.IsNullOrWhiteSpace(options.Value.ApiKey),
-    HasPrivateKey = !string.IsNullOrWhiteSpace(options.Value.PrivateKey),
-    HasConnectionString = !string.IsNullOrWhiteSpace(Configuration.Connection),
-    HasBackendUrl = !string.IsNullOrWhiteSpace(Configuration.BackendUrl),
-    HasFrontendUrl = !string.IsNullOrWhiteSpace(Configuration.FrontendUrl),
-    HasAdminSetupKey = !string.IsNullOrWhiteSpace(Configuration.AdminSetupKey),
-    Environment = app.Environment.EnvironmentName
+    Environment = app.Environment.EnvironmentName,
+
+    HasConnectionString = !string.IsNullOrWhiteSpace(
+        configuration.GetConnectionString("Connection")),
+
+    HasJwtTokenSecret = !string.IsNullOrWhiteSpace(
+        configuration["Secrets:JwtTokenSecret"]),
+
+    HasApiKey = !string.IsNullOrWhiteSpace(
+        configuration["Secrets:ApiKey"]),
+
+    HasPrivateKey = !string.IsNullOrWhiteSpace(
+        configuration["Secrets:PrivateKey"]),
+
+    HasBackendUrl = !string.IsNullOrWhiteSpace(
+        configuration["BackendUrl"]),
+
+    HasFrontendUrl = !string.IsNullOrWhiteSpace(
+        configuration["FrontendUrl"]),
+
+    HasAdminSetupKey = !string.IsNullOrWhiteSpace(
+        configuration["AdminSetupKey"]),
+
+    OptionsJwtLoaded = !string.IsNullOrWhiteSpace(
+        options.Value.JwtTokenSecret)
 }));
 if (app.Environment.IsDevelopment())
     app.ConfigureDevEnvironment();
