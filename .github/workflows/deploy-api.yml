@@ -8,6 +8,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: barbershop-
+  AZURE_RESOURCE_GROUP: barbershop
   PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
   DOTNET_VERSION: '8.0.x'
 
@@ -37,6 +38,11 @@ jobs:
       - name: Publish API
         run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ./publish
 
+      - name: Zip API
+        run: |
+          cd ./publish
+          zip -r ../app.zip .
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -44,8 +50,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_54FA7AF59FEB482484173E2D3FFDCB41 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_85C44CDFA0FE4AD28BAD074C43B66F14 }}
 
-      - name: Deploy API to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: ./publish
+      - name: Deploy ZIP with Azure CLI
+        run: |
+          az webapp deploy \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --src-path app.zip \
+            --type zip \
+            --restart true
