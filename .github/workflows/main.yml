@@ -1,14 +1,27 @@
-name: CI - Build BarberShop
+name: Deploy BarberShop API
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: barbershop-
+  AZURE_RESOURCE_GROUP: barbershop
+  PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -17,16 +30,34 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore API
-        run: dotnet restore BarberShop.Api/BarberShop.Api.csproj
+        run: dotnet restore ${{ env.PROJECT_PATH }}
 
       - name: Build API
-        run: dotnet build BarberShop.Api/BarberShop.Api.csproj --no-restore --configuration Release
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-      - name: Restore Web
-        run: dotnet restore BarberShop.Web/BarberShop.Web.csproj
+      - name: Publish API
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ./publish
 
-      - name: Build Web
-        run: dotnet build BarberShop.Web/BarberShop.Web.csproj --no-restore --configuration Release
+      - name: Zip API
+        run: |
+          cd ./publish
+          zip -r ../app.zip .
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C0E3748E30834333AE525577508FB964 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_54FA7AF59FEB482484173E2D3FFDCB41 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_85C44CDFA0FE4AD28BAD074C43B66F14 }}
+
+      - name: Deploy ZIP with Azure CLI
+        run: |
+          az webapp deploy \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --src-path app.zip \
+            --type zip \
+            --restart true
