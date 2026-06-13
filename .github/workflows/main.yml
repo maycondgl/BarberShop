@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: barbershop-
+  AZURE_WEBAPP_NAME: barbershop-api
   AZURE_RESOURCE_GROUP: barbershop
   PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
   DOTNET_VERSION: '8.0.x'
