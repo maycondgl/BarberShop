@@ -76,14 +76,11 @@ namespace BarberShop.Api.common.Api
 
         public static void AddCors(this WebApplicationBuilder builder)
         {
-            var frontendUrl = Configuration.FrontendUrl?.TrimEnd('/');
-
             builder.Services.AddCors(options => options.AddPolicy(
                 ApiConfiguration.CorsPolicyName,
                 policy => policy
                     .WithOrigins(
                         "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net",
-                        frontendUrl ?? string.Empty,
                         "http://localhost:5252",
                         "https://localhost:5252"
                     )
