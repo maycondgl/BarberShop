@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: barbershop-api
   PROJECT_PATH: BarberShop.Api/BarberShop.Api.csproj
   DOTNET_VERSION: '8.0.x'
 
@@ -33,9 +32,18 @@ jobs:
       - name: Publish API
         run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ./publish
 
-      - name: Deploy API to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: barbershop-api
-          publish-profile: ${{ secrets.AZURE_WEBAPP_API_PUBLISH_PROFILE }}
-          package: ./publish
+      - name: Zip API
+        run: |
+          cd publish
+          zip -r ../api.zip .
+
+      - name: Deploy API with Kudu ZipDeploy
+        env:
+          API_PUBLISH_USERNAME: ${{ secrets.API_PUBLISH_USERNAME }}
+          API_PUBLISH_PASSWORD: ${{ secrets.API_PUBLISH_PASSWORD }}
+          API_ZIPDEPLOY_URL: ${{ secrets.API_ZIPDEPLOY_URL }}
+        run: |
+          curl -f -X POST \
+            -u "$API_PUBLISH_USERNAME:$API_PUBLISH_PASSWORD" \
+            --data-binary "@api.zip" \
+            "$API_ZIPDEPLOY_URL"
