@@ -22,34 +22,6 @@ app.MapGet("/health", () => Results.Ok(new
     Date = DateTime.UtcNow
 }));
 
-app.MapGet("/config-test", (IConfiguration configuration, IOptions<Secrets> options) => Results.Ok(new
-{
-    Environment = app.Environment.EnvironmentName,
-
-    HasConnectionString = !string.IsNullOrWhiteSpace(
-        configuration.GetConnectionString("Connection")),
-
-    HasJwtTokenSecret = !string.IsNullOrWhiteSpace(
-        configuration["Secrets:JwtTokenSecret"]),
-
-    HasApiKey = !string.IsNullOrWhiteSpace(
-        configuration["Secrets:ApiKey"]),
-
-    HasPrivateKey = !string.IsNullOrWhiteSpace(
-        configuration["Secrets:PrivateKey"]),
-
-    HasBackendUrl = !string.IsNullOrWhiteSpace(
-        configuration["BackendUrl"]),
-
-    HasFrontendUrl = !string.IsNullOrWhiteSpace(
-        configuration["FrontendUrl"]),
-
-    HasAdminSetupKey = !string.IsNullOrWhiteSpace(
-        configuration["AdminSetupKey"]),
-
-    OptionsJwtLoaded = !string.IsNullOrWhiteSpace(
-        options.Value.JwtTokenSecret)
-}));
 if (app.Environment.IsDevelopment())
     app.ConfigureDevEnvironment();
 
