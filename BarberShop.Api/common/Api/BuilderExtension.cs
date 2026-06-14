@@ -76,18 +76,21 @@ namespace BarberShop.Api.common.Api
 
         public static void AddCors(this WebApplicationBuilder builder)
         {
-            builder.Services.AddCors(
-                options => options.AddPolicy(
-                    ApiConfiguration.CorsPolicyName,
-                        policy => policy
-                        .WithOrigins([
-                            Configuration.BackendUrl,
-                            Configuration.FrontendUrl
-                            ])
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials()
-                    ));
+            var frontendUrl = Configuration.FrontendUrl?.TrimEnd('/');
+
+            builder.Services.AddCors(options => options.AddPolicy(
+                ApiConfiguration.CorsPolicyName,
+                policy => policy
+                    .WithOrigins(
+                        "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net",
+                        frontendUrl ?? string.Empty,
+                        "http://localhost:5252",
+                        "https://localhost:5252"
+                    )
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+            ));
         }
 
         public static void AddServices(this WebApplicationBuilder builder)
