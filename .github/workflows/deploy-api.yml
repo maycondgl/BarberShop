@@ -36,6 +36,6 @@ jobs:
       - name: Deploy API to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: barbershop-api
           publish-profile: ${{ secrets.AZURE_WEBAPP_API_PUBLISH_PROFILE }}
           package: ./publish
