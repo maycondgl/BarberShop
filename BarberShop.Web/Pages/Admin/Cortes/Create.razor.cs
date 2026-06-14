@@ -79,7 +79,7 @@ namespace BarberShop.Web.Pages.Admin.Cortes
                 content.Add(streamContent, "file", file.Name);
 
                 var response = await HttpClient.PostAsync(
-                    "http://localhost:5131/v1/cortes/upload-imagem",
+                    "https://barbershop-api-hmbsh7b0cugdbabd.centralus-01.azurewebsites.net/v1/cortes/upload-imagem",
                     content);
 
                 var json = await response.Content.ReadAsStringAsync();
