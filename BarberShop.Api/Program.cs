@@ -27,12 +27,13 @@ app.MapGet("/health", () => Results.Ok(new
 if (app.Environment.IsDevelopment())
     app.ConfigureDevEnvironment();
 
-app.UseStaticFiles();
+
 
 app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.UseSecurity();
+app.UseStaticFiles();
 app.MapEndpoints();
 
 app.Run();
