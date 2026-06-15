@@ -1,5 +1,6 @@
 ﻿using BarberShop.Api.common.Api;
-using Microsoft.AspNetCore.Authorization;
+using BarberShop.Api.Models;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace BarberShop.Api.Endpoints.Identity
@@ -10,13 +11,34 @@ namespace BarberShop.Api.Endpoints.Identity
             => app.MapGet("/me", HandleAsync)
                   .RequireAuthorization();
 
-        private static IResult HandleAsync(ClaimsPrincipal user)
+        private static async Task<IResult> HandleAsync(
+            ClaimsPrincipal claims,
+            UserManager<User> userManager)
         {
+            var userId = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return Results.Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user is null)
+                return Results.Unauthorized();
+
+            if (!user.Ativo)
+                return Results.Unauthorized();
+
+            var roles = await userManager.GetRolesAsync(user);
+
             return Results.Ok(new
             {
-                Name = user.Identity?.Name,
-                IsAuthenticated = user.Identity?.IsAuthenticated,
-                Claims = user.Claims.Select(x => new { x.Type, x.Value })
+                user.Id,
+                user.UserName,
+                user.Email,
+                user.PhoneNumber,
+                user.Ativo,
+                Roles = roles,
+                IsAdmin = roles.Contains("Admin")
             });
         }
     }

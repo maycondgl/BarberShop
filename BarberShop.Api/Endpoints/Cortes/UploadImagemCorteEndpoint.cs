@@ -1,7 +1,7 @@
 ﻿using BarberShop.Api.common.Api;
+using BarberShop.Core;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Corte;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BarberShop.Api.Endpoints.Cortes;
 
@@ -16,7 +16,9 @@ public class UploadImagemCorteEndpoint : IEndpoint
               .Produces<Response<CorteResponse?>>(404)
               .Produces<Response<CorteResponse?>>(500);
 
-    private static async Task<IResult> HandleAsync(HttpRequest request)
+    private static async Task<IResult> HandleAsync(
+        HttpRequest request,
+        IWebHostEnvironment environment)
     {
         try
         {
@@ -26,14 +28,20 @@ public class UploadImagemCorteEndpoint : IEndpoint
             if (file is null || file.Length == 0)
                 return Results.BadRequest("Imagem inválida");
 
-            var extension = Path.GetExtension(file.FileName);
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+                return Results.BadRequest("Formato de imagem inválido");
+
             var fileName = $"{Guid.NewGuid()}{extension}";
 
-            var folder = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "wwwroot",
-                "Imgs",
-                "cortes");
+            var webRootPath = environment.WebRootPath;
+
+            if (string.IsNullOrWhiteSpace(webRootPath))
+                webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            var folder = Path.Combine(webRootPath, "Imgs", "cortes");
 
             Directory.CreateDirectory(folder);
 
@@ -42,9 +50,16 @@ public class UploadImagemCorteEndpoint : IEndpoint
             await using var stream = new FileStream(path, FileMode.Create);
             await file.CopyToAsync(stream);
 
+            var backendUrl = Configuration.BackendUrl.TrimEnd('/');
+
+            if (string.IsNullOrWhiteSpace(backendUrl))
+            {
+                backendUrl = $"{request.Scheme}://{request.Host}";
+            }
+
             return Results.Ok(new UploadCorteImagemResponse
             {
-                ImagemUrl = $"http://localhost:5131/Imgs/cortes/{fileName}"
+                ImagemUrl = $"{backendUrl}/Imgs/cortes/{fileName}"
             });
         }
         catch (Exception ex)
