@@ -2307,35 +2307,50 @@ body {
         white-space: nowrap;
     }
 
-    .app-admin-menu[open] {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: center;
-        order: 20;
+    .app-nav .app-admin-menu,
+    .home-nav__links .app-admin-menu {
+        position: relative;
     }
 
-    .app-admin-menu[open] .app-admin-menu__trigger {
-        align-self: center;
+    .app-nav .app-admin-menu[open],
+    .home-nav__links .app-admin-menu[open] {
+        display: grid;
+        flex: 1 0 100%;
+        order: 20;
+        width: 100%;
+        min-width: 100%;
+        grid-template-columns: 1fr;
+        justify-items: center;
+        align-items: stretch;
+    }
+
+    .app-nav .app-admin-menu[open] .app-admin-menu__trigger,
+    .home-nav__links .app-admin-menu[open] .app-admin-menu__trigger {
+        width: fit-content;
     }
 
     .app-admin-menu__panel {
-        position: static;
-        display: none;
+        position: static !important;
+        inset: auto !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        display: none !important;
         width: 100%;
+        max-width: 340px;
         margin-top: 8px;
         padding: 12px;
         opacity: 1;
         pointer-events: auto;
-        transform: none;
+        transform: none !important;
         border-radius: 12px;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 18px 44px rgba(0, 0, 0, .48);
     }
 
-    .app-admin-menu[open] .app-admin-menu__panel,
-    .app-admin-menu:focus-within .app-admin-menu__panel {
-        display: grid;
-        transform: none;
+    .app-nav .app-admin-menu[open] > .app-admin-menu__panel,
+    .home-nav__links .app-admin-menu[open] > .app-admin-menu__panel {
+        display: grid !important;
+        transform: none !important;
     }
 
     .app-admin-menu__item {
