@@ -3,11 +3,10 @@
 
 <PageTitle>Cortes</PageTitle>
 
-<div style="max-width: 1280px; margin: 0 auto; padding: 12px 0 56px;">
+<div class="cuts-page">
     <MudPaper Elevation="0"
-              Class="pa-8 mb-6"
-              Style="border-radius: 30px; border: 1px solid rgba(255,193,7,.18); background: radial-gradient(circle at 8% 0%, rgba(255,193,7,.20), transparent 34%), linear-gradient(135deg, #232326 0%, #141415 58%, #0d0d0e 100%); box-shadow: 0 26px 70px rgba(0,0,0,.35);">
-        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 28px; align-items: stretch;">
+              Class="cuts-hero-panel mb-6">
+        <div class="cuts-hero-layout">
             <div>
                 <MudText Typo="Typo.overline" Style="color: #ffc107; letter-spacing: .18em; font-weight: 800;">
                     Catálogo de cortes
@@ -22,7 +21,7 @@
                     Veja referências de cortes, compare valores e escolha o visual ideal antes de agendar.
                 </MudText>
             </div>
-            <div style="border-radius: 26px; border: 1px solid rgba(255,193,7,.28); background: rgba(255,193,7,.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 160px; color: #ffc107; text-align: center;">
+            <div class="cuts-hero-count">
                 <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Large" />
                 <MudText Typo="Typo.subtitle1" Style="font-weight: 800;">@Catalogo.Count estilos disponíveis</MudText>
                 <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,.62);">Catálogo visual</MudText>
