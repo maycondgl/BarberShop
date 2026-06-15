@@ -9,7 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddConfiguration();
 builder.AddSecurity();
 builder.AddDataContexts();
-builder.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(ApiConfiguration.CorsPolicyName, policy =>
+    {
+        policy.WithOrigins(
+                "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.AddDocumentation();
 builder.AddServices();
 
