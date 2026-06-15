@@ -7,24 +7,15 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddConfiguration();
-builder.AddSecurity();
 builder.AddDataContexts();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(ApiConfiguration.CorsPolicyName, policy =>
-    {
-        policy.WithOrigins(
-                "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
+builder.AddSecurity();
+builder.AddCors();
 builder.AddDocumentation();
 builder.AddServices();
 
 var app = builder.Build();
+
+app.UseCors(ApiConfiguration.CorsPolicyName);
 
 app.MapGet("/health", () => Results.Ok(new
 {
@@ -35,8 +26,6 @@ app.MapGet("/health", () => Results.Ok(new
 
 if (app.Environment.IsDevelopment())
     app.ConfigureDevEnvironment();
-
-app.UseCors(ApiConfiguration.CorsPolicyName);
 
 app.UseAuthentication(); 
 app.UseAuthorization();

@@ -3,6 +3,7 @@ using BarberShop.Api.Handlers;
 using BarberShop.Api.Models;
 using BarberShop.Core;
 using BarberShop.Core.Handlers;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,21 +11,18 @@ namespace BarberShop.Api.common.Api
 {
     public static class BuilderExtension
     {
-        public static void AddConfiguration(
-            this WebApplicationBuilder builder)
+        public static void AddConfiguration(this WebApplicationBuilder builder)
         {
-            Configuration.Connection = 
-               builder
-                .Configuration
-                .GetConnectionString("Connection") 
-               ?? string.Empty; 
+            Configuration.Connection =
+                builder.Configuration.GetConnectionString("Connection")
+                ?? throw new InvalidOperationException("Connection string 'Connection' não encontrada.");
+
             Configuration.BackendUrl = builder.Configuration.GetValue<string>("BackendUrl") ?? string.Empty;
             Configuration.FrontendUrl = builder.Configuration.GetValue<string>("FrontendUrl") ?? string.Empty;
             Configuration.AdminSetupKey = builder.Configuration.GetValue<string>("AdminSetupKey") ?? string.Empty;
 
             builder.Services.Configure<Secrets>(
-            builder.Configuration.GetSection("Secrets"));
-
+                builder.Configuration.GetSection("Secrets"));
         }
 
         public static void AddDocumentation(this WebApplicationBuilder builder) 
@@ -38,8 +36,27 @@ namespace BarberShop.Api.common.Api
 
         public static void AddSecurity(this WebApplicationBuilder builder)
         {
-            builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+            builder.Services
+                .AddAuthentication(IdentityConstants.ApplicationScheme)
                 .AddIdentityCookies();
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = "BarberShop.Auth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
+
+            builder.Services.Configure<CookieAuthenticationOptions>(
+                IdentityConstants.ApplicationScheme,
+                options =>
+                {
+                    options.Cookie.Name = "BarberShop.Auth";
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                });
 
             builder.Services.AddAuthorization(options =>
             {
@@ -55,23 +72,16 @@ namespace BarberShop.Api.common.Api
             .AddRoleManager<RoleManager<IdentityRole<long>>>()
             .AddSignInManager<SignInManager<User>>()
             .AddEntityFrameworkStores<BarberShopContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddApiEndpoints();
         }
 
         public static void AddDataContexts(this WebApplicationBuilder builder)
         {
-            builder
-                .Services
-                .AddDbContext<BarberShopContext>(
-                x =>
-                {
-                    x.UseSqlServer(Configuration.Connection);
-                });
-            builder.Services
-                .AddIdentityCore<User>()
-                .AddRoles<IdentityRole<long>>()
-                .AddEntityFrameworkStores<BarberShopContext>()
-                .AddApiEndpoints();
+            builder.Services.AddDbContext<BarberShopContext>(options =>
+            {
+                options.UseSqlServer(Configuration.Connection);
+            });
         }
 
         public static void AddCors(this WebApplicationBuilder builder)
@@ -81,13 +91,11 @@ namespace BarberShop.Api.common.Api
                 options.AddPolicy(ApiConfiguration.CorsPolicyName, policy =>
                 {
                     policy
-                        .SetIsOriginAllowed(origin =>
-                        {
-                            Console.WriteLine($"CORS Origin recebida: {origin}");
-                            return origin == "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net"
-                                || origin == "http://localhost:5252"
-                                || origin == "https://localhost:5252";
-                        })
+                        .WithOrigins(
+                            "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net",
+                            "http://localhost:5252",
+                            "https://localhost:5252"
+                        )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
