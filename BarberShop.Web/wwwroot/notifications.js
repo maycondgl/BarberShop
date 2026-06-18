@@ -86,6 +86,13 @@ window.barberShopNotifications = {
             };
         }
 
+        if (isIos && !isStandalone) {
+            return {
+                supported: false,
+                message: "No iPhone, instale o site na tela inicial e abra pelo ícone para ativar notificações na barra."
+            };
+        }
+
         if (!("Notification" in window)) {
             return {
                 supported: false,
@@ -103,9 +110,7 @@ window.barberShopNotifications = {
         if (!("PushManager" in window)) {
             return {
                 supported: false,
-                message: isIos && !isStandalone
-                    ? "No iPhone, instale o site na tela inicial e abra pelo ícone para ativar notificações na barra."
-                    : "Este navegador não oferece Web Push."
+                message: "Este navegador não oferece Web Push."
             };
         }
 
