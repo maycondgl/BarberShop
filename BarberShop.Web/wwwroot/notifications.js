@@ -11,10 +11,28 @@ window.barberShopNotifications = {
             return null;
         }
 
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: this.urlBase64ToUint8Array(publicKey)
-        });
+        const applicationServerKey = this.urlBase64ToUint8Array(publicKey);
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            try {
+                const json = subscription.toJSON();
+                if (!json.keys?.p256dh || !json.keys?.auth) {
+                    await subscription.unsubscribe();
+                    subscription = null;
+                }
+            } catch {
+                await subscription.unsubscribe();
+                subscription = null;
+            }
+        }
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey
+            });
+        }
 
         const json = subscription.toJSON();
 

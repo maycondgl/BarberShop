@@ -279,13 +279,11 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
 
         public async Task OnAtivarNotificacoesClickedAsync()
         {
-            var subscribed = await PushNotificationClient.SubscribeAdminAsync();
+            var result = await PushNotificationClient.SubscribeAdminAsync();
 
             Snackbar.Add(
-                subscribed
-                    ? "Notificações ativadas neste dispositivo."
-                    : "Não foi possível ativar. Confira a permissão do navegador e as chaves VAPID.",
-                subscribed ? Severity.Success : Severity.Warning);
+                result.Message,
+                result.Success ? Severity.Success : Severity.Warning);
         }
 
         public static bool IsConcluido(string status)
