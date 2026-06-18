@@ -7,6 +7,11 @@ namespace BarberShop.Web.Services;
 
 public sealed record PushSubscriptionResult(bool Success, string Message);
 
+public sealed record BrowserPushSubscriptionResult(
+    bool Success,
+    string Message,
+    PushSubscriptionRequest? Subscription);
+
 public class PushNotificationClient(
     IHttpClientFactory httpClientFactory,
     IJSRuntime jsRuntime)
@@ -20,11 +25,11 @@ public class PushNotificationClient(
         if (string.IsNullOrWhiteSpace(options?.PublicKey))
             return new(false, "Chaves VAPID não configuradas na API.");
 
-        PushSubscriptionRequest? subscription;
+        BrowserPushSubscriptionResult? browserResult;
 
         try
         {
-            subscription = await jsRuntime.InvokeAsync<PushSubscriptionRequest?>(
+            browserResult = await jsRuntime.InvokeAsync<BrowserPushSubscriptionResult?>(
                 "barberShopNotifications.subscribe",
                 options.PublicKey);
         }
@@ -33,12 +38,15 @@ public class PushNotificationClient(
             return new(false, "O navegador bloqueou a inscrição push. Verifique permissões, HTTPS e service worker.");
         }
 
-        if (subscription is null)
-            return new(false, "Permissão de notificação negada ou navegador sem suporte a push.");
+        if (browserResult is null)
+            return new(false, "Não foi possível verificar suporte a push neste navegador.");
 
-        var response = await _client.PostAsJsonAsync("v1/notifications/push-subscriptions", subscription);
+        if (!browserResult.Success || browserResult.Subscription is null)
+            return new(false, browserResult.Message);
+
+        var response = await _client.PostAsJsonAsync("v1/notifications/push-subscriptions", browserResult.Subscription);
         return response.IsSuccessStatusCode
-            ? new(true, "Notificações ativadas neste dispositivo.")
+            ? new(true, browserResult.Message)
             : new(false, "A API não conseguiu salvar a inscrição deste dispositivo.");
     }
 }

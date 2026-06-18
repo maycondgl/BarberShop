@@ -1,14 +1,26 @@
 window.barberShopNotifications = {
     async subscribe(publicKey) {
-        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-            return null;
+        const support = this.getPushSupport();
+
+        if (!support.supported) {
+            return {
+                success: false,
+                message: support.message,
+                subscription: null
+            };
         }
 
         const registration = await navigator.serviceWorker.ready;
         const permission = await Notification.requestPermission();
 
         if (permission !== "granted") {
-            return null;
+            return {
+                success: false,
+                message: permission === "denied"
+                    ? "As notificações estão bloqueadas para este site nas configurações do navegador."
+                    : "Permissão de notificação não foi concedida.",
+                subscription: null
+            };
         }
 
         const applicationServerKey = this.urlBase64ToUint8Array(publicKey);
@@ -37,9 +49,13 @@ window.barberShopNotifications = {
         const json = subscription.toJSON();
 
         return {
-            endpoint: json.endpoint,
-            p256Dh: json.keys.p256dh,
-            auth: json.keys.auth
+            success: true,
+            message: "Notificações ativadas neste dispositivo.",
+            subscription: {
+                endpoint: json.endpoint,
+                p256Dh: json.keys.p256dh,
+                auth: json.keys.auth
+            }
         };
     },
 
@@ -55,6 +71,48 @@ window.barberShopNotifications = {
             badge: "/icon-192.png",
             data: { url }
         });
+    },
+
+    getPushSupport() {
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
+            || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+            || window.navigator.standalone === true;
+
+        if (!window.isSecureContext) {
+            return {
+                supported: false,
+                message: "Notificações push exigem HTTPS."
+            };
+        }
+
+        if (!("Notification" in window)) {
+            return {
+                supported: false,
+                message: "Este navegador não oferece a API de notificações."
+            };
+        }
+
+        if (!("serviceWorker" in navigator)) {
+            return {
+                supported: false,
+                message: "Este navegador não oferece service worker."
+            };
+        }
+
+        if (!("PushManager" in window)) {
+            return {
+                supported: false,
+                message: isIos && !isStandalone
+                    ? "No iPhone, instale o site na tela inicial e abra pelo ícone para ativar notificações na barra."
+                    : "Este navegador não oferece Web Push."
+            };
+        }
+
+        return {
+            supported: true,
+            message: "Web Push suportado."
+        };
     },
 
     urlBase64ToUint8Array(base64String) {

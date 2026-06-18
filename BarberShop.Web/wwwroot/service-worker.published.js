@@ -5,6 +5,11 @@ self.importScripts('./service-worker-assets.js');
 self.addEventListener('install', event => event.waitUntil(onInstall(event)));
 self.addEventListener('activate', event => event.waitUntil(onActivate(event)));
 self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
 
 const cacheNamePrefix = 'offline-cache-';
 const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;
@@ -25,6 +30,7 @@ async function onInstall(event) {
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
         .map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
     await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
+    await self.skipWaiting();
 }
 
 async function onActivate(event) {
@@ -35,9 +41,26 @@ async function onActivate(event) {
     await Promise.all(cacheKeys
         .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
         .map(key => caches.delete(key)));
+
+    await self.clients.claim();
 }
 
 async function onFetch(event) {
+    if (event.request.method === 'GET' && shouldFetchFromNetworkFirst(event.request)) {
+        try {
+            const response = await fetch(event.request);
+            const cache = await caches.open(cacheName);
+            await cache.put(event.request, response.clone());
+            return response;
+        } catch {
+            const cache = await caches.open(cacheName);
+            const cachedResponse = await cache.match(event.request);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+        }
+    }
+
     let cachedResponse = null;
     if (event.request.method === 'GET') {
         // For all navigation requests, try to serve index.html from cache,
@@ -52,6 +75,12 @@ async function onFetch(event) {
     }
 
     return cachedResponse || fetch(event.request);
+}
+
+function shouldFetchFromNetworkFirst(request) {
+    const url = new URL(request.url);
+    return url.origin === self.location.origin
+        && (url.pathname.endsWith('.css') || url.pathname.endsWith('.js'));
 }
 
 self.addEventListener('push', event => {
