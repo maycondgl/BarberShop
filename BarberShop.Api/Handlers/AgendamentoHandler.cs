@@ -1,4 +1,5 @@
 ﻿using BarberShop.Api.Data;
+using BarberShop.Api.Services;
 using BarberShop.Core.Enums;
 using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
@@ -13,10 +14,14 @@ namespace BarberShop.Api.Handlers
     public class AgendamentoHandler : IAgendamentoHandler
     {
         private readonly BarberShopContext _context;
+        private readonly IAgendamentoNotificationService _notificationService;
 
-        public AgendamentoHandler(BarberShopContext context)
+        public AgendamentoHandler(
+            BarberShopContext context,
+            IAgendamentoNotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
         public async Task<Response<AgendamentoResponse?>> CreateAsync(CreateAgendamentoRequest request)
         {
@@ -25,10 +30,10 @@ namespace BarberShop.Api.Handlers
                 var corte = await _context.Cortes
                     .FirstOrDefaultAsync(x => x.Id == request.CorteId);
 
-                var clienteExiste = await _context.Users
-                    .AnyAsync(x => x.Id == request.UserId);
+                var cliente = await _context.Users
+                    .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
-                if (corte is null || !clienteExiste)
+                if (corte is null || cliente is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Cliente ou corte não encontrado");
 
                 var agendamento = new Agendamento
@@ -52,8 +57,11 @@ namespace BarberShop.Api.Handlers
                      agendamento.Valor,
                      (int)agendamento.Tempo.TotalMinutes,
                      agendamento.Status.ToString(),
-                     agendamento.NomeCliente
+                     cliente.NomeCompleto,
+                     corte.Titulo
                  );
+
+                await _notificationService.NotifyNovoAgendamentoAsync(response);
 
                 return new Response<AgendamentoResponse?>(response, 201, "Agendamento criado");
             }

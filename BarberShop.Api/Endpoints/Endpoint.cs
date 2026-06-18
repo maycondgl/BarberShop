@@ -6,6 +6,7 @@ using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
 using BarberShop.Api.Endpoints.Identity;
+using BarberShop.Api.Endpoints.Notifications;
 using BarberShop.Api.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -84,6 +85,12 @@ namespace BarberShop.Api.Endpoints
                 .MapEndpoint<GetUsersEndpoint>()
                 .MapEndpoint<AddAdminEndpoint>()
                 .MapEndpoint<RemoveAdminEndpoint>();
+
+            endpoints.MapGroup("v1/notifications")
+                .WithTags("Notifications")
+                .RequireAuthorization("Admin")
+                .MapEndpoint<GetPushNotificationOptionsEndpoint>()
+                .MapEndpoint<SubscribePushNotificationEndpoint>();
         }
 
         private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

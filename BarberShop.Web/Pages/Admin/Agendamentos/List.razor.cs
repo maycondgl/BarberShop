@@ -3,6 +3,7 @@ using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Responses.Agendamento;
+using BarberShop.Web.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -77,6 +78,9 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
 
         [Inject]
         public IDialogService DialogService { get; set; } = null!;
+
+        [Inject]
+        public PushNotificationClient PushNotificationClient { get; set; } = null!;
 
         #endregion
 
@@ -271,6 +275,17 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             }
             else
                 Snackbar.Add(result.Message ?? "Erro", Severity.Error);
+        }
+
+        public async Task OnAtivarNotificacoesClickedAsync()
+        {
+            var subscribed = await PushNotificationClient.SubscribeAdminAsync();
+
+            Snackbar.Add(
+                subscribed
+                    ? "Notificações ativadas neste dispositivo."
+                    : "Não foi possível ativar. Confira a permissão do navegador e as chaves VAPID.",
+                subscribed ? Severity.Success : Severity.Warning);
         }
 
         public static bool IsConcluido(string status)

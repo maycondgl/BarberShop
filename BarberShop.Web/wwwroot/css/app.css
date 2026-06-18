@@ -1230,33 +1230,58 @@ body {
 }
 
 .auth-shell--register .auth-panel--form {
-    padding-block: clamp(24px, 3.2vw, 38px);
+    justify-content: flex-start;
+    padding-block: clamp(18px, 2.4vw, 28px);
 }
 
 .auth-shell--register .auth-logo {
-    width: min(44%, 170px);
-    max-height: 86px;
-    margin-bottom: 12px;
+    width: min(38%, 145px);
+    max-height: 68px;
+    margin-bottom: 8px;
 }
 
 .auth-shell--register .auth-heading {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .auth-shell--register .auth-heading h1 {
-    font-size: clamp(2rem, 3.3vw, 2.45rem);
+    font-size: clamp(1.85rem, 3vw, 2.25rem);
 }
 
 .auth-shell--register .auth-heading p {
-    margin-top: 8px;
+    margin-top: 6px;
+    line-height: 1.28;
 }
 
 .auth-shell--register .auth-form {
-    gap: 9px;
+    gap: 6px;
 }
 
 .auth-shell--register .auth-submit {
-    margin-top: 4px;
+    margin-top: 2px;
+    min-height: 40px;
+}
+
+.auth-shell--register .auth-field .mud-input-control {
+    margin-top: 0;
+}
+
+.auth-shell--register .auth-field .mud-input-root {
+    min-height: 42px;
+}
+
+.auth-shell--register .auth-field .mud-input-slot {
+    padding-top: 10px !important;
+    padding-bottom: 8px !important;
+}
+
+.auth-shell--register .auth-field .mud-input-label {
+    transform: translate(12px, 13px) scale(1) !important;
+}
+
+.auth-shell--register .auth-field .mud-input-label.mud-input-label-filled,
+.auth-shell--register .auth-field .mud-input-label.mud-shrink {
+    transform: translate(12px, 3px) scale(.75) !important;
 }
 
 .auth-panel--accent {
@@ -1945,6 +1970,7 @@ body {
 @media (max-width: 760px) {
     .admin-stats-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 }
 
@@ -2067,6 +2093,10 @@ body {
 .admin-table-scroll {
     flex: 1;
     overflow: auto;
+}
+
+.admin-mobile-list {
+    display: none;
 }
 
 .admin-schedule-table {
@@ -2296,7 +2326,7 @@ body {
 @media (max-width: 760px) {
     .app-shell {
         min-height: 100dvh;
-        padding: 18px 12px 34px;
+        padding: 18px 16px 34px;
         overflow-x: hidden;
     }
 
@@ -2393,10 +2423,225 @@ body {
         padding: 24px 0 0;
     }
 
+    .app-content {
+        width: 100%;
+        max-width: 390px;
+        margin-inline: auto;
+    }
+
     .app-content > .mud-typography-h3:first-child {
-        font-size: 2rem;
+        font-size: 1.95rem;
         line-height: 1.05;
-        margin-bottom: 18px;
+        margin-bottom: 12px;
+    }
+
+    .app-content > .mud-typography-body1 {
+        font-size: .9rem;
+        line-height: 1.35;
+    }
+
+    .admin-stats-grid {
+        margin-top: 16px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .admin-stat-card {
+        min-height: 112px;
+        padding: 18px 56px 18px 16px;
+        border-radius: 8px;
+    }
+
+    .admin-stat-card:hover {
+        transform: none;
+    }
+
+    .admin-stat-title {
+        max-width: 220px;
+        font-size: .88rem;
+    }
+
+    .admin-stat-value {
+        margin-top: 6px;
+        color: #ffc107;
+        font-size: 1.85rem;
+    }
+
+    .admin-stat-icon {
+        top: 18px;
+        right: 16px;
+    }
+
+    .admin-grid {
+        margin-inline: 0 !important;
+    }
+
+    .admin-grid > .mud-grid-item {
+        padding: 0 !important;
+    }
+
+    .admin-panel {
+        min-height: auto;
+        padding: 16px;
+    }
+
+    .admin-table-panel {
+        gap: 12px;
+        padding: 16px;
+        overflow: visible;
+    }
+
+    .admin-table-toolbar {
+        gap: 14px;
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    .admin-table-title {
+        min-width: 0;
+    }
+
+    .admin-table-title .mud-typography {
+        font-size: 1rem;
+    }
+
+    .admin-table-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .admin-search-field,
+    .admin-filter-btn,
+    .admin-table-controls .mud-menu,
+    .admin-table-controls .mud-button-root {
+        width: 100%;
+    }
+
+    .admin-search-field .mud-input-root {
+        min-height: 48px;
+        border-radius: 6px !important;
+    }
+
+    .admin-filter-btn {
+        min-height: 48px;
+    }
+
+    .admin-table-scroll {
+        display: none;
+    }
+
+    .admin-mobile-list {
+        display: grid;
+        gap: 8px;
+    }
+
+    .admin-mobile-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        min-height: 78px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, .06);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .035);
+    }
+
+    .admin-mobile-card__main {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .admin-mobile-card__content {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .admin-mobile-card__content strong {
+        overflow: hidden;
+        color: #fff;
+        font-size: .82rem;
+        font-weight: 900;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-mobile-card__content > span {
+        overflow: hidden;
+        color: rgba(255, 255, 255, .72);
+        font-size: .72rem;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-mobile-card__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        color: rgba(255, 255, 255, .76);
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    .admin-mobile-card__meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .admin-mobile-card__meta .mud-icon-root {
+        width: 14px;
+        height: 14px;
+        color: rgba(255, 255, 255, .58);
+    }
+
+    .admin-mobile-card__side {
+        display: grid;
+        justify-items: end;
+        align-content: center;
+        gap: 6px;
+        min-width: 78px;
+    }
+
+    .admin-mobile-card__side strong {
+        color: #ffc107;
+        font-size: .78rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .admin-mobile-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr 40px;
+        gap: 8px;
+        padding-top: 2px;
+    }
+
+    .admin-mobile-actions .action-btn {
+        min-height: 38px;
+        padding-inline: 8px !important;
+        font-size: .72rem !important;
+    }
+
+    .admin-mobile-actions .mud-icon-button {
+        width: 38px;
+        height: 38px;
+    }
+
+    .admin-history-range {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .admin-table-footer {
+        padding: 0;
+        border-top: 0;
     }
 
     .home-page {

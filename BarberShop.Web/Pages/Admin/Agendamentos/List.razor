@@ -81,6 +81,15 @@
                         </div>
 
                         <div class="admin-table-controls">
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Info"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.NotificationsActive"
+                                       Class="admin-filter-btn"
+                                       OnClick="OnAtivarNotificacoesClickedAsync">
+                                Notificações
+                            </MudButton>
+
                             <MudTextField @bind-Value="SearchTerm"
                                           Placeholder="Buscar agendamento..."
                                           Adornment="Adornment.Start"
@@ -183,6 +192,57 @@
                         </table>
                     </div>
 
+                    <div class="admin-mobile-list" aria-label="Agendamentos pendentes">
+                        @foreach (var agendamento in PagedAgendamentos)
+                        {
+                            <article class="admin-mobile-card">
+                                <div class="admin-mobile-card__main">
+                                    <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                    <div class="admin-mobile-card__content">
+                                        <strong>@agendamento.NomeCliente</strong>
+                                        <span>Corte: @agendamento.CorteTitulo</span>
+                                        <div class="admin-mobile-card__meta">
+                                            <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                            <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-mobile-card__side">
+                                    <strong>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</strong>
+                                    <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                                </div>
+
+                                <div class="admin-mobile-actions">
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Success"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.CheckCircle"
+                                               Class="action-btn"
+                                               OnClick="@(() => OnAceitarClickedAsync(agendamento.Id))"
+                                               Disabled="@(agendamento.Status != "Pendente")">
+                                        Aceitar
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.DoneAll"
+                                               Class="action-btn"
+                                               OnClick="@(() => OnConcluirClickedAsync(agendamento.Id))"
+                                               Disabled="@IsConcluido(agendamento.Status)">
+                                        Concluir
+                                    </MudButton>
+                                    <MudTooltip Text="Excluir agendamento">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => OnDeleteClickedAsync(agendamento.Id))" />
+                                    </MudTooltip>
+                                </div>
+                            </article>
+                        }
+                    </div>
+
                     <div class="admin-table-footer">
                         <span>@FilteredAgendamentos.Count @ResultLabel(FilteredAgendamentos.Count)</span>
                         <div class="admin-pager">
@@ -256,6 +316,30 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="admin-mobile-list" aria-label="Histórico do mês">
+                        @foreach (var agendamento in PagedHistorico)
+                        {
+                            <article class="admin-mobile-card">
+                                <div class="admin-mobile-card__main">
+                                    <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                    <div class="admin-mobile-card__content">
+                                        <strong>@agendamento.NomeCliente</strong>
+                                        <span>Corte: @agendamento.CorteTitulo</span>
+                                        <div class="admin-mobile-card__meta">
+                                            <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                            <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-mobile-card__side">
+                                    <strong>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</strong>
+                                    <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                                </div>
+                            </article>
+                        }
                     </div>
 
                     <div class="admin-table-footer">

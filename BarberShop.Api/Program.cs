@@ -1,6 +1,7 @@
 using BarberShop.Api;
 using BarberShop.Api.common.Api;
 using BarberShop.Api.Endpoints;
+using BarberShop.Api.Hubs;
 using BarberShop.Api.Models;
 using BarberShop.Core;
 using Microsoft.Extensions.Options;
@@ -34,6 +35,7 @@ app.UseAuthorization();
 
 app.UseSecurity();
 app.UseStaticFiles();
+app.MapHub<AgendamentoHub>("/hubs/agendamentos");
 app.MapEndpoints();
 
 app.Run();

@@ -1,6 +1,7 @@
 ﻿using BarberShop.Api.Data;
 using BarberShop.Api.Handlers;
 using BarberShop.Api.Models;
+using BarberShop.Api.Services;
 using BarberShop.Core;
 using BarberShop.Core.Handlers;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -105,10 +106,12 @@ namespace BarberShop.Api.common.Api
 
         public static void AddServices(this WebApplicationBuilder builder)
         {
+            builder.Services.AddSignalR();
             builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
             builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
             builder.Services.AddTransient<ICorteHandler, CorteHandler>();
             builder.Services.AddTransient<AccountHandler>();
+            builder.Services.AddScoped<IAgendamentoNotificationService, AgendamentoNotificationService>();
         }  
 
     }

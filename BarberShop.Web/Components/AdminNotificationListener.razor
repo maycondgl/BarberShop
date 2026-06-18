@@ -1,0 +1,13 @@
+@implements IAsyncDisposable
+@inject BarberShop.Web.Services.AdminNotificationClient NotificationClient
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await NotificationClient.StartAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+        => await NotificationClient.DisposeAsync();
+}

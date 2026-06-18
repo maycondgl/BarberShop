@@ -2,6 +2,7 @@ using BarberShop.Core.Handlers;
 using BarberShop.Web;
 using BarberShop.Web.Handlers;
 using BarberShop.Web.Security;
+using BarberShop.Web.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -35,6 +36,8 @@ builder.Services.AddTransient<IAccountHandler, AccountHandler>();
 builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
 builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
 builder.Services.AddTransient<ICorteHandler, CorteHandler>();
+builder.Services.AddScoped<AdminNotificationClient>();
+builder.Services.AddScoped<PushNotificationClient>();
 
 
 await builder.Build().RunAsync();

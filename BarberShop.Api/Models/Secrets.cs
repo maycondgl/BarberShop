@@ -5,6 +5,9 @@
         public string JwtTokenSecret { get; set; } = string.Empty;
         public string ApiKey { get; set; } = string.Empty;
         public string PrivateKey { get; set; } = string.Empty;
+        public string VapidSubject { get; set; } = string.Empty;
+        public string VapidPublicKey { get; set; } = string.Empty;
+        public string VapidPrivateKey { get; set; } = string.Empty;
 
     }
 }
