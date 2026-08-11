@@ -11,7 +11,17 @@ using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-Configuration.BackendUrl = builder.Configuration.GetValue<string>("BackendUrl") ?? string.Empty;
+var backendUrl = builder.Configuration.GetValue<string>("BackendUrl")?.Trim().TrimEnd('/');
+
+if (string.IsNullOrWhiteSpace(backendUrl) ||
+    !Uri.TryCreate(backendUrl, UriKind.Absolute, out var backendUri) ||
+    (backendUri.Scheme != Uri.UriSchemeHttp && backendUri.Scheme != Uri.UriSchemeHttps))
+{
+    throw new InvalidOperationException(
+        "Configuração 'BackendUrl' ausente ou inválida. Informe uma URL HTTP ou HTTPS absoluta.");
+}
+
+Configuration.BackendUrl = backendUrl;
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -29,7 +39,7 @@ builder.Services.AddMudServices();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient(Configuration.HttpClientName, opt =>
 {
-    opt.BaseAddress = new Uri(Configuration.BackendUrl);
+    opt.BaseAddress = backendUri;
 }).AddHttpMessageHandler<CookieHandler>();
 
 builder.Services.AddTransient<IAccountHandler, AccountHandler>();

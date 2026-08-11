@@ -1,0 +1,14 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${BARBERSHOP_DB_PASSWORD:?Defina BARBERSHOP_DB_PASSWORD antes de executar docker compose}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - barbershop-sql-data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  barbershop-sql-data:

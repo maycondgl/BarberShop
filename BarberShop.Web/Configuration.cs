@@ -6,7 +6,7 @@ namespace BarberShop.Web
     {
         public const string HttpClientName = "BarberShop";
 
-        public static string BackendUrl { get; set; } = "https://barbershop-api-hmbsh7b0cugdbabd.centralus-01.azurewebsites.net";
+        public static string BackendUrl { get; set; } = string.Empty;
 
         public static MudTheme Theme = new()
         {

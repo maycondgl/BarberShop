@@ -14,12 +14,15 @@ namespace BarberShop.Api.common.Api
     {
         public static void AddConfiguration(this WebApplicationBuilder builder)
         {
-            Configuration.Connection =
-                builder.Configuration.GetConnectionString("Connection")
-                ?? throw new InvalidOperationException("Connection string 'Connection' não encontrada.");
+            Configuration.Connection = builder.Configuration.GetConnectionString("Connection")?.Trim()
+                ?? string.Empty;
 
-            Configuration.BackendUrl = builder.Configuration.GetValue<string>("BackendUrl") ?? string.Empty;
-            Configuration.FrontendUrl = builder.Configuration.GetValue<string>("FrontendUrl") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(Configuration.Connection))
+                throw new InvalidOperationException(
+                    "Connection string 'Connection' não encontrada. Configure-a com user-secrets localmente ou nas variáveis do ambiente de produção.");
+
+            Configuration.BackendUrl = GetRequiredHttpUrl(builder.Configuration, "BackendUrl");
+            Configuration.FrontendUrl = GetRequiredHttpUrl(builder.Configuration, "FrontendUrl");
             Configuration.AdminSetupKey = builder.Configuration.GetValue<string>("AdminSetupKey") ?? string.Empty;
 
             builder.Services.Configure<Secrets>(
@@ -87,16 +90,33 @@ namespace BarberShop.Api.common.Api
 
         public static void AddCors(this WebApplicationBuilder builder)
         {
+            var extraOrigins = builder.Configuration
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() ?? Array.Empty<string>();
+
+            var allowedOrigins = extraOrigins
+                .Append(Configuration.FrontendUrl)
+                .Where(origin => !string.IsNullOrWhiteSpace(origin))
+                .Select(origin => origin.Trim().TrimEnd('/'))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            foreach (var origin in allowedOrigins)
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) ||
+                    (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                {
+                    throw new InvalidOperationException(
+                        $"Origem CORS inválida: '{origin}'. Use uma URL HTTP ou HTTPS absoluta.");
+                }
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(ApiConfiguration.CorsPolicyName, policy =>
                 {
                     policy
-                        .WithOrigins(
-                            "https://barbershop-web-gwbhheaaf0cfewgm.centralus-01.azurewebsites.net",
-                            "http://localhost:5252",
-                            "https://localhost:5252"
-                        )
+                        .WithOrigins(allowedOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -112,7 +132,22 @@ namespace BarberShop.Api.common.Api
             builder.Services.AddTransient<ICorteHandler, CorteHandler>();
             builder.Services.AddTransient<AccountHandler>();
             builder.Services.AddScoped<IAgendamentoNotificationService, AgendamentoNotificationService>();
-        }  
+        }
+
+        private static string GetRequiredHttpUrl(IConfiguration configuration, string key)
+        {
+            var value = configuration.GetValue<string>(key)?.Trim().TrimEnd('/');
+
+            if (string.IsNullOrWhiteSpace(value) ||
+                !Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new InvalidOperationException(
+                    $"Configuração '{key}' ausente ou inválida. Informe uma URL HTTP ou HTTPS absoluta.");
+            }
+
+            return value;
+        }
 
     }
 }
