@@ -42,8 +42,12 @@
                               For="@(() => InputModel.Telefone)"
                               @bind-Value="InputModel.Telefone"
                               InputType="InputType.Telephone"
+                              InputMode="InputMode.numeric"
+                              Pattern="[0-9]*"
+                              MaxLength="11"
+                              Counter="11"
                               Required="true"
-                              RequiredError="Número inválido"
+                              RequiredError="Informe o telefone"
                               Variant="Variant.Filled"
                               Margin="Margin.Dense"
                               Class="auth-field" />

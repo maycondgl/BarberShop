@@ -14,9 +14,7 @@ namespace BarberShop.Api.common.Api
     {
         public static void AddConfiguration(this WebApplicationBuilder builder)
         {
-            Configuration.Connection =
-                builder.Configuration.GetConnectionString("Connection")
-                ?? throw new InvalidOperationException("Connection string 'Connection' não encontrada.");
+            Configuration.Connection = DatabaseConnectionSettings.Resolve(builder.Configuration);
 
             Configuration.BackendUrl = builder.Configuration.GetValue<string>("BackendUrl") ?? string.Empty;
             Configuration.FrontendUrl = builder.Configuration.GetValue<string>("FrontendUrl") ?? string.Empty;

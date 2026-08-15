@@ -7,8 +7,10 @@ namespace BarberShop.Core.Requests.Account
         [Required(ErrorMessage ="Nome inválido")]
         public string Nome { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Telefone inválido")]
-        public string? Telefone { get; set; }
+        [Required(ErrorMessage = "Informe o telefone")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "O telefone deve conter 11 dígitos")]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "O telefone deve conter somente números")]
+        public string Telefone { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "E-mail")]
         [EmailAddress(ErrorMessage = "E-mail inválido")]

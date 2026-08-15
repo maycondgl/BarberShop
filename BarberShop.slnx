@@ -1,5 +1,8 @@
 <Solution>
   <Project Path="BarberShop.Api/BarberShop.Api.csproj" />
   <Project Path="BarberShop.Core/BarberShop.Core.csproj" />
+  <Project Path="BarberShop.Tests/BarberShop.Tests.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="BarberShop.Web/BarberShop.Web.csproj" />
 </Solution>
