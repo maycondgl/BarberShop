@@ -49,7 +49,7 @@ namespace BarberShop.Api.Handlers
                 {
                     UserId = request.UserId,
                     CorteId = request.CorteId,
-                    Data = request.Data,
+                    Data = DateTime.SpecifyKind(request.Data, DateTimeKind.Unspecified),
                     Valor = corte.Preco,
                     Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos),
                     Status = EStatusAgendamento.Pendente
@@ -222,6 +222,9 @@ namespace BarberShop.Api.Handlers
         {
             var startDate = request.StartDate ?? DateTime.Now.GetFirstDayOfMonth();
             var endDate = request.EndDate ?? DateTime.Now.GetLastDayOfMonth();
+
+            startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Unspecified);
+            endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Unspecified);
 
             var query = _context.Agendamentos
                 .AsNoTracking()

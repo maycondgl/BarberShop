@@ -162,7 +162,7 @@ namespace BarberShop.Web.Pages.Agendamentos
 
             // 2. Prepara os dados: Junta o dia (DataSelecionada) com a hora (HorarioSelecionado)
             var dataLocal = DataSelecionada.Value.Date + HorarioSelecionado.Value;
-            InputModel.Data = DateTime.SpecifyKind(dataLocal, DateTimeKind.Local);
+            InputModel.Data = DateTime.SpecifyKind(dataLocal, DateTimeKind.Unspecified);
             IsBusy = true;
 
             try
