@@ -40,10 +40,7 @@ namespace BarberShop.Api.Handlers
                     .AnyAsync(a => a.Data == request.Data && a.Status != EStatusAgendamento.Cancelado);
 
                 if (horarioOcupado)
-                {
-                    // Se já existir alguém marcado nessa data/hora exata, a API rejeita
                     return new Response<AgendamentoResponse?>(null, 400, "Ops! Este horário acabou de ser reservado.");
-                }
 
                 var agendamento = new Agendamento
                 {

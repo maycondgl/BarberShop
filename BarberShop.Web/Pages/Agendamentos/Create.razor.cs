@@ -16,7 +16,6 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public CreateAgendamentoRequest InputModel { get; set; } = new();
 
-        // NOVA PROPRIEDADE: Feita com '?' para o MudDatePicker não crashar
         public DateTime? DataSelecionada { get; set; } = DateTime.Today;
 
         [Parameter]
@@ -58,7 +57,7 @@ namespace BarberShop.Web.Pages.Agendamentos
         public async Task OnDateChangedAsync(DateTime? novaData)
         {
             DataSelecionada = novaData;
-            HorarioSelecionado = null; // Limpa a seleção anterior
+            HorarioSelecionado = null;
 
             if (novaData.HasValue)
             {
@@ -80,7 +79,6 @@ namespace BarberShop.Web.Pages.Agendamentos
             IsBusy = true;
             try
             {
-                // Buscamos um período alargado para cobrir o dia inteiro sem falhas de fuso
                 var request = new GetAgendamentoByPeriodRequest
                 {
                     StartDate = data.Date,
@@ -94,10 +92,16 @@ namespace BarberShop.Web.Pages.Agendamentos
 
                 if (result.IsSuccess && result.Data != null)
                 {
-                    // Comparamos apenas o .Date e ignoramos o Kind para apanhar os agendamentos de TODOS os clientes
+                    foreach (var ag in result.Data)
+                    {
+                        Console.WriteLine($"Agendamento: {ag.Data} | Kind: {ag.Data.Kind}");
+                    }
+
                     horariosOcupados = result.Data
-                        .Where(x => x.Data.Date == data.Date && x.Status != "Cancelado" && x.Status != EStatusAgendamento.Cancelado.ToString())
-                        .Select(x => new TimeSpan(x.Data.Hour, x.Data.Minute, 0)) // Normaliza para horas e minutos limpos
+                        .Where(x => x.Data.Date == data.Date
+                            && x.Status != "Cancelado"
+                            && x.Status != EStatusAgendamento.Cancelado.ToString())
+                        .Select(x => new TimeSpan(x.Data.Hour, x.Data.Minute, 0))
                         .ToList();
                 }
 
@@ -133,7 +137,6 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
-        // NOVO MÉTODO: Usado pelos botões de horário
         public void SelecionarHorario(TimeSpan hora)
         {
             HorarioSelecionado = hora;
@@ -141,7 +144,7 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public async Task OnSubmitAsync()
         {
-            // 1. Validações manuais para dar feedback ao utilizador
+
             if (InputModel.CorteId == 0)
             {
                 Snackbar.Add("Por favor, selecione o tipo de corte.", Severity.Warning);
@@ -160,24 +163,24 @@ namespace BarberShop.Web.Pages.Agendamentos
                 return;
             }
 
-            // 2. Prepara os dados: Junta o dia (DataSelecionada) com a hora (HorarioSelecionado)
+
             var dataLocal = DataSelecionada.Value.Date + HorarioSelecionado.Value;
             InputModel.Data = DateTime.SpecifyKind(dataLocal, DateTimeKind.Unspecified);
             IsBusy = true;
 
             try
             {
-                // 3. Envia para a API local!
+
                 var result = await Handler.CreateAsync(InputModel);
 
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("Agendamento criado com sucesso!", Severity.Success);
-                    NavigationManager.NavigateTo("/agendamentos"); // Volta para a lista
+                    NavigationManager.NavigateTo("/agendamentos");
                 }
                 else
                 {
-                    // Mostra o erro exato que a API devolveu
+
                     Snackbar.Add(result.Message ?? "Ocorreu um erro ao agendar.", Severity.Error);
                 }
             }
