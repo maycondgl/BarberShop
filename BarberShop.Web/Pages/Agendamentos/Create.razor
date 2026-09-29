@@ -27,16 +27,16 @@
                 }
             </MudSelect>
 
-            <!-- SOLUÇÃO: Não utilizamos o EventCallback manual, e simplificamos a função de bloqueio -->
+            <!-- Mudamos a variável de Data para a nova "DataSelecionada" -->
             <MudDatePicker Label="Data do Agendamento"
-                           Date="InputModel.Data"
+                           Date="DataSelecionada"
                            DateChanged="OnDateChangedAsync"
                            IsDateDisabledFunc="IsDateDisabled"
                            Required="true"
                            Class="mt-4" />
 
             <MudText Typo="Typo.subtitle2" Class="mt-6 mb-2">Horários Disponíveis:</MudText>
-            
+
             @if (IsBusy)
             {
                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
@@ -45,15 +45,19 @@
             {
                 @if (HorariosDisponiveis.Any())
                 {
-                    <MudChipSet @bind-SelectedValue="HorarioSelecionado" Filter="true" Mandatory="true">
+                    <!-- Substituímos o MudChipSet por botões à prova de erros! -->
+                    <div class="d-flex flex-wrap gap-3">
                         @foreach (var hora in HorariosDisponiveis)
                         {
-                            <MudChip Text="@hora.ToString(@"hh\:mm")" 
-                                     Value="@hora" 
-                                     Color="Color.Primary" 
-                                     Variant="Variant.Outlined" />
+                            bool isSelected = HorarioSelecionado == hora;
+                            
+                            <MudButton Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => SelecionarHorario(hora))">
+                                @hora.ToString(@"hh\:mm")
+                            </MudButton>
                         }
-                    </MudChipSet>
+                    </div>
                 }
                 else
                 {

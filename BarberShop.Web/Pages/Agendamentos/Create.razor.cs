@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Enums; // Para corrigir o erro CS0019
+﻿using BarberShop.Core.Enums;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Agendamentos;
@@ -11,15 +11,13 @@ namespace BarberShop.Web.Pages.Agendamentos
 {
     public partial class CreateAgendamentoPage : ComponentBase
     {
-        #region Properties
         public bool IsLoading { get; set; } = true;
         public bool IsBusy { get; set; } = false;
 
-        // Inicia logo com a data de hoje para evitar o 01/01/0001
-        public CreateAgendamentoRequest InputModel { get; set; } = new()
-        {
-            Data = DateTime.Today
-        };
+        public CreateAgendamentoRequest InputModel { get; set; } = new();
+
+        // NOVA PROPRIEDADE: Feita com '?' para o MudDatePicker não crashar
+        public DateTime? DataSelecionada { get; set; } = DateTime.Today;
 
         [Parameter]
         [SupplyParameterFromQuery(Name = "corteId")]
@@ -28,21 +26,17 @@ namespace BarberShop.Web.Pages.Agendamentos
         public List<TimeSpan> HorariosDisponiveis { get; set; } = new();
         public TimeSpan? HorarioSelecionado { get; set; }
         public List<Corte> Cortes { get; set; } = new();
-        #endregion
 
-        #region Services
         [Inject] public IAgendamentoHandler Handler { get; set; } = null!;
         [Inject] public NavigationManager NavigationManager { get; set; } = null!;
         [Inject] public ISnackbar Snackbar { get; set; } = null!;
         [Inject] public ICorteHandler CorteHandler { get; set; } = null!;
-        #endregion
 
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
             try
             {
-                // Carrega a lista de cortes
                 var request = new GetAllCorteRequest { PageNumber = 1, PageSize = 100 };
                 var result = await CorteHandler.GetAllAsync(request);
 
@@ -53,7 +47,6 @@ namespace BarberShop.Web.Pages.Agendamentos
                         InputModel.CorteId = CorteId.Value;
                 }
 
-                // Inicia os horários para o dia de hoje
                 await CarregarHorariosDisponiveisAsync(DateTime.Today);
             }
             finally
@@ -64,14 +57,25 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public async Task OnDateChangedAsync(DateTime? novaData)
         {
-            if (novaData == null) return;
+            DataSelecionada = novaData;
+            HorarioSelecionado = null; // Limpa a seleção anterior
 
-            InputModel.Data = novaData.Value;
-            HorarioSelecionado = null;
-            await CarregarHorariosDisponiveisAsync(novaData.Value);
+            if (novaData.HasValue)
+            {
+                await CarregarHorariosDisponiveisAsync(novaData.Value);
+            }
+            else
+            {
+                HorariosDisponiveis.Clear();
+            }
         }
 
-        private async Task CarregarHorariosDisponiveisAsync(DateTime dataSelecionada)
+        public bool IsDateDisabled(DateTime dt)
+        {
+            return dt.DayOfWeek == DayOfWeek.Sunday || dt.Date < DateTime.Today;
+        }
+
+        private async Task CarregarHorariosDisponiveisAsync(DateTime data)
         {
             IsBusy = true;
             try
@@ -82,12 +86,12 @@ namespace BarberShop.Web.Pages.Agendamentos
                 if (result.IsSuccess && result.Data != null)
                 {
                     horariosOcupados = result.Data
-                        .Where(x => x.Data.Date == dataSelecionada.Date && x.Status != EStatusAgendamento.Cancelado)
+                        .Where(x => x.Data.Date == data.Date && x.Status != EStatusAgendamento.Cancelado)
                         .Select(x => x.Data.TimeOfDay)
                         .ToList();
                 }
 
-                GerarHorarios(dataSelecionada, horariosOcupados);
+                GerarHorarios(data, horariosOcupados);
             }
             catch (Exception ex)
             {
@@ -119,10 +123,10 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
-        // Método para bloquear os domingos e dias passados no calendário
-        public bool IsDateDisabled(DateTime dt)
+        // NOVO MÉTODO: Usado pelos botões de horário
+        public void SelecionarHorario(TimeSpan hora)
         {
-            return dt.DayOfWeek == DayOfWeek.Sunday || dt.Date < DateTime.Today;
+            HorarioSelecionado = hora;
         }
 
         public async Task OnValidSubmitAsync(EditContext context)
@@ -132,7 +136,7 @@ namespace BarberShop.Web.Pages.Agendamentos
                 Snackbar.Add("Selecione um tipo de corte", Severity.Warning);
                 return;
             }
-            if (InputModel.Data == default)
+            if (DataSelecionada == null)
             {
                 Snackbar.Add("Selecione uma data", Severity.Warning);
                 return;
@@ -143,7 +147,8 @@ namespace BarberShop.Web.Pages.Agendamentos
                 return;
             }
 
-            InputModel.Data = InputModel.Data.Date + HorarioSelecionado.Value;
+            // Agora juntamos a data e a hora corretas antes de enviar para a API
+            InputModel.Data = DataSelecionada.Value.Date + HorarioSelecionado.Value;
             IsBusy = true;
 
             try
