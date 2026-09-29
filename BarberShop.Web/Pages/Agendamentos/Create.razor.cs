@@ -129,44 +129,50 @@ namespace BarberShop.Web.Pages.Agendamentos
             HorarioSelecionado = hora;
         }
 
-        public async Task OnValidSubmitAsync(EditContext context)
+        public async Task OnSubmitAsync()
         {
+            // 1. Validações manuais para dar feedback ao utilizador
             if (InputModel.CorteId == 0)
             {
-                Snackbar.Add("Selecione um tipo de corte", Severity.Warning);
-                return;
-            }
-            if (DataSelecionada == null)
-            {
-                Snackbar.Add("Selecione uma data", Severity.Warning);
-                return;
-            }
-            if (HorarioSelecionado == null)
-            {
-                Snackbar.Add("Selecione um horário disponível nas opções", Severity.Warning);
+                Snackbar.Add("Por favor, selecione o tipo de corte.", Severity.Warning);
                 return;
             }
 
-            // Agora juntamos a data e a hora corretas antes de enviar para a API
+            if (DataSelecionada == null)
+            {
+                Snackbar.Add("Por favor, selecione a data do agendamento.", Severity.Warning);
+                return;
+            }
+
+            if (HorarioSelecionado == null)
+            {
+                Snackbar.Add("Por favor, clique num dos botões de horário disponíveis.", Severity.Warning);
+                return;
+            }
+
+            // 2. Prepara os dados: Junta o dia (DataSelecionada) com a hora (HorarioSelecionado)
             InputModel.Data = DataSelecionada.Value.Date + HorarioSelecionado.Value;
             IsBusy = true;
 
             try
             {
+                // 3. Envia para a API local!
                 var result = await Handler.CreateAsync(InputModel);
+
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("Agendamento criado com sucesso!", Severity.Success);
-                    NavigationManager.NavigateTo("/agendamentos");
+                    NavigationManager.NavigateTo("/agendamentos"); // Volta para a lista
                 }
                 else
                 {
-                    Snackbar.Add(result.Message ?? "Erro ao agendar.", Severity.Error);
+                    // Mostra o erro exato que a API devolveu
+                    Snackbar.Add(result.Message ?? "Ocorreu um erro ao agendar.", Severity.Error);
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add(ex.Message, Severity.Error);
+                Snackbar.Add("Erro de comunicação: " + ex.Message, Severity.Error);
             }
             finally
             {
