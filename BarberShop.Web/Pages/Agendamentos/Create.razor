@@ -2,42 +2,72 @@
 @inherits CreateAgendamentoPage
 
 <MudText Typo="Typo.h3">Novo Agendamento</MudText>
+
 <MudPaper Class="pa-8 mt-4">
-    <EditForm Model="@InputModel" OnSubmit="OnValidSubmitAsync">
+    <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
         <DataAnnotationsValidator />
 
+        <!-- 1. Seleção do Corte -->
         <MudSelect T="long"
                    Label="Tipo de Corte"
                    HelperText="Campo obrigatório"
                    @bind-Value="InputModel.CorteId"
-                   Class="mt-4">
-
+                   Class="mt-4"
+                   Required="true">
             @foreach (var corte in Cortes)
             {
                 <MudSelectItem T="long" Value="@corte.Id">@corte.Titulo</MudSelectItem>
             }
         </MudSelect>
 
+      <!-- 2. Data com bloqueio de domingos e aviso ao C# quando mudar -->
         <MudDatePicker Label="Data do Agendamento"
-                       Date="@InputModel.Data"
-                       DateChanged="@((DateTime? d) => { InputModel.Data = d ?? DateTime.Today; })"
-                       MinDate="DateTime.Today"
+                       Date="InputModel.Data"
+                       DateChanged="@(EventCallback.Factory.Create<DateTime?>(this, OnDateChangedAsync))"
+                       IsDateDisabledFunc="@((DateTime dt) => dt.DayOfWeek == DayOfWeek.Sunday || dt.Date < DateTime.Today)"
                        Required="true"
                        Class="mt-4" />
 
-        <MudTimePicker Label="Horário do Agendamento"
-                       @bind-Time="_horario"
-                       Required="true"
-                       Class="mt-4" />
+        <!-- 3. Seleção de Horário (Substitui o MudTimePicker) -->
+        <MudText Typo="Typo.subtitle2" Class="mt-6 mb-2">Horários Disponíveis:</MudText>
+        
+        @if (IsBusy)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+        }
+        else
+        {
+            @if (HorariosDisponiveis.Any())
+            {
+                <MudChipSet @bind-SelectedValue="HorarioSelecionado" Filter="true" Mandatory="true">
+                    @foreach (var hora in HorariosDisponiveis)
+                    {
+                        <!-- Mostra o horário formatado como 08:00, 08:40, etc. -->
+                        <MudChip Text="@hora.ToString(@"hh\:mm")" 
+                                 Value="@hora" 
+                                 Color="Color.Primary" 
+                                 Variant="Variant.Outlined" />
+                    }
+                </MudChipSet>
+            }
+            else
+            {
+                <!-- Aviso caso o dia inteiro já esteja lotado ou todos os horários de hoje já tenham passado -->
+                <MudAlert Severity="Severity.Warning" Class="mt-2">
+                    Não há horários disponíveis para este dia. Escolha outra data.
+                </MudAlert>
+            }
+        }
 
+        <!-- 4. Botão de Agendar -->
         <MudButton ButtonType="ButtonType.Submit"
                    Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   StartIcon="@Icons.Material.Filled.DoneAll"
-                   Class="action-btn mt-4" >
-            Agendar
+                   Color="Color.Warning"
+                   StartIcon="@Icons.Material.Filled.Event"
+                   Class="action-btn mt-6"
+                   Disabled="@IsBusy">
+            @(IsBusy ? "Aguarde..." : "Agendar")
         </MudButton>
-
 
     </EditForm>
 </MudPaper>
