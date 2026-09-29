@@ -36,6 +36,15 @@ namespace BarberShop.Api.Handlers
                 if (corte is null || cliente is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Cliente ou corte não encontrado");
 
+                var horarioOcupado = await _context.Agendamentos
+                    .AnyAsync(a => a.Data == request.Data && a.Status != EStatusAgendamento.Cancelado);
+
+                if (horarioOcupado)
+                {
+                    // Se já existir alguém marcado nessa data/hora exata, a API rejeita
+                    return new Response<AgendamentoResponse?>(null, 400, "Ops! Este horário acabou de ser reservado.");
+                }
+
                 var agendamento = new Agendamento
                 {
                     UserId = request.UserId,
