@@ -21,12 +21,14 @@ namespace BarberShop.Web.Pages.Agendamentos
         [Parameter]
         [SupplyParameterFromQuery(Name = "corteId")]
         public long? CorteId { get; set; }
+        public List<TimeSpan> HorariosDisponiveis { get; set; } = new();
+        public TimeSpan? HorarioSelecionado { get; set; }
 
         #endregion
 
         #region Services
 
-    [Inject]
+        [Inject]
         public IAgendamentoHandler Handler { get; set; } = null!;
 
         [Inject]
@@ -98,6 +100,29 @@ namespace BarberShop.Web.Pages.Agendamentos
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        private void GerarHorarios(DateTime dataEscolhida, List<TimeSpan> horariosJaOcupadosNoBanco)
+        {
+            HorariosDisponiveis.Clear();
+
+            var horarioAbertura = new TimeSpan(8, 0, 0); // 08:00
+            var horarioFechamento = new TimeSpan(19, 0, 0); // 19:00
+            var tolerancia = TimeSpan.FromMinutes(40); // 40 minutos por corte
+
+            var horarioAtual = horarioAbertura;
+
+            // Vai somando 40 minutos até chegar às 19h
+            while (horarioAtual.Add(tolerancia) <= horarioFechamento)
+            {
+                // Só adiciona se o horário NÃO estiver ocupado no banco
+                if (!horariosJaOcupadosNoBanco.Contains(horarioAtual))
+                {
+                    HorariosDisponiveis.Add(horarioAtual);
+                }
+
+                horarioAtual = horarioAtual.Add(tolerancia);
             }
         }
 
