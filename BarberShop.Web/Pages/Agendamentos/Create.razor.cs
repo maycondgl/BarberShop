@@ -119,6 +119,12 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
+        // Método para bloquear os domingos e dias passados no calendário
+        public bool IsDateDisabled(DateTime dt)
+        {
+            return dt.DayOfWeek == DayOfWeek.Sunday || dt.Date < DateTime.Today;
+        }
+
         public async Task OnValidSubmitAsync(EditContext context)
         {
             if (InputModel.CorteId == 0)

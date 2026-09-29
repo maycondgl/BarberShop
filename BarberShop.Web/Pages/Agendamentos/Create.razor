@@ -15,7 +15,6 @@
         <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
             <DataAnnotationsValidator />
 
-            <!-- 1. Seleção do Corte -->
             <MudSelect T="long"
                        Label="Tipo de Corte"
                        HelperText="Campo obrigatório"
@@ -28,15 +27,14 @@
                 }
             </MudSelect>
 
-            <!-- 2. Data com aviso ao C# quando mudar -->
+            <!-- SOLUÇÃO: Não utilizamos o EventCallback manual, e simplificamos a função de bloqueio -->
             <MudDatePicker Label="Data do Agendamento"
                            Date="InputModel.Data"
-                           DateChanged="@(EventCallback.Factory.Create<DateTime?>(this, OnDateChangedAsync))"
-                           IsDateDisabledFunc="@((DateTime dt) => dt.DayOfWeek == DayOfWeek.Sunday || dt.Date < DateTime.Today)"
+                           DateChanged="OnDateChangedAsync"
+                           IsDateDisabledFunc="IsDateDisabled"
                            Required="true"
                            Class="mt-4" />
 
-            <!-- 3. Seleção de Horário -->
             <MudText Typo="Typo.subtitle2" Class="mt-6 mb-2">Horários Disponíveis:</MudText>
             
             @if (IsBusy)
@@ -65,7 +63,6 @@
                 }
             }
 
-            <!-- 4. Botão de Agendar -->
             <MudButton ButtonType="ButtonType.Submit"
                        Variant="Variant.Filled"
                        Color="Color.Warning"
