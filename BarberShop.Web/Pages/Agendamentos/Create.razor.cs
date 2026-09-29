@@ -80,11 +80,11 @@ namespace BarberShop.Web.Pages.Agendamentos
             IsBusy = true;
             try
             {
-                // 1. Em vez de GetAllAsync, usamos o GetByPeriodAsync para buscar TODOS os agendamentos do dia
+                // Buscamos um período alargado para cobrir o dia inteiro sem falhas de fuso
                 var request = new GetAgendamentoByPeriodRequest
                 {
                     StartDate = data.Date,
-                    EndDate = data.Date.AddDays(1).AddTicks(-1), // Vai de 00:00 até 23:59 do dia escolhido
+                    EndDate = data.Date.AddDays(1).AddTicks(-1),
                     PageNumber = 1,
                     PageSize = 100
                 };
@@ -94,14 +94,13 @@ namespace BarberShop.Web.Pages.Agendamentos
 
                 if (result.IsSuccess && result.Data != null)
                 {
-                    // 2. Extraímos apenas a hora dos agendamentos que não foram cancelados
+                    // Comparamos apenas o .Date e ignoramos o Kind para apanhar os agendamentos de TODOS os clientes
                     horariosOcupados = result.Data
-                        .Where(x => x.Status != "Cancelado")
-                        .Select(x => x.Data.TimeOfDay)
+                        .Where(x => x.Data.Date == data.Date && x.Status != "Cancelado" && x.Status != EStatusAgendamento.Cancelado.ToString())
+                        .Select(x => new TimeSpan(x.Data.Hour, x.Data.Minute, 0)) // Normaliza para horas e minutos limpos
                         .ToList();
                 }
 
-                // 3. Mandamos gerar a grelha de botões (agora o botão das 10:40 será escondido!)
                 GerarHorarios(data, horariosOcupados);
             }
             catch (Exception ex)
@@ -162,7 +161,8 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
 
             // 2. Prepara os dados: Junta o dia (DataSelecionada) com a hora (HorarioSelecionado)
-            InputModel.Data = DataSelecionada.Value.Date + HorarioSelecionado.Value;
+            var dataLocal = DataSelecionada.Value.Date + HorarioSelecionado.Value;
+            InputModel.Data = DateTime.SpecifyKind(dataLocal, DateTimeKind.Local);
             IsBusy = true;
 
             try
