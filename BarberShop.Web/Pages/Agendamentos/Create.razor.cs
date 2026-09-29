@@ -80,17 +80,28 @@ namespace BarberShop.Web.Pages.Agendamentos
             IsBusy = true;
             try
             {
-                var result = await Handler.GetAllAsync(new GetAllAgendamentoRequest());
+                // 1. Em vez de GetAllAsync, usamos o GetByPeriodAsync para buscar TODOS os agendamentos do dia
+                var request = new GetAgendamentoByPeriodRequest
+                {
+                    StartDate = data.Date,
+                    EndDate = data.Date.AddDays(1).AddTicks(-1), // Vai de 00:00 até 23:59 do dia escolhido
+                    PageNumber = 1,
+                    PageSize = 100
+                };
+
+                var result = await Handler.GetByPeriodAsync(request);
                 var horariosOcupados = new List<TimeSpan>();
 
                 if (result.IsSuccess && result.Data != null)
                 {
+                    // 2. Extraímos apenas a hora dos agendamentos que não foram cancelados
                     horariosOcupados = result.Data
-                        .Where(x => x.Data.Date == data.Date && x.Status != EStatusAgendamento.Cancelado)
+                        .Where(x => x.Status != "Cancelado")
                         .Select(x => x.Data.TimeOfDay)
                         .ToList();
                 }
 
+                // 3. Mandamos gerar a grelha de botões (agora o botão das 10:40 será escondido!)
                 GerarHorarios(data, horariosOcupados);
             }
             catch (Exception ex)
