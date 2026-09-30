@@ -486,6 +486,7 @@ $RECYCLE.BIN/
 **/appsettings.Production.json
 **/appsettings.Local.json
 **/appsettings.*.local.json
+**/appsettings.json
 
 # Environment files
 .env
