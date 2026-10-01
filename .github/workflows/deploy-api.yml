@@ -44,6 +44,11 @@ jobs:
           API_ZIPDEPLOY_URL: ${{ secrets.API_ZIPDEPLOY_URL }}
         run: |
           curl -f -X POST \
+            --retry 5 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            --connect-timeout 60 \
+            --max-time 600 \
             -u "$API_PUBLISH_USERNAME:$API_PUBLISH_PASSWORD" \
             --data-binary "@api.zip" \
             "$API_ZIPDEPLOY_URL"
