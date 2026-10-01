@@ -45,7 +45,7 @@ namespace BarberShop.Web.Pages.Agendamentos
 
                 if (result.IsSuccess && result.Data != null)
                 {
-                    Cortes = result.Data.Where(c => c.Ativo).ToList();
+                    Cortes = result.Data.ToList();
                     if (CorteId is > 0 && Cortes.Any(corte => corte.Id == CorteId.Value))
                     {
                         InputModel.CorteId = CorteId.Value;

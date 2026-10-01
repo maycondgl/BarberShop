@@ -109,6 +109,7 @@ namespace BarberShop.Api.common.Api
             builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
             builder.Services.AddTransient<ICorteHandler, CorteHandler>();
             builder.Services.AddTransient<IDiaFechadoHandler, DiaFechadoHandler>();
+            builder.Services.AddTransient<IDashboardHandler, DashboardHandler>();
             builder.Services.AddTransient<AccountHandler>();
             builder.Services.AddScoped<IAgendamentoNotificationService, AgendamentoNotificationService>();
         }  

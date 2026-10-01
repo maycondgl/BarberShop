@@ -41,7 +41,7 @@ namespace BarberShop.Web.Pages.Agendamentos
                 var cortesResult = await CorteHandler.GetAllAsync(new GetAllCorteRequest { PageNumber = 1, PageSize = 100 });
                 if (cortesResult.IsSuccess && cortesResult.Data != null)
                 {
-                    Cortes = cortesResult.Data.Where(c => c.Ativo).ToList();
+                    Cortes = cortesResult.Data.ToList();
                 }
 
                 try

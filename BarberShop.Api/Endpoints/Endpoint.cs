@@ -89,6 +89,7 @@ namespace BarberShop.Api.Endpoints
             endpoints.MapGroup("v1/admin")
                 .WithTags("Admin")
                 .RequireAuthorization("Admin")
+                .MapEndpoint<GetDashboardEndpoint>()
                 .MapEndpoint<GetUsersEndpoint>()
                 .MapEndpoint<AddAdminEndpoint>()
                 .MapEndpoint<RemoveAdminEndpoint>();

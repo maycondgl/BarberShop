@@ -37,6 +37,7 @@ builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
 builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
 builder.Services.AddTransient<ICorteHandler, CorteHandler>();
 builder.Services.AddTransient<IDiaFechadoHandler, DiaFechadoHandler>();
+builder.Services.AddTransient<IDashboardHandler, DashboardHandler>();
 builder.Services.AddScoped<AdminNotificationClient>();
 builder.Services.AddScoped<PushNotificationClient>();
 
