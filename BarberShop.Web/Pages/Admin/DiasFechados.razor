@@ -1,0 +1,218 @@
+@page "/admin/dias-fechados"
+@using System.Globalization
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Models
+@using BarberShop.Core.Requests.DiasFechados
+@attribute [Authorize(Roles = "Admin")]
+@inject IDiaFechadoHandler Handler
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h4" Class="mb-2 font-weight-bold">Gerenciar Dias Fechados</MudText>
+<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+    Cadastre feriados, folgas ou dias de manutenção para que fiquem automaticamente indisponíveis para agendamento pelos clientes.
+</MudText>
+
+<MudGrid>
+    <!-- Formulário para cadastrar novo dia fechado -->
+    <MudItem xs="12" md="5">
+        <MudCard Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3 font-weight-bold">
+                <MudIcon Icon="@Icons.Material.Filled.EventBusy" Color="Color.Error" Class="mr-2" />
+                Bloquear Nova Data
+            </MudText>
+
+            <MudDatePicker Label="Data a ser fechada"
+                           @bind-Date="_novaData"
+                           IsDateDisabledFunc="@(dt => dt.Date < DateTime.Today)"
+                           Required="true"
+                           Class="mb-3" />
+
+            <MudTextField Label="Motivo do fechamento (opcional)"
+                          @bind-Value="_novoMotivo"
+                          Placeholder="Ex: Feriado Nacional, Reforma, Folga..."
+                          MaxLength="150"
+                          Class="mb-4" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Lock"
+                       FullWidth="true"
+                       Disabled="_isBusy"
+                       OnClick="CadastrarDiaFechadoAsync">
+                @(_isBusy ? "Salvando..." : "Bloquear Esta Data")
+            </MudButton>
+        </MudCard>
+    </MudItem>
+
+    <!-- Listagem de dias fechados existentes -->
+    <MudItem xs="12" md="7">
+        <MudCard Elevation="3" Class="pa-4">
+            <div class="d-flex justify-space-between align-center mb-3">
+                <MudText Typo="Typo.h6" Class="font-weight-bold">
+                    Datas Bloqueadas (@_diasFechados.Count)
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                               Color="Color.Primary"
+                               OnClick="CarregarDiasFechadosAsync"
+                               Disabled="_isBusy"
+                               Title="Atualizar lista" />
+            </div>
+
+            @if (_isLoading)
+            {
+                <div class="d-flex justify-center my-6">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (!_diasFechados.Any())
+            {
+                <MudAlert Severity="Severity.Info" Class="my-2">
+                    Nenhum dia fechado cadastrado. Os agendamentos ocorrerão normalmente de Segunda a Sábado.
+                </MudAlert>
+            }
+            else
+            {
+                <MudTable Items="@_diasFechados" Hover="true" Dense="true">
+                    <HeaderContent>
+                        <MudTh>Data</MudTh>
+                        <MudTh>Dia da Semana</MudTh>
+                        <MudTh>Motivo</MudTh>
+                        <MudTh Style="text-align: right;">Ação</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Data">
+                            <strong>@context.Data.ToString("dd/MM/yyyy")</strong>
+                        </MudTd>
+                        <MudTd DataLabel="Dia">
+                            @context.Data.ToString("dddd", CultureInfo.GetCultureInfo("pt-BR"))
+                        </MudTd>
+                        <MudTd DataLabel="Motivo">
+                            @(string.IsNullOrWhiteSpace(context.Motivo) ? "Sem motivo informado" : context.Motivo)
+                        </MudTd>
+                        <MudTd Style="text-align: right;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           Title="Desbloquear data"
+                                           OnClick="@(() => RemoverDiaFechadoAsync(context.Id, context.Data))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<DiaFechado> _diasFechados = new();
+    private DateTime? _novaData = DateTime.Today;
+    private string _novoMotivo = string.Empty;
+    private bool _isLoading = true;
+    private bool _isBusy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDiasFechadosAsync();
+    }
+
+    private async Task CarregarDiasFechadosAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var result = await Handler.GetAllAsync(new GetAllDiasFechadosRequest { PageNumber = 1, PageSize = 100 });
+            if (result.IsSuccess && result.Data != null)
+            {
+                _diasFechados = result.Data.OrderBy(d => d.Data).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao carregar dias fechados: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task CadastrarDiaFechadoAsync()
+    {
+        if (_novaData == null)
+        {
+            Snackbar.Add("Por favor, selecione uma data.", Severity.Warning);
+            return;
+        }
+
+        if (_novaData.Value.Date < DateTime.Today)
+        {
+            Snackbar.Add("Não é possível bloquear uma data no passado.", Severity.Warning);
+            return;
+        }
+
+        _isBusy = true;
+        try
+        {
+            var request = new CreateDiaFechadoRequest
+            {
+                Data = _novaData.Value.Date,
+                Motivo = _novoMotivo?.Trim() ?? string.Empty
+            };
+
+            var result = await Handler.CreateAsync(request);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Data bloqueada com sucesso!", Severity.Success);
+                _novoMotivo = string.Empty;
+                await CarregarDiasFechadosAsync();
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Falha ao bloquear data.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task RemoverDiaFechadoAsync(long id, DateTime data)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Desbloquear Data",
+            $"Tem certeza que deseja reabrir a data {data:dd/MM/yyyy} para agendamentos?",
+            yesText: "Sim, Desbloquear", cancelText: "Cancelar");
+
+        if (confirm != true)
+            return;
+
+        _isBusy = true;
+        try
+        {
+            var result = await Handler.DeleteAsync(id);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Data desbloqueada com sucesso!", Severity.Success);
+                _diasFechados.RemoveAll(d => d.Id == id);
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Falha ao desbloquear data.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+}

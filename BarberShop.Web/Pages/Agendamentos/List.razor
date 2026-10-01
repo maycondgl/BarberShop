@@ -1,93 +1,225 @@
-﻿@page "/agendamentos"
+@page "/agendamentos"
+@using System.Globalization
 @using BarberShop.Core.Enums
 @inherits ListAgendamentoPage
 @inject NavigationManager NavigationManager
 
-<MudText Typo="Typo.h3">Agendamentos</MudText>
-<div class="d-flex justify-end">
-    <MudButton 
-        Variant="Variant.Filled" 
-        Color="Color.Primary" 
-        StartIcon="@Icons.TwoTone.Add"
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
+        </MudText>
+    </div>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               Size="Size.Large"
                Href="/agendamentos/adicionar">
-        Novo Agendamento</MudButton>
+        Novo Agendamento
+    </MudButton>
 </div>
 
-<MudDataGrid 
-    Class="mt-4"
-    Items="@Agendamentos"
-    Filterable="true"
-    QuickFilter="Filter"
-    Hideable="true">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Agendamentos</MudText>
-        <MudSpacer />
-        <MudTextField 
-            @bind-Value="SearchTerm"
-            Placeholder="Filtrar ..."
-            Adornment="Adornment.Start"
-            AdornmentIcon="@Icons.Material.Filled.Search"
-            Immediate="true"
-            IconSize="Size.Medium"
-            Class="mt-0"
-        ></MudTextField>
-    </ToolBarContent>
-    <Columns>
-        <PropertyColumn Property="x => x.Corte.Titulo" Title="Nome do Corte" />
-        <PropertyColumn Property="x => x.Data" Title="Data e Horário" />
-        <PropertyColumn Property="x => x.Tempo" Title="Duração do Corte" />
-        <TemplateColumn Title="Valor">
-            <CellTemplate>
-                @context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.Status" Title="Status" />
-        <TemplateColumn>
-            <CellTemplate>
-                <div style="display: flex; align-items: center; gap: 8px">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Href="@($"/agendamentos/editar/{context.Item.Id}")"
-                                   Color="Color.Primary"
-                                   Size="Size.Small" 
-                                   Style="padding: 0; margin: 0;" />
+@if (IsBusy && !Agendamentos.Any())
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else
+{
+    <!-- 1. Destaque: Próximo Agendamento -->
+    <MudText Typo="Typo.h5" Class="mt-4 mb-2 font-weight-bold">
+        Próximo Agendamento
+    </MudText>
 
-                  
-
-                    <MudIconButton Icon="@Icons.Material.Filled.Pix"
-                                   Color="Color.Success"
-                                   Title="Pagar com Pix"
-                                   OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
-
-
-                    @if (context.Item.Status == EStatusAgendamento.Concluido)
-                    {
-                        @if (AgendamentosAvaliados.Contains(context.Item.Id))
-                        {
-                            <MudChip Color="Color.Success"
-                                     Size="Size.Small"
-                                     Icon="@Icons.Material.Filled.Star">
-                                Avaliado
-                            </MudChip>
-                        }
-                        else
-                        {
-                           <MudButton Variant="Variant.Filled"
-                           Color="Color.Warning"
-                           Size="Size.Small"
-                           Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
-                           Style="border-radius: 20px; font-weight: bold; letter-spacing: 1px;">
-                                AVALIAR
-                            </MudButton>
-                        }
-
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                       Color="Color.Error"
-                                       Size="Size.Small"
-                                       OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
-                    }
+    @if (ProximoAgendamento != null)
+    {
+        <MudCard Elevation="4" Class="pa-4 mb-6 border-solid border-2 mud-border-primary" Style="border-radius: 12px;">
+            <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Primary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Class="font-weight-bold">
+                            @ProximoAgendamento.Data.ToString("dddd, dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))
+                        </MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="font-weight-bold">
+                            Horário: @ProximoAgendamento.Data.ToString("HH:mm")
+                        </MudText>
+                    </div>
                 </div>
-            </CellTemplate>
 
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+                <div>
+                    <MudChip Color="@(ProximoAgendamento.Status == EStatusAgendamento.Pendente ? Color.Warning : Color.Success)"
+                             Variant="Variant.Filled"
+                             Size="Size.Medium">
+                        @ProximoAgendamento.Status
+                    </MudChip>
+                </div>
+            </div>
+
+            <MudDivider Class="my-3" />
+
+            <div class="d-flex justify-space-between align-center flex-wrap gap-4 py-2">
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Corte Escolhido:</MudText>
+                    <MudText Typo="Typo.h6">@(ProximoAgendamento.Corte?.Titulo ?? "Corte")</MudText>
+                </div>
+
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Duração:</MudText>
+                    <MudText Typo="Typo.body1">@ProximoAgendamento.Tempo.TotalMinutes min</MudText>
+                </div>
+
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Valor:</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Success" Class="font-weight-bold">
+                        @ProximoAgendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                    </MudText>
+                </div>
+            </div>
+
+            <MudDivider Class="my-3" />
+
+            <div class="d-flex justify-end align-center flex-wrap gap-2 pt-2">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Cancel"
+                           OnClick="@(() => OnDeleteClickedAsync(ProximoAgendamento.Id))">
+                    Cancelar
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.EditCalendar"
+                           Href="@($"/agendamentos/editar/{ProximoAgendamento.Id}")">
+                    Alterar
+                </MudButton>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.Pix"
+                           OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{ProximoAgendamento.Id}"))">
+                    Pagar com Pix
+                </MudButton>
+            </div>
+        </MudCard>
+    }
+    else
+    {
+        <MudCard Elevation="1" Class="pa-6 mb-6 text-center" Style="border-radius: 12px;">
+            <MudIcon Icon="@Icons.Material.Filled.EventBusy" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+            <MudText Typo="Typo.h6">Você não possui nenhum agendamento pendente no momento.</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                Que tal garantir seu próximo corte agora mesmo?
+            </MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Href="/agendamentos/adicionar">
+                Agendar Horário
+            </MudButton>
+        </MudCard>
+    }
+
+    <!-- 2. Histórico dos Meus Agendamentos -->
+    <div class="mt-8">
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   StartIcon="@Icons.Material.Filled.History"
+                   EndIcon="@(MostrarHistorico ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
+                   Size="Size.Medium"
+                   OnClick="AlternarHistorico"
+                   Class="mb-3">
+            Histórico dos Meus Agendamentos (@HistoricoAgendamentos.Count)
+        </MudButton>
+
+        <MudCollapse Expanded="MostrarHistorico">
+            @if (!HistoricoAgendamentos.Any())
+            {
+                <MudAlert Severity="Severity.Normal" Class="my-2">
+                    Nenhum agendamento anterior encontrado no seu histórico.
+                </MudAlert>
+            }
+            else
+            {
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudDataGrid Items="@HistoricoAgendamentos"
+                                 Filterable="true"
+                                 QuickFilter="Filter"
+                                 Hideable="true"
+                                 Dense="true"
+                                 Hover="true">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Todos os Agendamentos Anteriores</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="SearchTerm"
+                                          Placeholder="Filtrar histórico..."
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          Immediate="true"
+                                          IconSize="Size.Medium"
+                                          Class="mt-0" />
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" />
+                            <TemplateColumn Title="Data e Horário">
+                                <CellTemplate>
+                                    @context.Item.Data.ToString("dd/MM/yyyy HH:mm")
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Valor">
+                                <CellTemplate>
+                                    @context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <PropertyColumn Property="x => x.Status" Title="Status" />
+                            <TemplateColumn Title="Ações">
+                                <CellTemplate>
+                                    <div class="d-flex align-center gap-2">
+                                        @if (context.Item.Status == EStatusAgendamento.Concluido)
+                                        {
+                                            @if (AgendamentosAvaliados.Contains(context.Item.Id))
+                                            {
+                                                <MudChip Color="Color.Success"
+                                                         Size="Size.Small"
+                                                         Icon="@Icons.Material.Filled.Star">
+                                                    Avaliado
+                                                </MudChip>
+                                            }
+                                            else
+                                            {
+                                                <MudButton Variant="Variant.Filled"
+                                                           Color="Color.Warning"
+                                                           Size="Size.Small"
+                                                           Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
+                                                           StartIcon="@Icons.Material.Filled.RateReview">
+                                                    Avaliar
+                                                </MudButton>
+                                            }
+                                        }
+
+                                        @if (context.Item.Status != EStatusAgendamento.Concluido)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Pix"
+                                                           Color="Color.Success"
+                                                           Size="Size.Small"
+                                                           Title="Pagar com Pix"
+                                                           OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
+                                        }
+
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
+                                                       Title="Excluir"
+                                                       OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                    </MudDataGrid>
+                </MudPaper>
+            }
+        </MudCollapse>
+    </div>
+}

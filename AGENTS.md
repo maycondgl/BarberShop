@@ -11,6 +11,15 @@
 - **Código-fonte estrutural** (classes, métodos, propriedades, variáveis e comentários técnicos): Estritamente em **inglês**.
 - **Mensagens de negócio e interface** (exceções de domínio/negócio, validações, mensagens de asserção em testes xUnit `Assert.True(..., "mensagem")`, respostas de API, telas e componentes Blazor/MudBlazor, documentação e mensagens de commit Git): Estritamente em **português brasileiro (pt-BR)** com ortografia e acentuação corretas.
 
+## Protocolo de Alterações (Explicação Prévia Obrigatória)
+
+- **Transparência e Alinhamento Prévio**: Antes de aplicar qualquer alteração em arquivos ou código existente, o agente deve sempre **apresentar e explicar claramente o que será implementado**:
+  1. Motivação e diagnóstico da mudança (ou do bug a ser corrigido).
+  2. Arquivos, classes ou componentes que serão modificados ou criados.
+  3. A lógica, fluxo de dados e trechos essenciais do código que será implementado.
+- Nenhuma edição de código destrutiva ou funcionalmente significativa deve ser feita sem essa explanação prévia ao desenvolvedor.
+
+
 ## Governança Modular do Projeto
 
 As diretrizes técnicas detalhadas, padrões de arquitetura por camada e suas respectivas **ferramentas de apoio (skills, plugins e regras)** são modulares e carregadas dinamicamente a partir de [.agents/](.agents/):

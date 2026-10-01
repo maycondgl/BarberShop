@@ -1,15 +1,10 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace BarberShop.Core.Responses
 {
     public class Response<TData>
     {
-        
-        private readonly int _code;
-
         [JsonConstructor]
-        public Response() => _code = Configuration.DefaultCode;
-
         public Response(
             TData? data, 
             int code = Configuration.DefaultCode, 
@@ -17,12 +12,19 @@ namespace BarberShop.Core.Responses
         {
             Data = data;
             Message = message;
-            _code = code;
+            Code = code;
         }
+
+        public Response()
+        {
+            Code = Configuration.DefaultCode;
+        }
+
         public TData? Data { get; set; }
         public string? Message { get; set; }
+        public int Code { get; set; } = Configuration.DefaultCode;
 
         [JsonIgnore]
-        public bool IsSuccess => _code is >= 200 and <= 299;
+        public bool IsSuccess => Code is >= 200 and <= 299;
     }
 }

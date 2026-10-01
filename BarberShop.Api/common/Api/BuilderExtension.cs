@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.Data;
+using BarberShop.Api.Data;
 using BarberShop.Api.Handlers;
 using BarberShop.Api.Models;
 using BarberShop.Api.Services;
@@ -108,6 +108,7 @@ namespace BarberShop.Api.common.Api
             builder.Services.AddTransient<IAgendamentoHandler, AgendamentoHandler>();
             builder.Services.AddTransient<IAvaliacaoHandler, AvaliacaoHandler>();
             builder.Services.AddTransient<ICorteHandler, CorteHandler>();
+            builder.Services.AddTransient<IDiaFechadoHandler, DiaFechadoHandler>();
             builder.Services.AddTransient<AccountHandler>();
             builder.Services.AddScoped<IAgendamentoNotificationService, AgendamentoNotificationService>();
         }  

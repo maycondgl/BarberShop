@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.Models;
+using BarberShop.Api.Models;
 using BarberShop.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -24,6 +24,7 @@ namespace BarberShop.Api.Data
         public DbSet<Avaliacao> Avaliacoes { get; set; } = null!;
         public DbSet<Corte> Cortes { get; set; } = null!;
         public DbSet<PushSubscriptionDevice> PushSubscriptionDevices { get; set; } = null!;
+        public DbSet<DiaFechado> DiasFechados { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

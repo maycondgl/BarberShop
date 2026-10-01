@@ -1,59 +1,129 @@
-﻿@page "/agendamentos/adicionar"
+@page "/agendamentos/adicionar"
+@using System.Globalization
 @inherits CreateAgendamentoPage
 
-<MudText Typo="Typo.h3">Novo Agendamento</MudText>
+<MudText Typo="Typo.h4" Class="mb-2 font-weight-bold">Novo Agendamento</MudText>
+<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+    Selecione o corte, a data e o horário desejado para o seu atendimento.
+</MudText>
 
-<MudPaper Class="pa-8 mt-4">
-    @if (IsLoading)
-    {
-        <div class="d-flex justify-center mt-4">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-        </div>
-    }
-    else
-    {
+@if (IsLoading)
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else
+{
+    <MudPaper Class="pa-6" Elevation="2">
         <EditForm Model="@InputModel" OnSubmit="OnSubmitAsync">
             <DataAnnotationsValidator />
 
-            <MudSelect T="long"
-                       Label="Tipo de Corte"
-                       HelperText="Campo obrigatório"
-                       @bind-Value="InputModel.CorteId"
-                       Class="mt-4"
-                       Required="true">
-                @foreach (var corte in Cortes)
-                {
-                    <MudSelectItem T="long" Value="@corte.Id">@corte.Titulo</MudSelectItem>
-                }
-            </MudSelect>
+            <!-- 1. Seleção de Corte em Lista -->
+            <div class="d-flex align-center gap-2 mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">1. Escolha o Corte do Catálogo</MudText>
+            </div>
 
-            <!-- Mudamos a variável de Data para a nova "DataSelecionada" -->
-            <MudDatePicker Label="Data do Agendamento"
+            @if (!Cortes.Any())
+            {
+                <MudAlert Severity="Severity.Info" Class="my-2">
+                    Nenhum corte disponível no catálogo no momento.
+                </MudAlert>
+            }
+            else
+            {
+                <MudSelect T="long"
+                           Label="Selecione o Corte"
+                           HelperText="Escolha um dos cortes da lista com todos os serviços disponíveis"
+                           @bind-Value="InputModel.CorteId"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Required="true"
+                           Class="mt-2 mb-3">
+                    @foreach (var corte in Cortes)
+                    {
+                        <MudSelectItem T="long" Value="@corte.Id">
+                            <div class="d-flex justify-space-between align-center w-100 gap-4">
+                                <span><strong>@corte.Titulo</strong></span>
+                                <span class="d-flex align-center gap-2">
+                                    <span style="color: var(--mud-palette-success); font-weight: bold;">
+                                        @corte.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                    </span>
+                                    <span style="opacity: 0.7; font-size: 0.85rem;">
+                                        (@(corte.DuracaoMinutos > 0 ? corte.DuracaoMinutos : 40) min)
+                                    </span>
+                                </span>
+                            </div>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                @if (CorteSelecionado != null)
+                {
+                    <MudPaper Outlined="true" Class="pa-3 mb-4 d-flex justify-space-between align-center flex-wrap gap-2" Style="background-color: rgba(255,255,255,0.03);">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="font-weight-bold">
+                                @CorteSelecionado.Titulo
+                            </MudText>
+                            @if (!string.IsNullOrWhiteSpace(CorteSelecionado.Descricao))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @CorteSelecionado.Descricao
+                                </MudText>
+                            }
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                            <MudChip Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">
+                                @CorteSelecionado.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                            </MudChip>
+                            <MudChip Size="Size.Small" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AccessTime">
+                                @(CorteSelecionado.DuracaoMinutos > 0 ? CorteSelecionado.DuracaoMinutos : 40) min
+                            </MudChip>
+                        </div>
+                    </MudPaper>
+                }
+            }
+
+            <MudDivider Class="my-5" />
+
+            <!-- 2. Data e Horário -->
+            <div class="d-flex align-center gap-2 mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">2. Escolha o Dia e Horário</MudText>
+            </div>
+
+            <MudDatePicker Label="Data do Agendamento (até 15 dias de antecedência)"
                            Date="DataSelecionada"
                            DateChanged="OnDateChangedAsync"
                            IsDateDisabledFunc="IsDateDisabled"
                            Required="true"
-                           Class="mt-4" />
+                           Variant="Variant.Outlined"
+                           Class="mt-2"
+                           HelperText="Atendimento de Segunda a Sexta (08h às 19h) e Sábado (07h às 12h)" />
 
-            <MudText Typo="Typo.subtitle2" Class="mt-6 mb-2">Horários Disponíveis:</MudText>
+            <MudText Typo="Typo.subtitle2" Class="mt-5 mb-2 font-weight-bold">Horários Disponíveis (intervalo de 40 min):</MudText>
 
             @if (IsBusy)
             {
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                <div class="d-flex align-center gap-2 my-4">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                    <MudText Typo="Typo.body2">Verificando horários disponíveis...</MudText>
+                </div>
             }
             else
             {
                 @if (HorariosDisponiveis.Any())
                 {
-                    <!-- Substituímos o MudChipSet por botões à prova de erros! -->
-                    <div class="d-flex flex-wrap gap-3">
+                    <div class="d-flex flex-wrap gap-2 mt-2">
                         @foreach (var hora in HorariosDisponiveis)
                         {
                             bool isSelected = HorarioSelecionado == hora;
-                            
+
                             <MudButton Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
-                                       Color="Color.Primary"
-                                       OnClick="@(() => SelecionarHorario(hora))">
+                                       Color="@(isSelected ? Color.Primary : Color.Default)"
+                                       OnClick="@(() => SelecionarHorario(hora))"
+                                       StartIcon="@(isSelected ? Icons.Material.Filled.Check : Icons.Material.Filled.Schedule)">
                                 @hora.ToString(@"hh\:mm")
                             </MudButton>
                         }
@@ -62,20 +132,27 @@
                 else
                 {
                     <MudAlert Severity="Severity.Warning" Class="mt-2">
-                        Não há horários disponíveis para este dia. Escolha outra data.
+                        Não há horários disponíveis para este dia. Por favor, escolha outra data.
                     </MudAlert>
                 }
             }
 
-            <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
-                       Color="Color.Warning"
-                       StartIcon="@Icons.Material.Filled.Event"
-                       Class="action-btn mt-6"
-                       Disabled="@IsBusy">
-                @(IsBusy ? "Aguarde..." : "Agendar")
-            </MudButton>
+            <div class="d-flex justify-end gap-3 mt-6">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Href="/agendamentos">
+                    Cancelar
+                </MudButton>
 
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                           Size="Size.Large"
+                           Disabled="@(IsBusy || HorarioSelecionado == null || InputModel.CorteId == 0)">
+                    @(IsBusy ? "Processando..." : "Confirmar Agendamento")
+                </MudButton>
+            </div>
         </EditForm>
-    }
-</MudPaper>
+    </MudPaper>
+}

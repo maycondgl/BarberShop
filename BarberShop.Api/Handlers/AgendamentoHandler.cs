@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.Data;
+using BarberShop.Api.Data;
 using BarberShop.Api.Services;
 using BarberShop.Core.Enums;
 using BarberShop.Core.Extensions;
@@ -36,10 +36,63 @@ namespace BarberShop.Api.Handlers
                 if (corte is null || cliente is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Cliente ou corte não encontrado");
 
-                var horarioOcupado = await _context.Agendamentos
-                    .AnyAsync(a => a.Data == request.Data && a.Status != EStatusAgendamento.Cancelado);
+                if (request.Data.Date < DateTime.Today)
+                    return new Response<AgendamentoResponse?>(null, 400, "Não é possível agendar para uma data passada.");
 
-                if (horarioOcupado)
+                if (request.Data.Date > DateTime.Today.AddDays(15))
+                    return new Response<AgendamentoResponse?>(null, 400, "Agendamentos só podem ser realizados com até 15 dias de antecedência.");
+
+                if (request.Data.DayOfWeek == DayOfWeek.Sunday)
+                    return new Response<AgendamentoResponse?>(null, 400, "A barbearia não funciona aos domingos.");
+
+                bool diaFechado = false;
+                try
+                {
+                    diaFechado = await _context.DiasFechados
+                        .AnyAsync(x => x.Data.Date == request.Data.Date);
+                }
+                catch
+                {
+                    diaFechado = false;
+                }
+
+                if (diaFechado)
+                    return new Response<AgendamentoResponse?>(null, 400, "A barbearia estará fechada nesta data.");
+
+                var duracaoMinutos = corte.DuracaoMinutos > 0 ? corte.DuracaoMinutos : 40;
+                var duracao = TimeSpan.FromMinutes(duracaoMinutos);
+                var horaInicio = request.Data.TimeOfDay;
+
+                if (request.Data.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    if (horaInicio < new TimeSpan(7, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(12, 0, 0))
+                        return new Response<AgendamentoResponse?>(null, 400, "Aos sábados, os agendamentos ocorrem entre 07:00 e 12:00.");
+                }
+                else
+                {
+                    if (horaInicio < new TimeSpan(8, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(19, 0, 0))
+                        return new Response<AgendamentoResponse?>(null, 400, "De segunda a sexta, os agendamentos ocorrem entre 08:00 e 19:00.");
+                }
+
+                var dataInicio = request.Data.Date;
+                var dataFim = dataInicio.AddDays(1);
+
+                var agendamentosDoDia = await _context.Agendamentos
+                    .Where(a => a.Data >= dataInicio && a.Data < dataFim && a.Status != EStatusAgendamento.Cancelado)
+                    .Select(a => new { a.Data, a.Tempo })
+                    .ToListAsync();
+
+                var inicio = request.Data;
+                var fim = inicio.Add(duracao);
+
+                bool temConflito = agendamentosDoDia.Any(a =>
+                {
+                    var aDuracao = a.Tempo > TimeSpan.Zero ? a.Tempo : TimeSpan.FromMinutes(40);
+                    var aFim = a.Data.Add(aDuracao);
+                    return inicio < aFim && a.Data < fim;
+                });
+
+                if (temConflito)
                     return new Response<AgendamentoResponse?>(null, 400, "Ops! Este horário acabou de ser reservado.");
 
                 var agendamento = new Agendamento
@@ -71,9 +124,9 @@ namespace BarberShop.Api.Handlers
 
                 return new Response<AgendamentoResponse?>(response, 201, "Agendamento criado");
             }
-            catch
+            catch (Exception ex)
             {               
-               return new Response<AgendamentoResponse?>(null, 500, "Falha ao criar agendamento");
+               return new Response<AgendamentoResponse?>(null, 500, "Falha ao criar agendamento: " + ex.Message);
             }
         }
 
@@ -188,7 +241,7 @@ namespace BarberShop.Api.Handlers
                     .AsNoTracking()
                     .Include(x => x.Corte)
                     .Where(x => x.UserId == request.UserId)
-                    .OrderBy(x => x.UserId);
+                    .OrderByDescending(x => x.Data);
 
                 var agendamentos = await query
                     .Skip((request.PageNumber - 1) * request.PageSize)
@@ -219,6 +272,11 @@ namespace BarberShop.Api.Handlers
         {
             var startDate = request.StartDate ?? DateTime.Now.GetFirstDayOfMonth();
             var endDate = request.EndDate ?? DateTime.Now.GetLastDayOfMonth();
+
+            if (endDate.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Date.AddDays(1).AddTicks(-1);
+            }
 
             startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Unspecified);
             endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Unspecified);

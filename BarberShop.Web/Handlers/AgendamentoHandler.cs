@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Handlers;
+using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests;
 using BarberShop.Core.Requests.Agendamentos;
@@ -15,15 +15,45 @@ namespace BarberShop.Web.Handlers
         public async Task<Response<AgendamentoResponse?>> CreateAsync(CreateAgendamentoRequest request)
         {
             var result = await _client.PostAsJsonAsync("v1/agendamentos", request);
+            if (!result.IsSuccessStatusCode)
+            {
+                try
+                {
+                    var errorResponse = await result.Content.ReadFromJsonAsync<Response<AgendamentoResponse?>>();
+                    if (errorResponse != null)
+                        return errorResponse;
+                }
+                catch
+                {
+                }
+
+                return new Response<AgendamentoResponse?>(null, (int)result.StatusCode, "Não foi possível realizar o agendamento neste horário.");
+            }
+
             return await result.Content.ReadFromJsonAsync<Response<AgendamentoResponse?>>()
-                ?? new Response<AgendamentoResponse?>(null, 400, "Falha ao criar o agendamento");
+                ?? new Response<AgendamentoResponse?>(null, 201, "Agendamento criado");
         }
 
         public async Task<Response<AgendamentoResponse?>> UpdateAsync(UpdateAgendamentoRequest request)
         {
             var result = await _client.PutAsJsonAsync($"v1/agendamentos/{request.Id}", request);
+            if (!result.IsSuccessStatusCode)
+            {
+                try
+                {
+                    var errorResponse = await result.Content.ReadFromJsonAsync<Response<AgendamentoResponse?>>();
+                    if (errorResponse != null)
+                        return errorResponse;
+                }
+                catch
+                {
+                }
+
+                return new Response<AgendamentoResponse?>(null, (int)result.StatusCode, "Falha ao atualizar o agendamento.");
+            }
+
             return await result.Content.ReadFromJsonAsync<Response<AgendamentoResponse?>>()
-                ?? new Response<AgendamentoResponse?>(null, 400, "Falha ao atualizar o agendamento");
+                ?? new Response<AgendamentoResponse?>(null, 200, "Agendamento atualizado com sucesso");
         }
 
         public async Task<Response<AgendamentoResponse?>> DeleteAsync(long id)

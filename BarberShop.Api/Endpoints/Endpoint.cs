@@ -5,6 +5,7 @@ using BarberShop.Api.Endpoints.Admin;
 using BarberShop.Api.Endpoints.Agendamentos;
 using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
+using BarberShop.Api.Endpoints.DiasFechados;
 using BarberShop.Api.Endpoints.Identity;
 using BarberShop.Api.Endpoints.Notifications;
 using BarberShop.Api.Models;
@@ -59,6 +60,12 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<DeleteCorteEndpoint>()
                .MapEndpoint<GetCorteByIdEndpoint>()
                .MapEndpoint<GetAllCorteEndpoint>();
+
+            endpoints.MapGroup("v1/dias-fechados")
+               .WithTags("Dias Fechados")
+               .MapEndpoint<GetAllDiasFechadosEndpoint>()
+               .MapEndpoint<CreateDiaFechadoEndpoint>()
+               .MapEndpoint<DeleteDiaFechadoEndpoint>();
 
             endpoints.MapGroup("v1/identity")
                 .WithTags("Identity")
