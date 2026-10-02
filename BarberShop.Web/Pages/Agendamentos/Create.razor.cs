@@ -11,6 +11,8 @@ namespace BarberShop.Web.Pages.Agendamentos
 {
     public partial class CreateAgendamentoPage : ComponentBase
     {
+        #region Properties
+
         public bool IsLoading { get; set; } = true;
         public bool IsBusy { get; set; } = false;
 
@@ -29,11 +31,19 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public Corte? CorteSelecionado => Cortes.FirstOrDefault(c => c.Id == InputModel.CorteId);
 
+        #endregion
+
+        #region Services
+
         [Inject] public IAgendamentoHandler Handler { get; set; } = null!;
         [Inject] public NavigationManager NavigationManager { get; set; } = null!;
         [Inject] public ISnackbar Snackbar { get; set; } = null!;
         [Inject] public ICorteHandler CorteHandler { get; set; } = null!;
         [Inject] public IDiaFechadoHandler DiaFechadoHandler { get; set; } = null!;
+
+        #endregion
+
+        #region Override
 
         protected override async Task OnInitializedAsync()
         {
@@ -85,6 +95,10 @@ namespace BarberShop.Web.Pages.Agendamentos
                 IsLoading = false;
             }
         }
+
+        #endregion
+
+        #region Methods
 
         private void AjustarDataInicial()
         {
@@ -246,5 +260,7 @@ namespace BarberShop.Web.Pages.Agendamentos
                 IsBusy = false;
             }
         }
+
+        #endregion
     }
 }

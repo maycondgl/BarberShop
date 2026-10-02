@@ -6,11 +6,11 @@
 
 <div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
     <div>
-        <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
-        <MudText Typo="Typo.body2" Color="Color.Secondary">
-            Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
-        </MudText>
-    </div>
+    <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
+    </MudText>
+</div>
     <MudButton Variant="Variant.Filled"
                Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Add"
@@ -116,6 +116,7 @@ else
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Large"
                        Href="/agendamentos/adicionar">
                 Agendar Horário
             </MudButton>
@@ -125,12 +126,13 @@ else
     <!-- 2. Histórico dos Meus Agendamentos -->
     <div class="mt-8">
         <MudButton Variant="Variant.Outlined"
-                   Color="Color.Default"
+                   Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.History"
                    EndIcon="@(MostrarHistorico ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
-                   Size="Size.Medium"
+                   Size="Size.Large"
                    OnClick="AlternarHistorico"
-                   Class="mb-3">
+                   Class="mb-3 font-weight-bold"
+                   Style="font-size: 1.05rem; padding: 10px 22px;">
             Histórico dos Meus Agendamentos (@HistoricoAgendamentos.Count)
         </MudButton>
 
@@ -143,15 +145,14 @@ else
             }
             else
             {
-                <MudPaper Elevation="2" Class="pa-4">
+                <MudPaper Elevation="3" Class="pa-6 border-solid border-1 mud-border-lines-default" Style="border-radius: 14px;">
                     <MudDataGrid Items="@HistoricoAgendamentos"
                                  Filterable="true"
                                  QuickFilter="Filter"
                                  Hideable="true"
-                                 Dense="true"
                                  Hover="true">
                         <ToolBarContent>
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Todos os Agendamentos Anteriores</MudText>
+                            <MudText Typo="Typo.h6" Class="font-weight-bold">Todos os Agendamentos Anteriores</MudText>
                             <MudSpacer />
                             <MudTextField @bind-Value="SearchTerm"
                                           Placeholder="Filtrar histórico..."
@@ -159,30 +160,31 @@ else
                                           AdornmentIcon="@Icons.Material.Filled.Search"
                                           Immediate="true"
                                           IconSize="Size.Medium"
-                                          Class="mt-0" />
+                                          Class="mt-0"
+                                          Style="font-size: 1rem;" />
                         </ToolBarContent>
                         <Columns>
-                            <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" />
-                            <TemplateColumn Title="Data e Horário">
+                            <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold" />
+                            <TemplateColumn Title="Data e Horário" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                                 <CellTemplate>
-                                    @context.Item.Data.ToString("dd/MM/yyyy HH:mm")
+                                    <MudText Typo="Typo.body1" Class="font-weight-medium">@context.Item.Data.ToString("dd/MM/yyyy HH:mm")</MudText>
                                 </CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Valor">
+                            <TemplateColumn Title="Valor" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                                 <CellTemplate>
-                                    @context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                    <MudText Typo="Typo.body1" Color="Color.Success" Class="font-weight-bold">@context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
                                 </CellTemplate>
                             </TemplateColumn>
-                            <PropertyColumn Property="x => x.Status" Title="Status" />
-                            <TemplateColumn Title="Ações">
+                            <PropertyColumn Property="x => x.Status" Title="Status" CellClass="py-3" HeaderClass="py-3 font-weight-bold" />
+                            <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                                 <CellTemplate>
-                                    <div class="d-flex align-center gap-2">
+                                    <div class="d-flex align-center gap-3">
                                         @if (context.Item.Status == EStatusAgendamento.Concluido)
                                         {
                                             @if (AgendamentosAvaliados.Contains(context.Item.Id))
                                             {
                                                 <MudChip Color="Color.Success"
-                                                         Size="Size.Small"
+                                                         Size="Size.Medium"
                                                          Icon="@Icons.Material.Filled.Star">
                                                     Avaliado
                                                 </MudChip>
@@ -191,7 +193,7 @@ else
                                             {
                                                 <MudButton Variant="Variant.Filled"
                                                            Color="Color.Warning"
-                                                           Size="Size.Small"
+                                                           Size="Size.Medium"
                                                            Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
                                                            StartIcon="@Icons.Material.Filled.RateReview">
                                                     Avaliar
@@ -203,14 +205,14 @@ else
                                         {
                                             <MudIconButton Icon="@Icons.Material.Filled.Pix"
                                                            Color="Color.Success"
-                                                           Size="Size.Small"
+                                                           Size="Size.Medium"
                                                            Title="Pagar com Pix"
                                                            OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
                                         }
 
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                        Color="Color.Error"
-                                                       Size="Size.Small"
+                                                       Size="Size.Medium"
                                                        Title="Excluir"
                                                        OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
                                     </div>

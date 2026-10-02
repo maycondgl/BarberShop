@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Handlers;
+using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Account;
 using BarberShop.Web.Security;
 using Microsoft.AspNetCore.Components;
@@ -8,7 +8,15 @@ namespace BarberShop.Web.Pages.Identity
 {
     public partial class LoginPage : ComponentBase
     {
-        #region Dependencies
+        #region Properties
+
+        public bool IsBusy { get; set; } = false;
+        public LoginRequest InputModel { get; set; } = new();
+        protected bool _showPassword = false;
+
+        #endregion
+
+        #region Services
 
         [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
@@ -24,14 +32,7 @@ namespace BarberShop.Web.Pages.Identity
 
         #endregion
 
-        #region Properties
-
-        public bool IsBusy { get; set; } = false;
-        public LoginRequest InputModel { get; set; } = new();
-
-        #endregion
-
-        #region Overrides
+        #region Override
 
         protected override async Task OnInitializedAsync()
         {
@@ -44,11 +45,18 @@ namespace BarberShop.Web.Pages.Identity
         #endregion
 
         #region Methods
+
         public async Task OnValidSubmitAsync()
         {
             try
             {
                 IsBusy = true;
+
+                if (!string.IsNullOrWhiteSpace(InputModel.Email))
+                {
+                    InputModel.Email = InputModel.Email.Trim().ToLowerInvariant();
+                }
+
                 var result = await Handler.LoginAsync(InputModel);
 
                 if (result.IsSuccess)
@@ -58,7 +66,9 @@ namespace BarberShop.Web.Pages.Identity
                     NavigationManager.NavigateTo("/");
                 }
                 else
+                {
                     Snackbar.Add(result.Message, Severity.Error);
+                }
             }
             catch (Exception ex)
             {

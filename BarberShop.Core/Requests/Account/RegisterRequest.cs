@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using NPOI.SS.Formula.Functions;
+using System.ComponentModel.DataAnnotations;
 
 namespace BarberShop.Core.Requests.Account
 {
@@ -8,19 +9,33 @@ namespace BarberShop.Core.Requests.Account
         public string Nome { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Informe o telefone")]
-        [StringLength(11, MinimumLength = 11, ErrorMessage = "O telefone deve conter 11 dígitos")]
-        [RegularExpression(@"^\d{11}$", ErrorMessage = "O telefone deve conter somente números")]
+        [StringLength(11, MinimumLength = 10, ErrorMessage = "O telefone deve conter entre 10 e 11 dígitos")]
+        [RegularExpression(@"^\d{10,11}$", ErrorMessage = "O telefone deve conter somente números")]
         public string Telefone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "E-mail")]
-        [EmailAddress(ErrorMessage = "E-mail inválido")]
-        public string Email { get; set; } = string.Empty;
+        private string _email = string.Empty;
 
-        [Required(ErrorMessage = "Senha inválida")]
-        [MinLength(6, ErrorMessage = "Senha deve ter no mínimo 6 caracteres")]
+        [Required(ErrorMessage = "Informe o e-mail")]
+        [EmailAddress(ErrorMessage = "E-mail inválido")]
+        [RegularExpression(
+            @"(?i)^[^@\s]+@(gmail\.com|hotmail\.com|outlook\.com(\.br)?|yahoo\.com(\.br)?|icloud\.com|live\.com|uol\.com\.br|bol\.com\.br|barbershop\.com)$",
+            ErrorMessage = "Informe um e-mail com provedor válido (ex: @gmail.com, @hotmail.com ou @outlook.com)")]
+        public string Email
+        {
+            get => _email;
+            set => _email = value?.Trim().ToLowerInvariant() ?? string.Empty;
+        }
+
+        [Required(ErrorMessage = "Informe a senha")]
+        [RegularExpression(
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$",
+            ErrorMessage = "A senha deve ter no mínimo 6 caracteres, 1 letra maiúscula, 1 minúscula, 1 número e 1 caractere especial")]
         public string Senha { get; set; } = string.Empty;
 
-        public string? ChaveAdmin { get; set; }
+        [Required(ErrorMessage = "Confirme sua senha")]
+        [Compare(nameof(Senha), ErrorMessage = "As senhas não coincidem")]
+        public string ConfirmarSenha { get; set; } = string.Empty;
 
+        public string? ChaveAdmin { get; set; }
     }
 }

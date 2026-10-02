@@ -41,11 +41,8 @@
                               Label="Número"
                               For="@(() => InputModel.Telefone)"
                               @bind-Value="InputModel.Telefone"
+                              Mask="@PhoneMask"
                               InputType="InputType.Telephone"
-                              InputMode="InputMode.numeric"
-                              Pattern="[0-9]*"
-                              MaxLength="11"
-                              Counter="11"
                               Required="true"
                               RequiredError="Informe o telefone"
                               Variant="Variant.Filled"
@@ -58,7 +55,7 @@
                               @bind-Value="InputModel.Email"
                               InputType="InputType.Email"
                               Required="true"
-                              RequiredError="E-mail inválido"
+                              RequiredError="Informe o e-mail"
                               Variant="Variant.Filled"
                               Margin="Margin.Dense"
                               Class="auth-field" />
@@ -67,9 +64,28 @@
                               Label="Senha"
                               For="@(() => InputModel.Senha)"
                               @bind-Value="InputModel.Senha"
-                              InputType="InputType.Password"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                              OnAdornmentClick="@(() => _showPassword = !_showPassword)"
+                              AdornmentAriaLabel="Alternar visualização da senha"
                               Required="true"
-                              RequiredError="Senha inválida"
+                              RequiredError="Informe a senha"
+                              Variant="Variant.Filled"
+                              Margin="Margin.Dense"
+                              Class="auth-field" />
+
+                <MudTextField T="string"
+                              Label="Confirmar senha"
+                              For="@(() => InputModel.ConfirmarSenha)"
+                              @bind-Value="InputModel.ConfirmarSenha"
+                              InputType="@(_showConfirmPassword ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showConfirmPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                              OnAdornmentClick="@(() => _showConfirmPassword = !_showConfirmPassword)"
+                              AdornmentAriaLabel="Alternar visualização da confirmação de senha"
+                              Required="true"
+                              RequiredError="Confirme sua senha"
                               Variant="Variant.Filled"
                               Margin="Margin.Dense"
                               Class="auth-field" />
@@ -99,4 +115,42 @@
             </EditForm>
         </div>
     </section>
+
+    @if (ShowWelcomeModal)
+    {
+        <div class="welcome-modal-backdrop" @onclick="CloseWelcomeModal">
+            <div class="welcome-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
+                <button type="button" class="welcome-modal__close" @onclick="CloseWelcomeModal" aria-label="Fechar mensagem de boas-vindas">
+                    <MudIcon Icon="@Icons.Material.Filled.Close" />
+                </button>
+
+                <div class="confetti-container" aria-hidden="true">
+                    @for (int i = 0; i < 32; i++)
+                    {
+                        <span class="confetti-piece confetti-piece--@i"></span>
+                    }
+                </div>
+
+                <div class="welcome-modal__badge">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Class="welcome-modal__badge-icon" />
+                    <span>Cadastro concluído!</span>
+                </div>
+
+                <h2 id="welcome-modal-title" class="welcome-modal__title">
+                    Seja bem-vindo à sua barbearia de melhor gerenciamento de agendamentos
+                </h2>
+
+                <p class="welcome-modal__desc">
+                    Sua conta foi criada com sucesso! Agora você tem facilidade para agendar horários, escolher serviços de qualidade e acompanhar seu visual.
+                </p>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Class="welcome-modal__button"
+                           OnClick="CloseWelcomeModal">
+                    Ir para o login
+                </MudButton>
+            </div>
+        </div>
+    }
 </main>
