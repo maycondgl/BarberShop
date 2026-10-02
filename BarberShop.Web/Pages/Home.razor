@@ -1,59 +1,15 @@
 @page "/"
-@layout HeadlessLayout
 
-<PageTitle>Essencia da Beleza | Home</PageTitle>
+<PageTitle>Essência da Beleza | Home</PageTitle>
 
-<main class="home-page @(_isDarkMode ? "home-page--dark" : "home-page--light")">
-    <nav class="home-nav" aria-label="Navegacao principal">
-        <a class="home-brand" href="/">
-            <img src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
-        </a>
-
-        <div class="home-nav__links">
-            <NavLink href="/" Match="NavLinkMatch.All" class="home-nav__link">Inicio</NavLink>
-            <NavLink href="/agendamentos" class="home-nav__link">Agendamentos</NavLink>
-            <NavLink href="/cortes" class="home-nav__link">Cortes</NavLink>
-            <NavLink href="/avaliacoes" class="home-nav__link">Avaliacoes</NavLink>
-            <NavLink href="/perfil" class="home-nav__link">Perfil</NavLink>
-
-            <AuthorizeView Roles="Admin">
-                <Authorized Context="adminContext">
-                    <details class="app-admin-menu">
-                        <summary class="home-nav__link app-admin-menu__trigger">
-                            Admin
-                        </summary>
-
-                        <div class="app-admin-menu__panel" role="menu" aria-label="Menu admin">
-                            <span class="app-admin-menu__label">Admin</span>
-                            <NavLink href="/admin/agendamentos" class="app-admin-menu__item" role="menuitem">
-                                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small" />
-                                <span>Gerenciar Agendamentos</span>
-                            </NavLink>
-                            <NavLink href="/admin/cortes" class="app-admin-menu__item" role="menuitem">
-                                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
-                                <span>Servicos</span>
-                            </NavLink>
-                            <NavLink href="/admin/usuarios" class="app-admin-menu__item" role="menuitem">
-                                <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Size="Size.Small" />
-                                <span>Usuarios</span>
-                            </NavLink>
-                        </div>
-                    </details>
-                </Authorized>
-            </AuthorizeView>
-
-            <NavLink href="/sair" class="home-nav__link">Sair</NavLink>
-        </div>
-
-    </nav>
-
+<div class="home-page">
     <section class="home-hero" aria-labelledby="home-title">
         <div class="home-hero__content">
             <span class="home-pill">Bem-vindo</span>
             <h1 id="home-title">Estilo que acompanha o seu ritmo</h1>
             <p>
-                Agende seu horario, escolha o corte ideal e viva uma experiencia de barbearia
-                pensada para quem valoriza cuidado, presenca e acabamento.
+                Agende seu horário, escolha o corte ideal e viva uma experiência de barbearia
+                pensada para quem valoriza cuidado, presença e acabamento.
             </p>
 
             <div class="home-actions">
@@ -75,12 +31,13 @@
 
     <section class="home-about" aria-labelledby="about-title">
         <div class="home-section-copy">
-            <span class="home-section-pill">Historia rapida</span>
+            <span class="home-section-pill">História rápida</span>
             <h2 id="about-title">Sobre a Essência da Beleza</h2>
             <p>
                 A barbearia de Eromar Leite Silva está há mais de 20 anos atendendo clientes na cidade de Jucás-CE com dedicação, experiência e qualidade. Trabalhamos com cortes masculinos, femininos e infantis, oferecendo diversos estilos para valorizar o visual de cada cliente.
-
-                Com tradição e confiança, buscamos proporcionar um atendimento simples, acolhedor e cuidadoso, sempre respeitando o gosto de cada pessoa e entregando um resultado feito com atenção aos detalhes. ou personalizado, nossa barbearia está pronta para receber você.
+            </p>
+            <p>
+                Com tradição e confiança, buscamos proporcionar um atendimento simples, acolhedor e cuidadoso, sempre respeitando o gosto de cada pessoa e entregando um resultado feito com atenção aos detalhes.
             </p>
             <p>
                 Da agenda organizada ao corte final, nossa experiência foi pensada para ser simples,
@@ -124,14 +81,14 @@
     </section>
 
     <section class="home-info" aria-labelledby="info-title">
-        <span class="home-section-pill">Informacoes importantes</span>
+        <span class="home-section-pill">Informações importantes</span>
         <h2 id="info-title">Contato e funcionamento</h2>
 
         <div class="home-info-grid">
             <article class="home-info-card home-info-card--contact">
                 <span>Contato</span>
                 <h3>Fale com a gente</h3>
-                <p>Tem alguma duvida ou quer confirmar um horário? Nossa equipe esta pronta para ajudar.</p>
+                <p>Tem alguma dúvida ou quer confirmar um horário? Nossa equipe está pronta para ajudar.</p>
                 <a href="tel:+5588998056764">(88) 99805-6764</a>
                 <a href="tel:+5588997289611">(88) 99728-9611</a>
                 <a href="mailto:cleucysilva08@gmail.com">cleucysilva08@gmail.com</a>
@@ -143,11 +100,11 @@
                 <dl>
                     <div>
                         <dt>Segunda a Sexta</dt>
-                        <dd>07h as 19h</dd>
+                        <dd>07h às 19h</dd>
                     </div>
                     <div>
                         <dt>Sábado</dt>
-                        <dd>07h as 12h</dd>
+                        <dd>07h às 12h</dd>
                     </div>
                     <div>
                         <dt>Domingo</dt>
@@ -164,8 +121,4 @@
             </article>
         </div>
     </section>
-</main>
-
-@code {
-    private bool _isDarkMode = true;
-}
+</div>

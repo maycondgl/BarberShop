@@ -19,11 +19,22 @@ public class AccountFlowTests
     }
 
     [Theory]
-    [InlineData("8599999999")]
+    [InlineData("8899702863")]
+    [InlineData("88999702863")]
+    public void RegisterRequest_AcceptsTenAndElevenDigits(string phone)
+    {
+        var request = ValidRegisterRequest();
+        request.Telefone = phone;
+
+        Assert.Empty(Validate(request));
+    }
+
+    [Theory]
+    [InlineData("859999999")]
     [InlineData("859999999999")]
     [InlineData("8599999999A")]
     [InlineData("(85)999999999")]
-    public void RegisterRequest_RejectsPhoneThatIsNotElevenDigits(string phone)
+    public void RegisterRequest_RejectsInvalidPhone(string phone)
     {
         var request = ValidRegisterRequest();
         request.Telefone = phone;
@@ -31,6 +42,85 @@ public class AccountFlowTests
         var errors = Validate(request);
 
         Assert.Contains(errors, error => error.MemberNames.Contains(nameof(request.Telefone)));
+    }
+
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("abcdef")]
+    [InlineData("Abcdef")]
+    [InlineData("Abcde1")]
+    [InlineData("ABCDEF!")]
+    [InlineData("abcdef!")]
+    [InlineData("Abcdef!")]
+    [InlineData("Senha!")]
+    public void RegisterRequest_RejectsPasswordMissingComplexityRequirements(string password)
+    {
+        var request = ValidRegisterRequest();
+        request.Senha = password;
+        request.ConfirmarSenha = password;
+
+        var errors = Validate(request);
+
+        Assert.Contains(errors, error => error.MemberNames.Contains(nameof(request.Senha)));
+    }
+
+    [Theory]
+    [InlineData("cliente")]
+    [InlineData("cliente@")]
+    [InlineData("cliente@barbershop")]
+    [InlineData("@barbershop.com")]
+    [InlineData("cliente barbershop.com")]
+    [InlineData("cliente@gma.com")]
+    [InlineData("cliente@hotm.com")]
+    [InlineData("cliente@outloo.com")]
+    [InlineData("cliente@fg.com")]
+    [InlineData("cliente@ab.com")]
+    [InlineData("cliente@.com")]
+    [InlineData("cliente@qualquercoisa")]
+    [InlineData("cliente@site.xyz")]
+    [InlineData("cliente@empresa.com.br")]
+    public void RegisterRequest_RejectsInvalidEmailFormat(string email)
+    {
+        var request = ValidRegisterRequest();
+        request.Email = email;
+
+        var errors = Validate(request);
+
+        Assert.Contains(errors, error => error.MemberNames.Contains(nameof(request.Email)));
+    }
+
+    [Theory]
+    [InlineData("cliente@gmail.com")]
+    [InlineData("cliente@outlook.com")]
+    [InlineData("cliente@outlook.com.br")]
+    [InlineData("cliente@hotmail.com")]
+    [InlineData("cliente@yahoo.com")]
+    [InlineData("cliente@yahoo.com.br")]
+    [InlineData("cliente@icloud.com")]
+    [InlineData("cliente@live.com")]
+    [InlineData("cliente@uol.com.br")]
+    [InlineData("cliente@bol.com.br")]
+    [InlineData("cliente@barbershop.com")]
+    [InlineData("CLIENTE@GMAIL.COM")]
+    public void RegisterRequest_AcceptsValidEmailDomains(string email)
+    {
+        var request = ValidRegisterRequest();
+        request.Email = email;
+
+        var errors = Validate(request);
+
+        Assert.DoesNotContain(errors, error => error.MemberNames.Contains(nameof(request.Email)));
+    }
+
+    [Fact]
+    public void RegisterRequest_RejectsMismatchedConfirmarSenha()
+    {
+        var request = ValidRegisterRequest();
+        request.ConfirmarSenha = "OutraSenhaDiferente123!";
+
+        var errors = Validate(request);
+
+        Assert.Contains(errors, error => error.MemberNames.Contains(nameof(request.ConfirmarSenha)));
     }
 
     [Fact]
@@ -106,7 +196,8 @@ public class AccountFlowTests
             Nome = "Cliente BarberShop",
             Telefone = "85999999999",
             Email = "cliente@barbershop.com",
-            Senha = "Senha123!"
+            Senha = "Senha123!",
+            ConfirmarSenha = "Senha123!"
         };
 
     private static List<ValidationResult> Validate(object request)

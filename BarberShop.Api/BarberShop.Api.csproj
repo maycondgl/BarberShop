@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\Scripts\" />
     <Folder Include="wwwroot\Imgs\cortes\" />
   </ItemGroup>
 

@@ -1,72 +1,70 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider
-    @ref="_mudThemeProvider"
-    @bind-IsDarkMode="_isDarkMode"
-    Theme="Configuration.Theme" />
+<MudThemeProvider Theme="Configuration.Theme" IsDarkMode="true" />
 <MudSnackbarProvider />
 <MudDialogProvider />
 
 <AuthorizeView>
     <Authorized Context="userContext">
-        <div class="app-shell @(_isDarkMode ? "app-shell--dark" : "app-shell--light")">
-            <header class="app-topbar">
-                <a class="app-brand" href="/">
-                    <img src="Imgs/logo23-transparent.png" alt="Essencia da Beleza" />
+        <MudLayout Class="app-layout app-shell--dark">
+            <!-- Barra Superior (AppBar) -->
+            <MudAppBar Elevation="2" Dense="false" Class="app-mud-appbar">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                               Color="Color.Inherit"
+                               Edge="Edge.Start"
+                               OnClick="@ToggleDrawer"
+                               Size="Size.Large"
+                               Class="mr-2"
+                               Title="Alternar menu de navegação" />
+
+                <a href="/" class="d-flex align-center gap-3 text-decoration-none" style="color: inherit;">
+                    <img src="Imgs/logo23-transparent.png" alt="Essência da Beleza" style="height: 42px; width: auto;" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold d-none d-sm-flex" Style="letter-spacing: .5px;">
+                        Essência da Beleza
+                    </MudText>
                 </a>
 
-                <nav class="app-nav" aria-label="Navegacao principal">
-                    <NavLink href="/" Match="NavLinkMatch.All" class="app-nav__link">Inicio</NavLink>
-                    <NavLink href="/agendamentos" class="app-nav__link">Agendamentos</NavLink>
-                    <NavLink href="/cortes" class="app-nav__link">Cortes</NavLink>
-                    <NavLink href="/avaliacoes" class="app-nav__link">Avaliacoes</NavLink>
-                    <NavLink href="/perfil" class="app-nav__link">Perfil</NavLink>
+                <MudSpacer />
 
-                    <AuthorizeView Roles="Admin">
-                        <Authorized Context="adminContext">
-                            <AdminNotificationListener />
-                            <details class="app-admin-menu">
-                                <summary class="app-nav__link app-admin-menu__trigger">
-                                    Admin
-                                </summary>
+                <AuthorizeView Roles="Admin">
+                    <Authorized Context="adminContext">
+                        <AdminNotificationListener />
+                    </Authorized>
+                </AuthorizeView>
 
-                                <div class="app-admin-menu__panel" role="menu" aria-label="Menu admin">
-                                    <span class="app-admin-menu__label">Admin</span>
-                                    <NavLink href="/admin/dashboard" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Small" />
-                                        <span>Dashboard</span>
-                                    </NavLink>
-                                    <NavLink href="/admin/agendamentos" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small" />
-                                        <span>Gerenciar Agendamentos</span>
-                                    </NavLink>
-                                    <NavLink href="/admin/cortes" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
-                                        <span>Servicos</span>
-                                    </NavLink>
-                                    <NavLink href="/admin/usuarios" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Size="Size.Small" />
-                                        <span>Usuarios</span>
-                                    </NavLink>
-                                    <NavLink href="/admin/dias-fechados" class="app-admin-menu__item" role="menuitem">
-                                        <MudIcon Icon="@Icons.Material.Filled.EventBusy" Size="Size.Small" />
-                                        <span>Dias Fechados</span>
-                                    </NavLink>
-                                </div>
-                            </details>
-                        </Authorized>
-                    </AuthorizeView>
+            </MudAppBar>
 
-                    <NavLink href="/sair" class="app-nav__link">Sair</NavLink>
-                </nav>
-            </header>
+            <!-- Menu Lateral (Drawer) -->
+            <MudDrawer @bind-Open="_drawerOpen"
+                       ClipMode="DrawerClipMode.Always"
+                       Elevation="3"
+                       Width="300px"
+                       Variant="DrawerVariant.Responsive"
+                       Class="app-mud-drawer">
+                <MudDrawerHeader Class="d-flex align-center gap-3 px-4 py-3">
+                    <MudAvatar Color="Color.Warning" Variant="Variant.Filled" Size="Size.Large">
+                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Medium" />
+                    </MudAvatar>
+                    <div class="d-flex flex-column">
+                        <MudText Typo="Typo.h6" Class="font-weight-bold" Style="line-height: 1.2;">
+                            Essência da Beleza
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Barbearia & Estilo
+                        </MudText>
+                    </div>
+                </MudDrawerHeader>
 
-            <main class="app-main">
-                <section class="app-content">
+                <NavMenu />
+            </MudDrawer>
+
+            <!-- Conteúdo Principal -->
+            <MudMainContent Class="app-mud-main">
+                <main class="app-content px-3 px-sm-6">
                     @Body
-                </section>
-            </main>
-        </div>
+                </main>
+            </MudMainContent>
+        </MudLayout>
     </Authorized>
     <NotAuthorized>
         <LoginRedirect />
@@ -74,24 +72,10 @@
 </AuthorizeView>
 
 @code {
-    private bool _isDarkMode = true;
-    private MudThemeProvider _mudThemeProvider = null!;
+    private bool _drawerOpen = true;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void ToggleDrawer()
     {
-        if (firstRender)
-        {
-            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
-            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
-            StateHasChanged();
-        }
+        _drawerOpen = !_drawerOpen;
     }
-
-    private Task OnSystemPreferenceChanged(bool newValue)
-    {
-        _isDarkMode = newValue;
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
 }

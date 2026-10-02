@@ -1,52 +1,51 @@
-﻿@using MudBlazor
+@using MudBlazor
 
-<MudStack Spacing="2" Class="pa-4">
+<MudNavMenu Class="px-3 py-2 app-nav-menu">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" IconSize="Size.Medium">
+        Início
+    </MudNavLink>
 
-    <div class="d-flex justify-center pa-4">
-        <img src="Imgs/logo23-transparent.png" width="180" />
-    </div>
+    <MudNavLink Href="/agendamentos" Icon="@Icons.Material.Filled.CalendarMonth" IconSize="Size.Medium">
+        Agendamentos
+    </MudNavLink>
 
-    <MudText Typo="Typo.subtitle2" Class="pa-2">
-        Menu
-    </MudText>
+    <MudNavLink Href="/cortes" Icon="@Icons.Material.Filled.ContentCut" IconSize="Size.Medium">
+        Cortes
+    </MudNavLink>
 
-    <MudNavMenu>
-        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
-            Início
-        </MudNavLink>
+    <MudNavLink Href="/avaliacoes" Icon="@Icons.Material.Filled.StarRate" IconSize="Size.Medium">
+        Avaliações
+    </MudNavLink>
 
-        <MudNavLink Href="/agendamentos" Icon="@Icons.Material.Filled.Event">
-            Agendamentos
-        </MudNavLink>
+    <MudNavLink Href="/perfil" Icon="@Icons.Material.Filled.AccountCircle" IconSize="Size.Medium">
+        Perfil
+    </MudNavLink>
 
-        <MudNavLink Href="/cortes" Icon="@Icons.Material.Filled.ContentCut">
-            Cortes
-        </MudNavLink>
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <MudNavGroup Title="Administração" Icon="@Icons.Material.Filled.AdminPanelSettings" IconSize="Size.Medium" Expanded="true">
+                <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
+                    Dashboard
+                </MudNavLink>
+                <MudNavLink Href="/admin/agendamentos" Icon="@Icons.Material.Filled.PendingActions" IconSize="Size.Medium">
+                    Gerenciar Agendamentos
+                </MudNavLink>
+                <MudNavLink Href="/admin/cortes" Icon="@Icons.Material.Filled.DesignServices" IconSize="Size.Medium">
+                    Serviços
+                </MudNavLink>
+                <MudNavLink Href="/admin/usuarios" Icon="@Icons.Material.Filled.ManageAccounts" IconSize="Size.Medium">
+                    Usuários
+                </MudNavLink>
+                <MudNavLink Href="/admin/dias-fechados" Icon="@Icons.Material.Filled.EventBusy" IconSize="Size.Medium">
+                    Dias Fechados
+                </MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
 
-        <MudNavLink Href="/avaliacoes" Icon="@Icons.Material.Filled.StarRate">
-            Avaliações
-        </MudNavLink>
+    <MudDivider Class="my-3" />
 
-        <MudNavLink Href="/perfil" Icon="@Icons.Material.Filled.Person">
-            Meu Perfil
-        </MudNavLink>
-
-        <AuthorizeView Roles="Admin">
-            <MudText Typo="Typo.subtitle2" Class="pa-2 mt-2">Admin</MudText>
-            <MudNavLink Href="/admin/agendamentos" Icon="@Icons.Material.Filled.AdminPanelSettings">
-                Gerenciar Agendamentos
-            </MudNavLink>
-            <MudNavLink Href="/admin/cortes" Icon="@Icons.Material.Filled.AdminPanelSettings">
-                Serviços
-            </MudNavLink>
-            <MudNavLink Href="/admin/usuarios" Icon="@Icons.Material.Filled.ManageAccounts">
-                Usuários
-            </MudNavLink>
-        </AuthorizeView>
-
-        <MudNavLink Href="/sair" Icon="@Icons.Material.Filled.Logout">
-            Sair
-        </MudNavLink>
-    </MudNavMenu>
-
-</MudStack>
+    <MudNavLink Href="/sair" Icon="@Icons.Material.Filled.Logout" IconSize="Size.Medium" IconColor="Color.Error">
+        Sair
+    </MudNavLink>
+</MudNavMenu>

@@ -1,4 +1,4 @@
-﻿using MudBlazor;
+using MudBlazor;
 
 namespace BarberShop.Web
 {
@@ -10,35 +10,64 @@ namespace BarberShop.Web
 
         public static MudTheme Theme = new()
         {
-            Palette = new PaletteLight()
+            Palette = new PaletteDark()
             {
-                Primary = "#FFC107",
+                Primary = "#FFC107", // Dourado luminoso clássico
+                Secondary = "#FFB300",
+                Tertiary = "#FFD54F",
 
-                AppbarBackground = "#FFC107",
-                AppbarText = "#000000",
+                Background = "#121214", // Grafite escuro sofisticado
+                Surface = "#1C1C22",    // Cartões com superfície distinta do fundo
 
-                DrawerBackground = "#FFFFFF",
-                DrawerText = "#111111",
-                DrawerIcon = "#111111",
+                AppbarBackground = "#16161A",
+                AppbarText = "#FFFFFF",
 
-                Background = "#F5F5F5",
-                Surface = "#FFFFFF",
+                DrawerBackground = "#16161A",
+                DrawerText = "#E2E2E8",
+                DrawerIcon = "#B0B0BA",
 
-                TextPrimary = "#111111",
-                TextSecondary = "#444444",
+                TextPrimary = "#FFFFFF",
+                TextSecondary = "#A0A0B0",
+
+                ActionDefault = "#B0B0BA",
+                ActionDisabled = "#616161",
+                ActionDisabledBackground = "#2A2A2A",
+
+                LinesDefault = "rgba(255, 193, 7, 0.22)",
+                TableLines = "rgba(255, 255, 255, 0.08)",
+                Divider = "rgba(255, 255, 255, 0.12)",
 
                 PrimaryContrastText = "#000000"
-
             },
 
             PaletteDark = new PaletteDark()
             {
-                Primary = "#FFC107",
+                Primary = "#FFC107", // Dourado luminoso clássico
                 Secondary = "#FFB300",
-                Background = "#121212",
-                Surface = "#1E1E1E",
-                AppbarBackground = "#1E1E1E",
-                DrawerBackground = "#1A1A1A"
+                Tertiary = "#FFD54F",
+
+                Background = "#121214", // Grafite escuro sofisticado (não preto morto)
+                Surface = "#1C1C22",    // Cartões com superfície distinta do fundo
+
+                AppbarBackground = "#16161A",
+                AppbarText = "#FFFFFF",
+
+                DrawerBackground = "#16161A",
+                DrawerText = "#E2E2E8",
+                DrawerIcon = "#B0B0BA",
+
+                TextPrimary = "#FFFFFF",
+                TextSecondary = "#A0A0B0",
+
+                ActionDefault = "#B0B0BA",
+                ActionDisabled = "#616161",
+                ActionDisabledBackground = "#2A2A2A",
+
+                LinesDefault = "rgba(255, 193, 7, 0.22)",
+                TableLines = "rgba(255, 255, 255, 0.08)",
+                Divider = "rgba(255, 255, 255, 0.12)",
+
+                PrimaryContrastText = "#000000"
             }
         };
     }
