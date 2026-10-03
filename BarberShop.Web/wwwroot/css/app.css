@@ -217,39 +217,56 @@ body {
 }
 
 .app-mud-drawer {
-    width: 300px !important;
+    width: 285px !important;
+    max-width: 85vw !important;
     border-right: 1px solid var(--app-line) !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    overscroll-behavior: contain;
+}
+
+.app-mud-drawer::-webkit-scrollbar,
+.app-mud-drawer .mud-drawer-content::-webkit-scrollbar,
+.mud-drawer-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .app-mud-drawer .mud-drawer-header {
-    min-height: 80px;
+    min-height: 64px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--app-line);
 }
 
 .app-mud-drawer .mud-nav-link {
-    font-size: 1.05rem !important;
+    font-size: 0.95rem !important;
     font-weight: 600 !important;
-    padding: 13px 20px !important;
-    margin: 4px 10px !important;
-    border-radius: 10px !important;
-    line-height: 1.4 !important;
+    padding: 9px 14px !important;
+    margin: 2px 8px !important;
+    border-radius: 8px !important;
+    line-height: 1.3 !important;
 }
 
 .app-mud-drawer .mud-nav-link .mud-nav-link-icon {
-    font-size: 1.55rem !important;
-    min-width: 28px !important;
-    margin-right: 14px !important;
+    font-size: 1.25rem !important;
+    min-width: 24px !important;
+    margin-right: 10px !important;
 }
 
 .app-mud-drawer .mud-nav-group .mud-nav-link {
-    font-size: 1.08rem !important;
+    font-size: 0.95rem !important;
     font-weight: 700 !important;
+    padding: 9px 14px !important;
+    margin: 2px 8px !important;
+    border-radius: 8px !important;
 }
 
 .app-mud-drawer .mud-nav-group .mud-navmenu .mud-nav-link {
-    font-size: 0.98rem !important;
+    font-size: 0.88rem !important;
     font-weight: 500 !important;
-    padding-left: 36px !important;
+    padding: 7px 12px 7px 30px !important;
+    margin: 1px 8px !important;
 }
 
 .app-layout.app-shell--dark .app-mud-drawer .mud-nav-link.active:not(.mud-nav-link-disabled) {
@@ -267,7 +284,7 @@ body {
 }
 
 .app-mud-main {
-    padding-top: calc(var(--mud-appbar-height, 68px) + 38px) !important;
+    padding-top: calc(var(--mud-appbar-height, 64px) + 16px) !important;
     padding-bottom: 60px;
 }
 
@@ -3014,8 +3031,9 @@ body {
 
     .app-content {
         width: 100%;
-        max-width: 390px;
+        max-width: 100%;
         margin-inline: auto;
+        box-sizing: border-box;
     }
 
     .app-content > .mud-typography-h3:first-child {
@@ -3524,3 +3542,283 @@ body {
         font-size: .78rem;
     }
 }
+
+/* ==========================================================================
+   MOBILE-FIRST ENHANCEMENTS (AGENDAMENTOS, CORTES & TYPOGRAPHY)
+   ========================================================================== */
+
+/* Prevent accidental horizontal overflow */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+@media (max-width: 768px) {
+    .mud-typography-h3 {
+        font-size: clamp(1.4rem, 5vw, 1.85rem) !important;
+        line-height: 1.2 !important;
+    }
+    .mud-typography-h4 {
+        font-size: clamp(1.25rem, 4.5vw, 1.6rem) !important;
+        line-height: 1.25 !important;
+    }
+    .mud-typography-h5 {
+        font-size: clamp(1.1rem, 4vw, 1.35rem) !important;
+        line-height: 1.3 !important;
+    }
+    .mud-typography-h6 {
+        font-size: clamp(0.98rem, 3.5vw, 1.15rem) !important;
+        line-height: 1.35 !important;
+    }
+    .mud-paper.pa-6 {
+        padding: 16px !important;
+    }
+}
+
+/* Agendamentos Header */
+.booking-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.booking-new-btn {
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    min-height: 46px !important;
+}
+@media (max-width: 600px) {
+    .booking-new-btn {
+        width: 100% !important;
+    }
+}
+
+/* Próximo Agendamento Card */
+.booking-hero-card {
+    border-radius: 16px !important;
+    background: linear-gradient(145deg, #1c1c22, #141417) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+.booking-hero-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.booking-hero-card__icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 193, 7, 0.12);
+    flex-shrink: 0;
+}
+
+/* Booking Details Grid */
+.booking-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 6px 0;
+}
+.booking-detail-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+.booking-detail-pill--service {
+    grid-column: 1 / -1;
+}
+.booking-detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #A0A0B0;
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+}
+.booking-detail-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    word-break: break-word;
+}
+.booking-detail-value--highlight {
+    color: #4CAF50 !important;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+@media (min-width: 600px) {
+    .booking-details-grid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+    .booking-detail-pill--service {
+        grid-column: auto;
+    }
+}
+
+/* Booking Action Buttons */
+.booking-actions-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    padding-top: 4px;
+}
+.booking-action-btn {
+    min-height: 46px !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+}
+.booking-action-btn--pix {
+    grid-column: 1 / -1;
+    font-weight: 800 !important;
+}
+@media (min-width: 600px) {
+    .booking-actions-group {
+        display: flex;
+        justify-content: flex-end;
+        width: auto;
+    }
+    .booking-action-btn--pix {
+        grid-column: auto;
+    }
+}
+
+/* History Mobile List */
+.history-mobile-list {
+    display: grid;
+    gap: 12px;
+}
+.history-mobile-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.history-mobile-card__date {
+    font-size: 0.85rem;
+    color: #A0A0B0;
+    display: flex;
+    align-items: center;
+}
+.history-mobile-card__title {
+    font-size: 1rem;
+    color: #FFFFFF;
+    font-weight: 700;
+}
+.history-mobile-card__price {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #4CAF50;
+}
+
+/* Admin Cortes Mobile List */
+.admin-new-corte-btn {
+    border-radius: 10px !important;
+    min-height: 46px !important;
+}
+@media (max-width: 600px) {
+    .admin-new-corte-btn {
+        width: 100% !important;
+    }
+}
+.admin-corte-mobile-list {
+    display: grid;
+    gap: 14px;
+}
+.admin-corte-card {
+    background: linear-gradient(145deg, #1c1c22, #141417);
+    border: 1px solid rgba(255, 193, 7, 0.16);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.admin-corte-card__header {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+.admin-corte-card__thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.admin-corte-card__thumb-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: rgba(255, 193, 7, 0.1);
+    color: #FFC107;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+.admin-corte-card__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.admin-corte-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.25;
+    word-break: break-word;
+}
+.admin-corte-card__badge-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #A0A0B0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+.admin-corte-card__price {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #FFC107;
+    text-align: right;
+    white-space: nowrap;
+}
+.admin-corte-card__desc {
+    font-size: 0.85rem;
+    color: #A0A0B0;
+    line-height: 1.4;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+.admin-corte-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+

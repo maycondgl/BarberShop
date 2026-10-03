@@ -1,38 +1,195 @@
-﻿@page "/admin/cortes"
+@page "/admin/cortes"
+@using System.Globalization
 @using BarberShop.Web.Pages.Admin.Cortes
 @inherits ListPageCorte
 @attribute [Authorize(Roles = "Admin")]
 
-<MudText Typo="Typo.h3">Gerenciar Cortes</MudText>
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Warning" Size="Size.Medium" />
+            Gerenciar Cortes
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Cadastre novos serviços, edite valores e gerencie os cortes do catálogo.
+        </MudText>
+    </div>
 
-<MudButton Href="/admin/cortes/criar"
-           Variant="Variant.Filled"
-           Color="Color.Warning"
-           StartIcon="@Icons.Material.Filled.Add"
-           Class="my-4">
-    Novo Corte
-</MudButton>
+    <MudButton Href="/admin/cortes/criar"
+               Variant="Variant.Filled"
+               Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Add"
+               Size="Size.Large"
+               Class="admin-new-corte-btn font-weight-bold">
+        Novo Corte
+    </MudButton>
+</div>
 
-<MudDataGrid Items="@ListaCortes" Hover="true">
-    <Columns>
-        <PropertyColumn Property="x => x.Titulo" Title="Corte" />
-        <PropertyColumn Property="x => x.Preco" Title="Preço" />
-        <PropertyColumn Property="x => x.DuracaoMinutos" Title="Duração" />
+<!-- Barra de Busca Rápida -->
+<div class="mb-4">
+    <MudTextField @bind-Value="SearchTerm"
+                  Placeholder="Buscar corte por nome ou descrição..."
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Immediate="true"
+                  IconSize="Size.Medium"
+                  Variant="Variant.Outlined"
+                  Class="w-100" />
+</div>
 
-        <TemplateColumn Title="Ações">
-            <CellTemplate Context="corte">
-                <MudButton Href="@($"/admin/corte/editar/{corte.Item.Id}")"
-                           Size="Size.Small"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary">
-                    Editar
-                </MudButton>
+@if (IsBusy && !ListaCortes.Any())
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!ListaCortes.Where(Filter).Any())
+{
+    <MudPaper Class="pa-8 text-center my-4" Elevation="1" Style="border-radius: 12px;">
+        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+        <MudText Typo="Typo.h6">Nenhum corte encontrado</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Cadastre seu primeiro corte clicando no botão acima." : "Nenhum corte corresponde ao termo pesquisado.")
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <!-- Visualização Desktop (Tabela Polida) -->
+    <div class="d-none d-md-block">
+        <MudPaper Elevation="2" Style="border-radius: 14px; overflow: hidden;">
+            <MudDataGrid Items="@ListaCortes.Where(Filter)" Hover="true" Elevation="0">
+                <Columns>
+                    <TemplateColumn Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="corte">
+                            <div class="d-flex align-center gap-3">
+                                @if (!string.IsNullOrWhiteSpace(corte.Item.ImagemUrl))
+                                {
+                                    <img src="@corte.Item.ImagemUrl" alt="@corte.Item.Titulo" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-center justify-center" style="width: 44px; height: 44px; border-radius: 8px; background: rgba(255,193,7,0.12); color: #FFC107;">
+                                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" />
+                                    </div>
+                                }
+                                <div>
+                                    <MudText Typo="Typo.body1" Class="font-weight-bold">@corte.Item.Titulo</MudText>
+                                    @if (!string.IsNullOrWhiteSpace(corte.Item.Descricao))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="max-width: 320px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            @corte.Item.Descricao
+                                        </MudText>
+                                    }
+                                </div>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
 
-                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                               Color="Color.Error"
-                               Size="Size.Small"
-                               OnClick="@(() => OnDeleteClickedAsync(corte.Item.Id))" />
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+                    <TemplateColumn Title="Preço" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="corte">
+                            <MudText Typo="Typo.body1" Color="Color.Warning" Class="font-weight-bold">
+                                @corte.Item.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Duração" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="corte">
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body1">@corte.Item.DuracaoMinutos min</MudText>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="corte">
+                            <div class="d-flex align-center gap-2">
+                                <MudButton Href="@($"/admin/corte/editar/{corte.Item.Id}")"
+                                           Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Edit">
+                                    Editar
+                                </MudButton>
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               Title="Excluir corte"
+                                               OnClick="@(() => OnDeleteClickedAsync(corte.Item.Id))" />
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </div>
+
+    <!-- Visualização Mobile (Cards Modernos) -->
+    <div class="d-block d-md-none">
+        <div class="admin-corte-mobile-list">
+            @foreach (var corte in ListaCortes.Where(Filter))
+            {
+                <div class="admin-corte-card">
+                    <div class="admin-corte-card__header">
+                        @if (!string.IsNullOrWhiteSpace(corte.ImagemUrl))
+                        {
+                            <img src="@corte.ImagemUrl" alt="@corte.Titulo" class="admin-corte-card__thumb" />
+                        }
+                        else
+                        {
+                            <div class="admin-corte-card__thumb-placeholder">
+                                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Medium" />
+                            </div>
+                        }
+
+                        <div class="admin-corte-card__info">
+                            <div class="admin-corte-card__title">@corte.Titulo</div>
+                            <div class="d-flex align-center gap-2 mt-1">
+                                <span class="admin-corte-card__badge-time">
+                                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" />
+                                    @corte.DuracaoMinutos min
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="admin-corte-card__price">
+                            @corte.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(corte.Descricao))
+                    {
+                        <div class="admin-corte-card__desc">
+                            @corte.Descricao
+                        </div>
+                    }
+
+                    <div class="admin-corte-card__actions">
+                        <MudButton Href="@($"/admin/corte/editar/{corte.Id}")"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Class="flex-1 font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px;">
+                            Editar
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="@(() => OnDeleteClickedAsync(corte.Id))"
+                                   Class="font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px; min-width: 100px;">
+                            Excluir
+                        </MudButton>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
