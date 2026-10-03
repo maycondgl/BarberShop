@@ -1,11 +1,129 @@
 @implements IAsyncDisposable
 @inject BarberShop.Web.Services.AdminNotificationClient NotificationClient
+@inject BarberShop.Web.Services.PushNotificationClient PushClient
+@inject ISnackbar Snackbar
+
+@if (ShowNotificationPrompt)
+{
+    <div class="notif-modal-backdrop" @onclick="DismissNotificationPromptAsync">
+        <div class="notif-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="notif-modal-title">
+            <button type="button" class="notif-modal__close" @onclick="DismissNotificationPromptAsync" aria-label="Fechar">
+                <MudIcon Icon="@Icons.Material.Filled.Close" />
+            </button>
+
+            <div class="notif-modal__icon-shell">
+                <div class="notif-modal__pulse-ring"></div>
+                <MudIcon Icon="@Icons.Material.Filled.NotificationsActive" Class="notif-modal__bell-icon" />
+            </div>
+
+            <div class="notif-modal__badge">
+                <span>Tempo Real</span>
+            </div>
+
+            <h2 id="notif-modal-title" class="notif-modal__title">
+                Ativar notificações de agendamentos?
+            </h2>
+
+            <p class="notif-modal__desc">
+                Receba alertas instantâneos no seu celular ou computador sempre que um cliente marcar ou atualizar um corte na barbearia.
+            </p>
+
+            <div class="notif-modal__actions">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Class="notif-modal__button-primary"
+                           Disabled="@IsSubscribingNotification"
+                           OnClick="AcceptNotificationPromptAsync">
+                    @if (IsSubscribingNotification)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Ativando...</span>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.NotificationsActive" Class="mr-2" />
+                        <span>Ativar Notificações</span>
+                    }
+                </MudButton>
+
+                <MudButton Variant="Variant.Text"
+                           Class="notif-modal__button-secondary"
+                           Disabled="@IsSubscribingNotification"
+                           OnClick="DismissNotificationPromptAsync">
+                    Agora não
+                </MudButton>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
+    private bool ShowNotificationPrompt = false;
+    private bool IsSubscribingNotification = false;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             await NotificationClient.StartAsync();
+            await CheckNotificationPromptAsync();
+        }
+    }
+
+    private async Task CheckNotificationPromptAsync()
+    {
+        try
+        {
+            var status = await PushClient.GetPermissionStateAsync();
+            if (!status.Supported || status.Permission == "denied")
+                return;
+
+            var isDismissed = await PushClient.IsPromptDismissedAsync();
+            if (isDismissed)
+                return;
+
+            var isSubscribed = await PushClient.IsSubscribedAsync();
+            if (status.Permission == "default" || !isSubscribed)
+            {
+                ShowNotificationPrompt = true;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task AcceptNotificationPromptAsync()
+    {
+        try
+        {
+            IsSubscribingNotification = true;
+            StateHasChanged();
+
+            var result = await PushClient.SubscribeAdminAsync();
+            ShowNotificationPrompt = false;
+
+            Snackbar.Add(
+                result.Message,
+                result.Success ? Severity.Success : Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao ativar notificações: {ex.Message}", Severity.Error);
+            ShowNotificationPrompt = false;
+        }
+        finally
+        {
+            IsSubscribingNotification = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DismissNotificationPromptAsync()
+    {
+        ShowNotificationPrompt = false;
+        await PushClient.SetPromptDismissedAsync();
     }
 
     public async ValueTask DisposeAsync()

@@ -4,17 +4,18 @@
 @inherits ListAgendamentoPage
 @inject NavigationManager NavigationManager
 
-<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
+<div class="booking-page-header mb-4">
     <div>
-    <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
-    <MudText Typo="Typo.body2" Color="Color.Secondary">
-        Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
-    </MudText>
-</div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
+        </MudText>
+    </div>
     <MudButton Variant="Variant.Filled"
                Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Add"
                Size="Size.Large"
+               Class="booking-new-btn"
                Href="/agendamentos/adicionar">
         Novo Agendamento
     </MudButton>
@@ -35,15 +36,19 @@ else
 
     @if (ProximoAgendamento != null)
     {
-        <MudCard Elevation="4" Class="pa-4 mb-6 border-solid border-2 mud-border-primary" Style="border-radius: 12px;">
-            <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
-                <div class="d-flex align-center gap-2">
-                    <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Primary" Size="Size.Large" />
+        <MudCard Elevation="4" Class="pa-4 mb-6 border-solid border-2 mud-border-primary booking-hero-card">
+            <!-- Cabeçalho do Card -->
+            <div class="booking-hero-card__header">
+                <div class="d-flex align-center gap-3">
+                    <div class="booking-hero-card__icon-box">
+                        <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Primary" Size="Size.Large" />
+                    </div>
                     <div>
-                        <MudText Typo="Typo.h6" Class="font-weight-bold">
+                        <MudText Typo="Typo.h6" Class="font-weight-bold" Style="line-height: 1.25;">
                             @ProximoAgendamento.Data.ToString("dddd, dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))
                         </MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="font-weight-bold">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="font-weight-bold d-flex align-center gap-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" />
                             Horário: @ProximoAgendamento.Data.ToString("HH:mm")
                         </MudText>
                     </div>
@@ -60,31 +65,47 @@ else
 
             <MudDivider Class="my-3" />
 
-            <div class="d-flex justify-space-between align-center flex-wrap gap-4 py-2">
-                <div>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Corte Escolhido:</MudText>
-                    <MudText Typo="Typo.h6">@(ProximoAgendamento.Corte?.Titulo ?? "Corte")</MudText>
+            <!-- Grid de Detalhes Responsivo -->
+            <div class="booking-details-grid">
+                <div class="booking-detail-pill booking-detail-pill--service">
+                    <span class="booking-detail-label">
+                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Class="mr-1" />
+                        Corte Escolhido
+                    </span>
+                    <span class="booking-detail-value">
+                        @(ProximoAgendamento.Corte?.Titulo ?? "Corte")
+                    </span>
                 </div>
 
-                <div>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Duração:</MudText>
-                    <MudText Typo="Typo.body1">@ProximoAgendamento.Tempo.TotalMinutes min</MudText>
+                <div class="booking-detail-pill">
+                    <span class="booking-detail-label">
+                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Class="mr-1" />
+                        Duração
+                    </span>
+                    <span class="booking-detail-value">
+                        @ProximoAgendamento.Tempo.TotalMinutes min
+                    </span>
                 </div>
 
-                <div>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Valor:</MudText>
-                    <MudText Typo="Typo.h6" Color="Color.Success" Class="font-weight-bold">
+                <div class="booking-detail-pill booking-detail-pill--price">
+                    <span class="booking-detail-label">
+                        <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Small" Class="mr-1" />
+                        Valor Total
+                    </span>
+                    <span class="booking-detail-value booking-detail-value--highlight">
                         @ProximoAgendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-                    </MudText>
+                    </span>
                 </div>
             </div>
 
             <MudDivider Class="my-3" />
 
-            <div class="d-flex justify-end align-center flex-wrap gap-2 pt-2">
+            <!-- Ações Ergonômicas para Mobile e Desktop -->
+            <div class="booking-actions-group">
                 <MudButton Variant="Variant.Outlined"
                            Color="Color.Error"
                            StartIcon="@Icons.Material.Filled.Cancel"
+                           Class="booking-action-btn"
                            OnClick="@(() => OnDeleteClickedAsync(ProximoAgendamento.Id))">
                     Cancelar
                 </MudButton>
@@ -92,6 +113,7 @@ else
                 <MudButton Variant="Variant.Outlined"
                            Color="Color.Info"
                            StartIcon="@Icons.Material.Filled.EditCalendar"
+                           Class="booking-action-btn"
                            Href="@($"/agendamentos/editar/{ProximoAgendamento.Id}")">
                     Alterar
                 </MudButton>
@@ -99,6 +121,7 @@ else
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Success"
                            StartIcon="@Icons.Material.Filled.Pix"
+                           Class="booking-action-btn booking-action-btn--pix"
                            OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{ProximoAgendamento.Id}"))">
                     Pagar com Pix
                 </MudButton>
@@ -132,7 +155,7 @@ else
                    Size="Size.Large"
                    OnClick="AlternarHistorico"
                    Class="mb-3 font-weight-bold"
-                   Style="font-size: 1.05rem; padding: 10px 22px;">
+                   Style="font-size: 1.05rem; padding: 10px 22px; width: 100%; max-width: 420px;">
             Histórico dos Meus Agendamentos (@HistoricoAgendamentos.Count)
         </MudButton>
 
@@ -145,47 +168,115 @@ else
             }
             else
             {
-                <MudPaper Elevation="3" Class="pa-6 border-solid border-1 mud-border-lines-default" Style="border-radius: 14px;">
-                    <MudDataGrid Items="@HistoricoAgendamentos"
-                                 Filterable="true"
-                                 QuickFilter="Filter"
-                                 Hideable="true"
-                                 Hover="true">
-                        <ToolBarContent>
-                            <MudText Typo="Typo.h6" Class="font-weight-bold">Todos os Agendamentos Anteriores</MudText>
-                            <MudSpacer />
-                            <MudTextField @bind-Value="SearchTerm"
-                                          Placeholder="Filtrar histórico..."
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Search"
-                                          Immediate="true"
-                                          IconSize="Size.Medium"
-                                          Class="mt-0"
-                                          Style="font-size: 1rem;" />
-                        </ToolBarContent>
-                        <Columns>
-                            <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold" />
-                            <TemplateColumn Title="Data e Horário" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
-                                <CellTemplate>
-                                    <MudText Typo="Typo.body1" Class="font-weight-medium">@context.Item.Data.ToString("dd/MM/yyyy HH:mm")</MudText>
-                                </CellTemplate>
-                            </TemplateColumn>
-                            <TemplateColumn Title="Valor" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
-                                <CellTemplate>
-                                    <MudText Typo="Typo.body1" Color="Color.Success" Class="font-weight-bold">@context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
-                                </CellTemplate>
-                            </TemplateColumn>
-                            <PropertyColumn Property="x => x.Status" Title="Status" CellClass="py-3" HeaderClass="py-3 font-weight-bold" />
-                            <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
-                                <CellTemplate>
-                                    <div class="d-flex align-center gap-3">
-                                        @if (context.Item.Status == EStatusAgendamento.Concluido)
-                                        {
-                                            @if (AgendamentosAvaliados.Contains(context.Item.Id))
+                <MudPaper Elevation="3" Class="pa-4 pa-sm-6 border-solid border-1 mud-border-lines-default" Style="border-radius: 14px;">
+                    <!-- Barra de Filtro Rápido -->
+                    <div class="d-flex align-center gap-2 mb-4">
+                        <MudTextField @bind-Value="SearchTerm"
+                                      Placeholder="Filtrar histórico por data, corte ou status..."
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      Immediate="true"
+                                      IconSize="Size.Medium"
+                                      Variant="Variant.Outlined"
+                                      Class="w-100" />
+                    </div>
+
+                    <!-- Tabela para Desktop -->
+                    <div class="d-none d-md-block">
+                        <MudDataGrid Items="@HistoricoAgendamentos.Where(Filter)"
+                                     Filterable="true"
+                                     Hideable="true"
+                                     Hover="true">
+                            <Columns>
+                                <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold" />
+                                <TemplateColumn Title="Data e Horário" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                                    <CellTemplate>
+                                        <MudText Typo="Typo.body1" Class="font-weight-medium">@context.Item.Data.ToString("dd/MM/yyyy HH:mm")</MudText>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <TemplateColumn Title="Valor" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                                    <CellTemplate>
+                                        <MudText Typo="Typo.body1" Color="Color.Success" Class="font-weight-bold">@context.Item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</MudText>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <PropertyColumn Property="x => x.Status" Title="Status" CellClass="py-3" HeaderClass="py-3 font-weight-bold" />
+                                <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                                    <CellTemplate>
+                                        <div class="d-flex align-center gap-3">
+                                            @if (context.Item.Status == EStatusAgendamento.Concluido)
                                             {
-                                                <MudChip Color="Color.Success"
-                                                         Size="Size.Medium"
-                                                         Icon="@Icons.Material.Filled.Star">
+                                                @if (AgendamentosAvaliados.Contains(context.Item.Id))
+                                                {
+                                                    <MudChip Color="Color.Success"
+                                                             Size="Size.Medium"
+                                                             Icon="@Icons.Material.Filled.Star">
+                                                        Avaliado
+                                                    </MudChip>
+                                                }
+                                                else
+                                                {
+                                                    <MudButton Variant="Variant.Filled"
+                                                               Color="Color.Warning"
+                                                               Size="Size.Medium"
+                                                               Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
+                                                               StartIcon="@Icons.Material.Filled.RateReview">
+                                                        Avaliar
+                                                    </MudButton>
+                                                }
+                                            }
+
+                                            @if (context.Item.Status != EStatusAgendamento.Concluido)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Pix"
+                                                               Color="Color.Success"
+                                                               Size="Size.Medium"
+                                                               Title="Pagar com Pix"
+                                                               OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
+                                            }
+
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Color="Color.Error"
+                                                           Size="Size.Medium"
+                                                           Title="Excluir"
+                                                           OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    </div>
+
+                    <!-- Lista de Cards para Mobile -->
+                    <div class="d-block d-md-none">
+                        <div class="history-mobile-list">
+                            @foreach (var item in HistoricoAgendamentos.Where(Filter))
+                            {
+                                <div class="history-mobile-card">
+                                    <div class="d-flex justify-space-between align-center">
+                                        <span class="history-mobile-card__date">
+                                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Class="mr-1" />
+                                            @item.Data.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                        <MudChip Size="Size.Small"
+                                                 Variant="Variant.Filled"
+                                                 Color="@(item.Status == EStatusAgendamento.Concluido ? Color.Success : item.Status == EStatusAgendamento.Cancelado ? Color.Error : Color.Warning)">
+                                            @item.Status
+                                        </MudChip>
+                                    </div>
+
+                                    <div class="d-flex justify-space-between align-center">
+                                        <strong class="history-mobile-card__title">@(item.Corte?.Titulo ?? "Corte")</strong>
+                                        <span class="history-mobile-card__price">
+                                            @item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex justify-end align-center gap-2 pt-2 border-t border-solid mud-border-lines-default">
+                                        @if (item.Status == EStatusAgendamento.Concluido)
+                                        {
+                                            @if (AgendamentosAvaliados.Contains(item.Id))
+                                            {
+                                                <MudChip Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Star">
                                                     Avaliado
                                                 </MudChip>
                                             }
@@ -193,33 +284,35 @@ else
                                             {
                                                 <MudButton Variant="Variant.Filled"
                                                            Color="Color.Warning"
-                                                           Size="Size.Medium"
-                                                           Href="@($"/avaliacoes/adicionar/{context.Item.Id}")"
+                                                           Size="Size.Small"
+                                                           Href="@($"/avaliacoes/adicionar/{item.Id}")"
                                                            StartIcon="@Icons.Material.Filled.RateReview">
                                                     Avaliar
                                                 </MudButton>
                                             }
                                         }
 
-                                        @if (context.Item.Status != EStatusAgendamento.Concluido)
+                                        @if (item.Status != EStatusAgendamento.Concluido)
                                         {
-                                            <MudIconButton Icon="@Icons.Material.Filled.Pix"
-                                                           Color="Color.Success"
-                                                           Size="Size.Medium"
-                                                           Title="Pagar com Pix"
-                                                           OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{context.Item.Id}"))" />
+                                            <MudButton Variant="Variant.Outlined"
+                                                       Color="Color.Success"
+                                                       Size="Size.Small"
+                                                       StartIcon="@Icons.Material.Filled.Pix"
+                                                       OnClick="@(() => NavigationManager.NavigateTo($"/pagamento/{item.Id}"))">
+                                                Pix
+                                            </MudButton>
                                         }
 
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                        Color="Color.Error"
-                                                       Size="Size.Medium"
+                                                       Size="Size.Small"
                                                        Title="Excluir"
-                                                       OnClick="@(() => OnDeleteClickedAsync(context.Item.Id))" />
+                                                       OnClick="@(() => OnDeleteClickedAsync(item.Id))" />
                                     </div>
-                                </CellTemplate>
-                            </TemplateColumn>
-                        </Columns>
-                    </MudDataGrid>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </MudPaper>
             }
         </MudCollapse>

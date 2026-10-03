@@ -3014,8 +3014,9 @@ body {
 
     .app-content {
         width: 100%;
-        max-width: 390px;
+        max-width: 100%;
         margin-inline: auto;
+        box-sizing: border-box;
     }
 
     .app-content > .mud-typography-h3:first-child {
@@ -3524,3 +3525,502 @@ body {
         font-size: .78rem;
     }
 }
+
+/* ==========================================================================
+   ETAPA 5: Modal de Permissão de Notificações em Tempo Real (Responsivo)
+   ========================================================================== */
+.notif-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-color: rgba(5, 5, 8, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: notif-fade-in 0.28s ease-out both;
+}
+
+.notif-modal {
+    position: relative;
+    width: min(100%, 460px);
+    padding: clamp(28px, 5vw, 40px) clamp(20px, 4vw, 32px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    background: radial-gradient(circle at 50% 0%, rgba(255, 193, 7, 0.16) 0%, transparent 60%), #141419;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 193, 7, 0.18);
+    text-align: center;
+    color: #ffffff;
+    overflow: hidden;
+    animation: notif-pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.notif-modal__close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.notif-modal__close:hover {
+    background: rgba(255, 193, 7, 0.25);
+    color: #FFC107;
+    border-color: #FFC107;
+    transform: rotate(90deg);
+}
+
+.notif-modal__icon-shell {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.25) 0%, rgba(255, 193, 7, 0.08) 70%);
+    border: 2px solid rgba(255, 193, 7, 0.4);
+}
+
+.notif-modal__pulse-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 193, 7, 0.4);
+    animation: notif-ring-pulse 2s infinite ease-out;
+}
+
+.notif-modal__bell-icon {
+    font-size: 2.2rem !important;
+    color: #FFC107;
+    animation: notif-bell-swing 3s infinite ease-in-out;
+    transform-origin: top center;
+}
+
+.notif-modal__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    background: rgba(255, 193, 7, 0.12);
+    color: #FFC107;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.notif-modal__title {
+    margin: 0 0 10px;
+    color: #FFFFFF;
+    font-size: clamp(1.2rem, 3.5vw, 1.45rem);
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.notif-modal__desc {
+    max-width: 380px;
+    margin: 0 auto 24px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.notif-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.notif-modal__button-primary {
+    width: 100%;
+    max-width: 280px;
+    height: 46px;
+    border-radius: 999px !important;
+    font-size: 0.84rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase !important;
+    color: #121214 !important;
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notif-modal__button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255, 193, 7, 0.45);
+}
+
+.notif-modal__button-secondary {
+    width: 100%;
+    max-width: 280px;
+    height: 40px;
+    color: rgba(255, 255, 255, 0.65) !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    border-radius: 999px !important;
+    transition: color 0.2s ease;
+}
+
+.notif-modal__button-secondary:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+@keyframes notif-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes notif-pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes notif-ring-pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.18);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.18);
+        opacity: 0;
+    }
+}
+
+@keyframes notif-bell-swing {
+    0%, 70%, 100% {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(15deg);
+    }
+    80% {
+        transform: rotate(-12deg);
+    }
+    85% {
+        transform: rotate(9deg);
+    }
+    90% {
+        transform: rotate(-6deg);
+    }
+    95% {
+        transform: rotate(2deg);
+    }
+}
+
+@media (min-width: 480px) {
+    .notif-modal__actions {
+        flex-direction: row-reverse;
+        gap: 12px;
+    }
+
+    .notif-modal__button-primary,
+    .notif-modal__button-secondary {
+        width: auto;
+        min-width: 160px;
+    }
+}
+
+/* ==========================================================================
+   MOBILE-FIRST ENHANCEMENTS (AGENDAMENTOS, CORTES & TYPOGRAPHY)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .mud-typography-h3 {
+        font-size: clamp(1.4rem, 5vw, 1.85rem) !important;
+        line-height: 1.2 !important;
+    }
+    .mud-typography-h4 {
+        font-size: clamp(1.25rem, 4.5vw, 1.6rem) !important;
+        line-height: 1.25 !important;
+    }
+    .mud-typography-h5 {
+        font-size: clamp(1.1rem, 4vw, 1.35rem) !important;
+        line-height: 1.3 !important;
+    }
+    .mud-typography-h6 {
+        font-size: clamp(0.98rem, 3.5vw, 1.15rem) !important;
+        line-height: 1.35 !important;
+    }
+    .mud-paper.pa-6 {
+        padding: 16px !important;
+    }
+}
+
+/* Agendamentos Header */
+.booking-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.booking-new-btn {
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    min-height: 46px !important;
+}
+@media (max-width: 600px) {
+    .booking-new-btn {
+        width: 100% !important;
+    }
+}
+
+/* Próximo Agendamento Card */
+.booking-hero-card {
+    border-radius: 16px !important;
+    background: linear-gradient(145deg, #1c1c22, #141417) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+.booking-hero-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.booking-hero-card__icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 193, 7, 0.12);
+    flex-shrink: 0;
+}
+
+/* Booking Details Grid */
+.booking-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 6px 0;
+}
+.booking-detail-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+.booking-detail-pill--service {
+    grid-column: 1 / -1;
+}
+.booking-detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #A0A0B0;
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+}
+.booking-detail-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    word-break: break-word;
+}
+.booking-detail-value--highlight {
+    color: #4CAF50 !important;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+@media (min-width: 600px) {
+    .booking-details-grid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+    .booking-detail-pill--service {
+        grid-column: auto;
+    }
+}
+
+/* Booking Action Buttons */
+.booking-actions-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    padding-top: 4px;
+}
+.booking-action-btn {
+    min-height: 46px !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+}
+.booking-action-btn--pix {
+    grid-column: 1 / -1;
+    font-weight: 800 !important;
+}
+@media (min-width: 600px) {
+    .booking-actions-group {
+        display: flex;
+        justify-content: flex-end;
+        width: auto;
+    }
+    .booking-action-btn--pix {
+        grid-column: auto;
+    }
+}
+
+/* History Mobile List */
+.history-mobile-list {
+    display: grid;
+    gap: 12px;
+}
+.history-mobile-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.history-mobile-card__date {
+    font-size: 0.85rem;
+    color: #A0A0B0;
+    display: flex;
+    align-items: center;
+}
+.history-mobile-card__title {
+    font-size: 1rem;
+    color: #FFFFFF;
+    font-weight: 700;
+}
+.history-mobile-card__price {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #4CAF50;
+}
+
+/* Admin Cortes Mobile List */
+.admin-new-corte-btn {
+    border-radius: 10px !important;
+    min-height: 46px !important;
+}
+@media (max-width: 600px) {
+    .admin-new-corte-btn {
+        width: 100% !important;
+    }
+}
+.admin-corte-mobile-list {
+    display: grid;
+    gap: 14px;
+}
+.admin-corte-card {
+    background: linear-gradient(145deg, #1c1c22, #141417);
+    border: 1px solid rgba(255, 193, 7, 0.16);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.admin-corte-card__header {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+.admin-corte-card__thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.admin-corte-card__thumb-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: rgba(255, 193, 7, 0.1);
+    color: #FFC107;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+.admin-corte-card__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.admin-corte-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.25;
+    word-break: break-word;
+}
+.admin-corte-card__badge-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #A0A0B0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+.admin-corte-card__price {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #FFC107;
+    text-align: right;
+    white-space: nowrap;
+}
+.admin-corte-card__desc {
+    font-size: 0.85rem;
+    color: #A0A0B0;
+    line-height: 1.4;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+.admin-corte-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
