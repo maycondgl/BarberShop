@@ -63,19 +63,9 @@
                 <MudPaper Class="admin-panel admin-table-panel">
                     <div class="admin-table-toolbar">
                         <div class="admin-table-title">
-                            <MudIcon Icon="@Icons.Material.Filled.EventNote" Color="Color.Warning" Size="Size.Small" />
+                            <MudIcon Icon="@Icons.Material.Filled.EventNote" Color="Color.Warning" Size="Size.Small " />
                             <MudText Typo="Typo.h6">Agendamentos Pendentes</MudText>
                         </div>
-
-                        <div class="admin-table-controls">
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Info"
-                                       Size="Size.Small"
-                                       StartIcon="@Icons.Material.Filled.NotificationsActive"
-                                       Class="admin-filter-btn"
-                                       OnClick="OnAtivarNotificacoesClickedAsync">
-                                Notificações
-                            </MudButton>
 
                             <MudTextField @bind-Value="SearchTerm"
                                           Placeholder="Buscar agendamento..."
