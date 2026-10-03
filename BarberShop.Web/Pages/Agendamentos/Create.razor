@@ -35,6 +35,7 @@ else
             {
                 <MudSelect T="long"
                            Label="Selecione o Corte"
+                           HelperText="Escolha um dos cortes da lista com todos os serviços disponíveis"
                            @bind-Value="InputModel.CorteId"
                            Variant="Variant.Outlined"
                            AnchorOrigin="Origin.BottomCenter"
@@ -48,6 +49,9 @@ else
                                 <span class="d-flex align-center gap-2">
                                     <span style="color: var(--mud-palette-success); font-weight: bold;">
                                         @corte.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                    </span>
+                                    <span style="opacity: 0.7; font-size: 0.85rem;">
+                                        (@(corte.DuracaoMinutos > 0 ? corte.DuracaoMinutos : 40) min)
                                     </span>
                                 </span>
                             </div>
@@ -89,15 +93,16 @@ else
                 <MudText Typo="Typo.h6">2. Escolha o Dia e Horário</MudText>
             </div>
 
-            <MudDatePicker Label="Data do Agendamento"
+            <MudDatePicker Label="Data do Agendamento (até 15 dias de antecedência)"
                            Date="DataSelecionada"
                            DateChanged="OnDateChangedAsync"
                            IsDateDisabledFunc="IsDateDisabled"
                            Required="true"
                            Variant="Variant.Outlined"
-                           Class="mt-2"/>
+                           Class="mt-2"
+                           HelperText="Atendimento de Segunda a Sexta (08h às 19h) e Sábado (07h às 12h)" />
 
-            <MudText Typo="Typo.subtitle2" Class="mt-5 mb-2 font-weight-bold">Horários Disponíveis:</MudText>
+            <MudText Typo="Typo.subtitle2" Class="mt-5 mb-2 font-weight-bold">Horários Disponíveis (intervalo de 40 min):</MudText>
 
             @if (IsBusy)
             {
