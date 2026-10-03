@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Enums;
+using BarberShop.Core.Enums;
 using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
@@ -87,8 +87,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         #region Private Methods
 
         private const int DefaultPageSize = 500;
-
-      
 
         #endregion
 
@@ -280,7 +278,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         public async Task OnAtivarNotificacoesClickedAsync()
         {
             var result = await PushNotificationClient.SubscribeAdminAsync();
-
             Snackbar.Add(
                 result.Message,
                 result.Success ? Severity.Success : Severity.Warning);
@@ -290,7 +287,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             => status.Equals("Concluido", StringComparison.OrdinalIgnoreCase) ||
                status.Equals("Concluído", StringComparison.OrdinalIgnoreCase);
 
-    }
-
         #endregion
+    }
 }

@@ -33,9 +33,9 @@ public class PushNotificationClient(
                 "barberShopNotifications.subscribe",
                 options.PublicKey);
         }
-        catch (JSException)
+        catch (JSException ex)
         {
-            return new(false, "O navegador bloqueou a inscrição push. Verifique permissões, HTTPS e service worker.");
+            return new(false, $"O navegador não pôde completar a inscrição push: {ex.Message}");
         }
 
         if (browserResult is null)
@@ -49,4 +49,57 @@ public class PushNotificationClient(
             ? new(true, browserResult.Message)
             : new(false, "A API não conseguiu salvar a inscrição deste dispositivo.");
     }
+
+    public async Task<NotificationPermissionStatus> GetPermissionStateAsync()
+    {
+        try
+        {
+            return await jsRuntime.InvokeAsync<NotificationPermissionStatus>(
+                "barberShopNotifications.getPermissionState");
+        }
+        catch
+        {
+            return new(false, "unsupported", "Erro ao verificar suporte a notificações.");
+        }
+    }
+
+    public async Task<bool> IsPromptDismissedAsync(string storageKey = "barbershop_admin_push_dismissed")
+    {
+        try
+        {
+            return await jsRuntime.InvokeAsync<bool>(
+                "barberShopNotifications.isDismissed", storageKey);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task SetPromptDismissedAsync(string storageKey = "barbershop_admin_push_dismissed", int durationDays = 7)
+    {
+        try
+        {
+            await jsRuntime.InvokeVoidAsync(
+                "barberShopNotifications.setDismissed", storageKey, durationDays);
+        }
+        catch
+        {
+        }
+    }
+
+    public async Task<bool> IsSubscribedAsync()
+    {
+        try
+        {
+            return await jsRuntime.InvokeAsync<bool>(
+                "barberShopNotifications.isSubscribed");
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
+
+public sealed record NotificationPermissionStatus(bool Supported, string Permission, string Message);
