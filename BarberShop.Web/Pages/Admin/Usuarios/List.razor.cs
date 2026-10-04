@@ -84,5 +84,33 @@ namespace BarberShop.Web.Pages.Admin.Usuarios
                 Snackbar.Add(result.Message ?? "Erro ao remover administrador", Severity.Error);
             }
         }
+
+        public static string GetInitials(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "U";
+
+            var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length switch
+            {
+                0 => "U",
+                1 => parts[0].Length >= 2 ? parts[0][..2].ToUpperInvariant() : parts[0][..1].ToUpperInvariant(),
+                _ => $"{parts[0][..1]}{parts[^1][..1]}".ToUpperInvariant()
+            };
+        }
+
+        public static string FormatPhone(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return "Não informado";
+
+            var digits = System.Text.RegularExpressions.Regex.Replace(phone, @"\D", "");
+            return digits.Length switch
+            {
+                11 => $"({digits[..2]}) {digits.Substring(2, 5)}-{digits.Substring(7, 4)}",
+                10 => $"({digits[..2]}) {digits.Substring(2, 4)}-{digits.Substring(6, 4)}",
+                _ => phone
+            };
+        }
     }
 }

@@ -3,78 +3,202 @@
 @inherits ListPageUsuarios
 @attribute [Authorize(Roles = "Admin")]
 
-<MudText Typo="Typo.h3">Gerenciar Usuários</MudText>
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Warning" Size="Size.Medium" />
+            Gerenciar Usuários
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Visualize permissões e promova ou remova administradores do sistema.
+        </MudText>
+    </div>
+</div>
 
 <div class="d-flex align-center gap-3 my-4">
     <MudTextField T="string"
-                  Label="Buscar usuário"
+                  Placeholder="Buscar usuário por nome, e-mail ou telefone..."
                   @bind-Value="SearchTerm"
                   Immediate="true"
-                  Variant="Variant.Filled"
+                  Variant="Variant.Outlined"
                   Margin="Margin.Dense"
                   Adornment="Adornment.Start"
                   AdornmentIcon="@Icons.Material.Filled.Search"
-                  Class="auth-field" />
+                  Class="flex-1" />
 
     <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                    Color="Color.Warning"
-                   OnClick="LoadUsersAsync" />
+                   OnClick="LoadUsersAsync"
+                   Title="Recarregar usuários" />
 </div>
 
-@if (IsBusy)
+@if (IsBusy && !Usuarios.Any())
 {
-    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Warning" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!FilteredUsers.Any())
+{
+    <MudPaper Class="pa-8 text-center my-4" Elevation="1" Style="border-radius: 12px;">
+        <MudIcon Icon="@Icons.Material.Filled.PersonOff" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+        <MudText Typo="Typo.h6">Nenhum usuário encontrado</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Nenhum usuário cadastrado no momento." : "Nenhum usuário corresponde ao termo pesquisado.")
+        </MudText>
+    </MudPaper>
 }
 else
 {
-    <MudDataGrid Items="@FilteredUsers" Hover="true">
-        <Columns>
-            <PropertyColumn Property="x => x.Nome" Title="Nome" />
-            <PropertyColumn Property="x => x.Email" Title="E-mail" />
-            <PropertyColumn Property="x => x.Telefone" Title="Telefone" />
+    <!-- Visualização Desktop (Tabela Polida) -->
+    <div class="d-none d-md-block">
+        <MudPaper Elevation="2" Style="border-radius: 12px; overflow: hidden;">
+            <MudDataGrid Items="@FilteredUsers" Hover="true" Elevation="0">
+                <Columns>
+                    <TemplateColumn Title="Usuário" CellClass="py-3" HeaderClass="font-weight-bold">
+                        <CellTemplate Context="usuario">
+                            <div class="d-flex align-center gap-3">
+                                <MudAvatar Color="@(usuario.Item.IsAdmin ? Color.Warning : Color.Dark)"
+                                           Variant="@(usuario.Item.IsAdmin ? Variant.Filled : Variant.Outlined)"
+                                           Size="Size.Medium">
+                                    @GetInitials(usuario.Item.Nome)
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.body2" Class="font-weight-bold" Style="white-space: nowrap;">
+                                        @usuario.Item.Nome
+                                    </MudText>
+                                    @if (usuario.Item.IsAdmin)
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Warning" Style="font-size: 0.72rem;">
+                                            Administrador
+                                        </MudText>
+                                    }
+                                </div>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
 
-            <TemplateColumn Title="Permissão">
-                <CellTemplate Context="usuario">
-                    @if (usuario.Item.IsAdmin)
-                    {
-                        <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small">
-                            Admin
-                        </MudChip>
-                    }
-                    else
-                    {
-                        <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small">
-                            Cliente
-                        </MudChip>
-                    }
-                </CellTemplate>
-            </TemplateColumn>
+                    <TemplateColumn Title="E-mail" CellClass="py-3" HeaderClass="font-weight-bold">
+                        <CellTemplate Context="usuario">
+                            <div class="d-flex align-center gap-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Style="opacity: 0.6; font-size: 1rem;" />
+                                <span style="overflow: hidden; text-overflow: ellipsis;">@usuario.Item.Email</span>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
 
-            <TemplateColumn Title="Ações">
-                <CellTemplate Context="usuario">
-                    @if (usuario.Item.IsAdmin)
-                    {
-                        <MudButton Size="Size.Small"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Error"
-                                   StartIcon="@Icons.Material.Filled.RemoveModerator"
-                                   Disabled="@(AdminCount <= 1)"
-                                   OnClick="@(() => RemoveAdminAsync(usuario.Item.Id))">
-                            Remover admin
-                        </MudButton>
-                    }
-                    else
-                    {
-                        <MudButton Size="Size.Small"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Warning"
-                                   StartIcon="@Icons.Material.Filled.AdminPanelSettings"
-                                   OnClick="@(() => AddAdminAsync(usuario.Item.Id))">
-                            Tornar admin
-                        </MudButton>
-                    }
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
-    </MudDataGrid>
+                    <TemplateColumn Title="Telefone" CellClass="py-3" HeaderClass="font-weight-bold">
+                        <CellTemplate Context="usuario">
+                            <div class="d-flex align-center gap-1" style="white-space: nowrap;">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Style="opacity: 0.6; font-size: 1rem;" />
+                                <span>@FormatPhone(usuario.Item.Telefone)</span>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Permissão" CellClass="py-3" HeaderClass="font-weight-bold">
+                        <CellTemplate Context="usuario">
+                            @if (usuario.Item.IsAdmin)
+                            {
+                                <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small" Style="font-weight: 700;">
+                                    Admin
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small">
+                                    Cliente
+                                </MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Ações" CellClass="py-3 text-right" HeaderClass="font-weight-bold text-right">
+                        <CellTemplate Context="usuario">
+                            @if (usuario.Item.IsAdmin)
+                            {
+                                <MudButton Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Error"
+                                           StartIcon="@Icons.Material.Filled.RemoveModerator"
+                                           Disabled="@(AdminCount <= 1)"
+                                           OnClick="@(() => RemoveAdminAsync(usuario.Item.Id))"
+                                           Style="white-space: nowrap;">
+                                    Remover admin
+                                </MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Warning"
+                                           StartIcon="@Icons.Material.Filled.AdminPanelSettings"
+                                           OnClick="@(() => AddAdminAsync(usuario.Item.Id))"
+                                           Style="white-space: nowrap;">
+                                    Tornar admin
+                                </MudButton>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </div>
+
+    <!-- Visualização Mobile (Cards Separados em Linha Única sem Quebra) -->
+    <div class="d-block d-md-none">
+        <div class="admin-users-mobile-list">
+            @foreach (var usuario in FilteredUsers)
+            {
+                <div class="admin-user-card">
+                    <MudAvatar Color="@(usuario.IsAdmin ? Color.Warning : Color.Dark)"
+                               Variant="@(usuario.IsAdmin ? Variant.Filled : Variant.Outlined)"
+                               Size="Size.Medium"
+                               Class="admin-user-card__avatar">
+                        @GetInitials(usuario.Nome)
+                    </MudAvatar>
+
+                    <div class="admin-user-card__info">
+                        <div class="admin-user-card__name">@usuario.Nome</div>
+                        <div class="admin-user-card__meta">
+                            <span class="admin-user-card__email">@usuario.Email</span>
+                            @if (!string.IsNullOrWhiteSpace(usuario.Telefone))
+                            {
+                                <span class="admin-user-card__dot">•</span>
+                                <span class="admin-user-card__phone">@FormatPhone(usuario.Telefone)</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="admin-user-card__actions">
+                        @if (usuario.IsAdmin)
+                        {
+                            <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small" Class="admin-user-chip">
+                                Admin
+                            </MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.RemoveModerator"
+                                           Color="Color.Error"
+                                           Size="Size.Medium"
+                                           Disabled="@(AdminCount <= 1)"
+                                           OnClick="@(() => RemoveAdminAsync(usuario.Id))"
+                                           Class="admin-user-action-btn"
+                                           Title="Remover permissão de admin" />
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="admin-user-chip">
+                                Cliente
+                            </MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.AdminPanelSettings"
+                                           Color="Color.Warning"
+                                           Size="Size.Medium"
+                                           OnClick="@(() => AddAdminAsync(usuario.Id))"
+                                           Class="admin-user-action-btn"
+                                           Title="Tornar administrador" />
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 }

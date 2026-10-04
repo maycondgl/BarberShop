@@ -19,9 +19,24 @@ public class AccountFlowTests
     }
 
     [Theory]
+    [InlineData("11987654321")]
+    [InlineData("21987654321")]
+    [InlineData("27987654321")]
+    [InlineData("31987654321")]
+    [InlineData("41987654321")]
+    [InlineData("48987654321")]
+    [InlineData("51987654321")]
+    [InlineData("61987654321")]
+    [InlineData("62987654321")]
+    [InlineData("71987654321")]
+    [InlineData("79987654321")]
+    [InlineData("81987654321")]
+    [InlineData("85987654321")]
     [InlineData("8899702863")]
     [InlineData("88999702863")]
-    public void RegisterRequest_AcceptsTenAndElevenDigits(string phone)
+    [InlineData("91987654321")]
+    [InlineData("92987654321")]
+    public void RegisterRequest_AcceptsValidBrazilianDdd(string phone)
     {
         var request = ValidRegisterRequest();
         request.Telefone = phone;
@@ -34,10 +49,60 @@ public class AccountFlowTests
     [InlineData("859999999999")]
     [InlineData("8599999999A")]
     [InlineData("(85)999999999")]
+    [InlineData("00999998888")]
+    [InlineData("01999998888")]
+    [InlineData("20999998888")]
+    [InlineData("23999998888")]
+    [InlineData("25999998888")]
+    [InlineData("26999998888")]
+    [InlineData("29999998888")]
+    [InlineData("30999998888")]
+    [InlineData("36999998888")]
+    [InlineData("39999998888")]
+    [InlineData("50999998888")]
+    [InlineData("52999998888")]
+    [InlineData("70999998888")]
+    [InlineData("72999998888")]
+    [InlineData("76999998888")]
+    [InlineData("78999998888")]
     public void RegisterRequest_RejectsInvalidPhone(string phone)
     {
         var request = ValidRegisterRequest();
         request.Telefone = phone;
+
+        var errors = Validate(request);
+
+        Assert.Contains(errors, error => error.MemberNames.Contains(nameof(request.Telefone)));
+    }
+
+    [Theory]
+    [InlineData("11987654321")]
+    [InlineData("85987654321")]
+    [InlineData("8899702863")]
+    public void UpdateProfileRequest_AcceptsValidBrazilianDdd(string phone)
+    {
+        var request = new UpdateProfileRequest
+        {
+            Nome = "Cliente Atualizado",
+            Email = "cliente@barbershop.com",
+            Telefone = phone
+        };
+
+        Assert.Empty(Validate(request));
+    }
+
+    [Theory]
+    [InlineData("23999998888")]
+    [InlineData("00999998888")]
+    [InlineData("859999999")]
+    public void UpdateProfileRequest_RejectsInvalidPhone(string phone)
+    {
+        var request = new UpdateProfileRequest
+        {
+            Nome = "Cliente Atualizado",
+            Email = "cliente@barbershop.com",
+            Telefone = phone
+        };
 
         var errors = Validate(request);
 

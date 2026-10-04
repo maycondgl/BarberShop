@@ -11,6 +11,8 @@ body,
 html,
 body {
     overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -4045,5 +4047,115 @@ html, body {
     gap: 10px;
     padding-top: 4px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 600px) {
+    input, select, textarea, .mud-input-slot {
+        font-size: 16px !important;
+    }
+}
+
+/* ============================================================
+   ADMIN USUÁRIOS - MOBILE CARDS & LAYOUT EM LINHA ÚNICA
+   ============================================================ */
+.admin-users-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.admin-user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    min-height: 58px;
+    box-sizing: border-box;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-user-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 193, 7, 0.25);
+}
+
+.admin-user-card__avatar {
+    flex-shrink: 0;
+    font-weight: 700;
+}
+
+.admin-user-card__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.admin-user-card__name {
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.admin-user-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+.admin-user-card__email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-user-card__dot {
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+
+.admin-user-card__phone {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.admin-user-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.admin-user-chip {
+    font-size: 0.7rem !important;
+    height: 22px !important;
+    padding: 0 6px !important;
+    margin: 0 !important;
+    font-weight: 700 !important;
+}
+
+.admin-user-action-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 8px !important;
+    border-radius: 8px;
 }
 
