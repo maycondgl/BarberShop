@@ -403,38 +403,269 @@ else if (_dashboardData != null)
             <MudIcon Icon="@Icons.Material.Filled.ListAlt" Color="Color.Primary" Class="mr-2" />
             Detalhamento Completo por Serviço do Catálogo
         </MudText>
+        <!-- Visualização Desktop (Tabela Completa) -->
+        <div class="d-none d-md-block">
+            <MudTable Items="@_dashboardData.CortesMetricas" Dense="true" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Corte / Serviço</MudTh>
+                    <MudTh Style="text-align: center;">Quantidade Agendada</MudTh>
+                    <MudTh Style="text-align: center;">Participação (%)</MudTh>
+                    <MudTh Style="text-align: right;">Receita Acumulada</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Corte">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Color="Color.Secondary" />
+                            <span class="font-weight-bold">@context.Titulo</span>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Quantidade" Style="text-align: center;">
+                        <MudChip T="string" Color="@(context.Quantidade > 0 ? Color.Warning : Color.Default)" Size="Size.Small" Variant="Variant.Filled">
+                            @context.Quantidade atendimento(s)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Porcentagem" Style="text-align: center;">
+                        <span class="font-weight-bold">@context.Porcentagem.ToString("N1", PtBr)%</span>
+                    </MudTd>
+                    <MudTd DataLabel="Receita" Style="text-align: right;">
+                        <span class="font-weight-bold">@context.TotalReceita.ToString("C", PtBr)</span>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Typo="Typo.body2" Class="pa-3 text-center" Color="Color.Secondary">
+                        Nenhum corte cadastrado no catálogo.
+                    </MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </div>
 
-        <MudTable Items="@_dashboardData.CortesMetricas" Dense="true" Hover="true" Elevation="0">
-            <HeaderContent>
-                <MudTh>Corte / Serviço</MudTh>
-                <MudTh Style="text-align: center;">Quantidade Agendada</MudTh>
-                <MudTh Style="text-align: center;">Participação (%)</MudTh>
-                <MudTh Style="text-align: right;">Receita Acumulada</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Corte">
-                    <div class="d-flex align-center gap-2">
-                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Color="Color.Secondary" />
-                        <span class="font-weight-bold">@context.Titulo</span>
-                    </div>
-                </MudTd>
-                <MudTd DataLabel="Quantidade" Style="text-align: center;">
-                    <MudChip T="string" Color="@(context.Quantidade > 0 ? Color.Warning : Color.Default)" Size="Size.Small" Variant="Variant.Filled">
-                        @context.Quantidade atendimento(s)
-                    </MudChip>
-                </MudTd>
-                <MudTd DataLabel="Porcentagem" Style="text-align: center;">
-                    <span class="font-weight-bold">@context.Porcentagem.ToString("N1", PtBr)%</span>
-                </MudTd>
-                <MudTd DataLabel="Receita" Style="text-align: right;">
-                    <span class="font-weight-bold">@context.TotalReceita.ToString("C", PtBr)</span>
-                </MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
+        <!-- Visualização Mobile (Cards Separados por Serviço) -->
+        <div class="d-block d-md-none">
+            @if (!_dashboardData.CortesMetricas.Any())
+            {
                 <MudText Typo="Typo.body2" Class="pa-3 text-center" Color="Color.Secondary">
                     Nenhum corte cadastrado no catálogo.
                 </MudText>
-            </NoRecordsContent>
-        </MudTable>
+            }
+            else
+            {
+                <div class="dashboard-services-list">
+                    @foreach (var item in @_dashboardData.CortesMetricas)
+                    {
+                        <div class="dashboard-service-card">
+                            <div class="dashboard-service-card__header">
+                                <div class="dashboard-service-card__title">
+                                    <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Color="Color.Warning" />
+                                    <span>@item.Titulo</span>
+                                </div>
+                                <span class="dashboard-service-card__revenue">@item.TotalReceita.ToString("C", PtBr)</span>
+                            </div>
+                            <div class="dashboard-service-card__meta">
+                                <MudChip T="string" Color="@(item.Quantidade > 0 ? Color.Warning : Color.Default)" Size="Size.Small" Variant="Variant.Filled" Style="height: 22px; font-size: 0.72rem; margin: 0;">
+                                    @item.Quantidade atendimento(s)
+                                </MudChip>
+                                <span><strong>@item.Porcentagem.ToString("N1", PtBr)%</strong> do total</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </MudCard>
+
+    <!-- 5. SEÇÃO DE HISTÓRICO DE AGENDAMENTOS (MENSAL) -->
+    <MudCard Elevation="3" Class="admin-panel admin-table-panel pa-0 mt-6" Style="overflow: hidden;">
+        <div class="admin-table-toolbar">
+            <div class="admin-table-title">
+                <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Warning" Size="Size.Small" />
+                <MudText Typo="Typo.h6">Histórico de Agendamentos</MudText>
+            </div>
+
+            <div class="admin-table-controls">
+                <MudTextField @bind-Value="BuscaHistorico"
+                              Placeholder="Buscar no histórico..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              IconSize="Size.Small"
+                              Class="admin-search-field"
+                              Margin="Margin.Dense"
+                              Variant="Variant.Outlined" />
+
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.FilterAlt"
+                                   Class="admin-filter-btn">
+                            @(string.IsNullOrWhiteSpace(_filtroStatusHistorico) ? "Status: Todos" : $"Status: {_filtroStatusHistorico}")
+                        </MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="@(() => SetFiltroStatusHistorico(string.Empty))">Todos</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => SetFiltroStatusHistorico("Concluido"))">Concluídos</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => SetFiltroStatusHistorico("Aceito"))">Aceitos</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => SetFiltroStatusHistorico("Pendente"))">Pendentes</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => SetFiltroStatusHistorico("Cancelado"))">Cancelados</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </div>
+        </div>
+
+        <!-- Navegador de Mês & Indicadores Rápidos -->
+        <div class="admin-history-month-bar">
+            <div class="admin-history-month-nav">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                               Size="Size.Small"
+                               Variant="Variant.Outlined"
+                               Color="Color.Warning"
+                               Title="Mês anterior"
+                               OnClick="@(() => MudarMesHistorico(-1))" />
+
+                <div class="admin-history-month-title">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Warning" />
+                    <span>@MesHistoricoFormatado</span>
+                </div>
+
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                               Size="Size.Small"
+                               Variant="Variant.Outlined"
+                               Color="Color.Warning"
+                               Title="Próximo mês"
+                               OnClick="@(() => MudarMesHistorico(1))" />
+
+                @if (!IsMesAtual)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Size="Size.Small"
+                               Color="Color.Warning"
+                               Class="ml-2"
+                               OnClick="IrParaMesAtual">
+                        Mês Atual
+                    </MudButton>
+                }
+            </div>
+
+            <div class="admin-history-month-stats">
+                <div class="admin-history-stat-pill">
+                    <span>Total no mês:</span>
+                    <strong>@AgendamentosMesHistorico.Count</strong>
+                </div>
+                <div class="admin-history-stat-pill">
+                    <span>Concluídos:</span>
+                    <strong>@TotalConcluidosMesHistorico</strong>
+                </div>
+                <div class="admin-history-stat-pill admin-history-stat-pill--highlight">
+                    <span>Faturamento:</span>
+                    <strong>@TotalFaturamentoMesHistorico.ToString("C2", PtBr)</strong>
+                </div>
+            </div>
+        </div>
+
+        @if (_carregandoHistorico)
+        {
+            <div class="d-flex justify-center align-center pa-8">
+                <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+            </div>
+        }
+        else if (!AgendamentosHistoricoFiltrados.Any())
+        {
+            <div class="pa-8 text-center" style="opacity: 0.7;">
+                <MudIcon Icon="@Icons.Material.Filled.EventBusy" Size="Size.Large" Class="mb-2" />
+                <MudText Typo="Typo.body1">Nenhum agendamento encontrado para <strong>@MesHistoricoFormatado</strong>.</MudText>
+            </div>
+        }
+        else
+        {
+            <!-- Visualização Desktop (Tabela Completa) -->
+            <div class="d-none d-md-block">
+                <div class="admin-table-scroll">
+                    <table class="admin-schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Data e Horário</th>
+                                <th>Corte</th>
+                                <th>Valor</th>
+                                <th>Minutos</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var agendamento in PagedHistorico)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="admin-client-cell">
+                                            <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                            <span>
+                                                <strong>@agendamento.NomeCliente</strong>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="admin-date-cell">
+                                            <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                            <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                        </div>
+                                    </td>
+                                    <td>@agendamento.CorteTitulo</td>
+                                    <td>@agendamento.Valor.ToString("C2", PtBr)</td>
+                                    <td>@agendamento.TempoMinutos min</td>
+                                    <td>
+                                        <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Visualização Mobile (Cards Individuais) -->
+            <div class="d-block d-md-none">
+                <div class="admin-mobile-list" aria-label="Histórico de agendamentos">
+                    @foreach (var agendamento in PagedHistorico)
+                    {
+                        <article class="admin-mobile-card">
+                            <div class="admin-mobile-card__main">
+                                <span class="admin-avatar">@GetInitials(agendamento.NomeCliente)</span>
+                                <div class="admin-mobile-card__content">
+                                    <strong>@agendamento.NomeCliente</strong>
+                                    <span>Corte: @agendamento.CorteTitulo</span>
+                                    <div class="admin-mobile-card__meta">
+                                        <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
+                                        <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="admin-mobile-card__side">
+                                <strong>@agendamento.Valor.ToString("C2", PtBr)</strong>
+                                <span class="@GetStatusClass(agendamento.Status)">@GetStatusText(agendamento.Status)</span>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+
+            <div class="admin-table-footer">
+                <span>@AgendamentosHistoricoFiltrados.Count @ResultLabel(AgendamentosHistoricoFiltrados.Count)</span>
+                <div class="admin-pager">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Disabled="@(_paginaHistorico == 1)"
+                                   OnClick="PreviousHistoryPage" />
+                    <span>@_paginaHistorico / @TotalPaginasHistorico</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Disabled="@(_paginaHistorico >= TotalPaginasHistorico)"
+                                   OnClick="NextHistoryPage" />
+                </div>
+            </div>
+        }
     </MudCard>
 }

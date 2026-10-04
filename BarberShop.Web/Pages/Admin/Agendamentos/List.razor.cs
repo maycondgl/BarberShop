@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Enums;
+using BarberShop.Core.Enums;
 using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
@@ -17,7 +17,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         public List<AgendamentoResponse> TodosAgendamentos { get; set; } = [];
         public List<AgendamentoResponse> Pendentes { get; set; } = [];
         public List<AgendamentoResponse> Agendamentos { get; set; } = [];
-        public List<AgendamentoResponse> AgendamentosHistorico { get; set; } = [];
 
         private string _searchTerm = string.Empty;
 
@@ -37,10 +36,7 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
         public int TotalMes { get; set; }
         public int TotalConcluidosMes { get; set; }
         public decimal FaturamentoMes { get; set; }
-        public DateTime HistoricoStartDate { get; set; } = new(DateTime.Today.Year, DateTime.Today.Month, 1);
-        public DateTime HistoricoEndDate { get; set; } = DateTime.Today;
         public int PendingPage { get; set; } = 1;
-        public int HistoryPage { get; set; } = 1;
         public int PageSize { get; set; } = 4;
 
         public List<AgendamentoResponse> FilteredAgendamentos =>
@@ -56,15 +52,7 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                 .Take(PageSize)
                 .ToList();
 
-        public List<AgendamentoResponse> PagedHistorico =>
-            AgendamentosHistorico
-                .Skip((HistoryPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
-
         public int PendingTotalPages => Math.Max(1, (int)Math.Ceiling(FilteredAgendamentos.Count / (double)PageSize));
-        public int HistoryTotalPages => Math.Max(1, (int)Math.Ceiling(AgendamentosHistorico.Count / (double)PageSize));
-        public string HistoricoPeriodoLabel => $"{HistoricoStartDate:dd/MM/yyyy} até {HistoricoEndDate:dd/MM/yyyy}";
 
         #endregion
 
@@ -120,12 +108,6 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
 
         public void NextPendingPage()
             => PendingPage = Math.Min(PendingTotalPages, PendingPage + 1);
-
-        public void PreviousHistoryPage()
-            => HistoryPage = Math.Max(1, HistoryPage - 1);
-
-        public void NextHistoryPage()
-            => HistoryPage = Math.Min(HistoryTotalPages, HistoryPage + 1);
 
         public string ResultLabel(int count)
             => count == 1 ? "resultado" : "resultados";
@@ -205,28 +187,11 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
                                 x.Data.Date >= inicioMes &&
                                 x.Data.Date < inicioProximoMes)
                     .Sum(x => x.Valor);
-
-                LoadHistoricoDoMes();
             }
             else
             {
                 Snackbar.Add(result.Message ?? "Erro ao carregar", Severity.Error);
             }
-        }
-
-        private void LoadHistoricoDoMes()
-        {
-            var hoje = DateTime.Today;
-            HistoricoStartDate = new DateTime(hoje.Year, hoje.Month, 1);
-            HistoricoEndDate = HistoricoStartDate.AddMonths(1).AddDays(-1);
-            HistoryPage = 1;
-
-            AgendamentosHistorico = TodosAgendamentos
-                .Where(x => IsConcluido(x.Status) &&
-                            x.Data.Date >= HistoricoStartDate &&
-                            x.Data.Date <= HistoricoEndDate)
-                .OrderByDescending(x => x.Data)
-                .ToList();
         }
 
         public async Task OnAceitarClickedAsync(long id)

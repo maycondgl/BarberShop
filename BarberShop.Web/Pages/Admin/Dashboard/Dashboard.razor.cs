@@ -1,5 +1,7 @@
 using System.Globalization;
 using BarberShop.Core.Handlers;
+using BarberShop.Core.Requests.Agendamentos;
+using BarberShop.Core.Responses.Agendamento;
 using BarberShop.Core.Responses.Dashboard;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -83,12 +85,80 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
         protected List<BarVisualItem> _barItems = new();
         protected List<PieSliceVisual> _pieSlices = new();
 
+        // Estado do Histórico de Agendamentos Mensal
+        protected DateTime _mesHistorico = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+        protected List<AgendamentoResponse> _todosAgendamentosHistorico = new();
+        protected string _buscaHistorico = string.Empty;
+        protected string _filtroStatusHistorico = string.Empty;
+        protected int _paginaHistorico = 1;
+        protected int _tamanhoPaginaHistorico = 6;
+        protected bool _carregandoHistorico;
+
+        public string BuscaHistorico
+        {
+            get => _buscaHistorico;
+            set
+            {
+                _buscaHistorico = value;
+                _paginaHistorico = 1;
+            }
+        }
+
+        public List<AgendamentoResponse> AgendamentosMesHistorico =>
+            _todosAgendamentosHistorico
+                .Where(x => x.Data.Year == _mesHistorico.Year && x.Data.Month == _mesHistorico.Month)
+                .OrderByDescending(x => x.Data)
+                .ToList();
+
+        public List<AgendamentoResponse> AgendamentosHistoricoFiltrados =>
+            AgendamentosMesHistorico
+                .Where(x => string.IsNullOrWhiteSpace(_buscaHistorico) ||
+                            x.NomeCliente.Contains(_buscaHistorico, StringComparison.OrdinalIgnoreCase) ||
+                            x.CorteTitulo.Contains(_buscaHistorico, StringComparison.OrdinalIgnoreCase) ||
+                            x.Status.Contains(_buscaHistorico, StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.IsNullOrWhiteSpace(_filtroStatusHistorico) ||
+                            x.Status.Equals(_filtroStatusHistorico, StringComparison.OrdinalIgnoreCase) ||
+                            (_filtroStatusHistorico == "Concluido" && IsConcluido(x.Status)))
+                .ToList();
+
+        public List<AgendamentoResponse> PagedHistorico =>
+            AgendamentosHistoricoFiltrados
+                .Skip((_paginaHistorico - 1) * _tamanhoPaginaHistorico)
+                .Take(_tamanhoPaginaHistorico)
+                .ToList();
+
+        public int TotalPaginasHistorico =>
+            Math.Max(1, (int)Math.Ceiling(AgendamentosHistoricoFiltrados.Count / (double)_tamanhoPaginaHistorico));
+
+        public decimal TotalFaturamentoMesHistorico =>
+            AgendamentosMesHistorico
+                .Where(x => IsConcluido(x.Status))
+                .Sum(x => x.Valor);
+
+        public int TotalConcluidosMesHistorico =>
+            AgendamentosMesHistorico.Count(x => IsConcluido(x.Status));
+
+        public bool IsMesAtual =>
+            _mesHistorico.Year == DateTime.Today.Year && _mesHistorico.Month == DateTime.Today.Month;
+
+        public string MesHistoricoFormatado
+        {
+            get
+            {
+                var texto = _mesHistorico.ToString("MMMM 'de' yyyy", PtBr);
+                return char.ToUpper(texto[0]) + texto[1..];
+            }
+        }
+
         #endregion
 
         #region Services
 
         [Inject]
         public IDashboardHandler DashboardHandler { get; set; } = null!;
+
+        [Inject]
+        public IAgendamentoHandler AgendamentoHandler { get; set; } = null!;
 
         [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
@@ -99,7 +169,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
 
         protected override async Task OnInitializedAsync()
         {
-            await CarregarDashboardAsync();
+            await Task.WhenAll(CarregarDashboardAsync(), CarregarHistoricoAsync());
         }
 
         #endregion
@@ -388,6 +458,102 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
                 slice.TextY = targetY + 4.0;
                 slice.TextAnchor = isRight ? "start" : "end";
             }
+        }
+
+        #endregion
+
+        #region Métodos do Histórico Mensal
+
+        public async Task CarregarHistoricoAsync()
+        {
+            try
+            {
+                _carregandoHistorico = true;
+                var req = new GetAllAgendamentoRequest
+                {
+                    UserId = 0,
+                    PageNumber = 1,
+                    PageSize = 1000
+                };
+                var res = await AgendamentoHandler.GetAllAdminAsync(req);
+                if (res.IsSuccess && res.Data != null)
+                {
+                    _todosAgendamentosHistorico = res.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao carregar histórico: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                _carregandoHistorico = false;
+                StateHasChanged();
+            }
+        }
+
+        public void MudarMesHistorico(int deltaMeses)
+        {
+            _mesHistorico = _mesHistorico.AddMonths(deltaMeses);
+            _paginaHistorico = 1;
+            StateHasChanged();
+        }
+
+        public void IrParaMesAtual()
+        {
+            _mesHistorico = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            _paginaHistorico = 1;
+            StateHasChanged();
+        }
+
+        public void SetFiltroStatusHistorico(string status)
+        {
+            _filtroStatusHistorico = status;
+            _paginaHistorico = 1;
+        }
+
+        public void PreviousHistoryPage()
+            => _paginaHistorico = Math.Max(1, _paginaHistorico - 1);
+
+        public void NextHistoryPage()
+            => _paginaHistorico = Math.Min(TotalPaginasHistorico, _paginaHistorico + 1);
+
+        public string ResultLabel(int count)
+            => count == 1 ? "resultado" : "resultados";
+
+        public static string GetInitials(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "?";
+
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length == 1
+                ? parts[0][..1].ToUpperInvariant()
+                : $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+        }
+
+        public static bool IsConcluido(string status)
+            => status.Equals("Concluido", StringComparison.OrdinalIgnoreCase) ||
+               status.Equals("Concluído", StringComparison.OrdinalIgnoreCase);
+
+        public static string GetStatusText(string status)
+            => IsConcluido(status) ? "Concluído" : status;
+
+        public static string GetStatusClass(string status)
+        {
+            if (status.Equals("Pendente", StringComparison.OrdinalIgnoreCase))
+                return "admin-status admin-status--pending";
+
+            if (status.Equals("Aceito", StringComparison.OrdinalIgnoreCase))
+                return "admin-status admin-status--accepted";
+
+            if (IsConcluido(status))
+                return "admin-status admin-status--done";
+
+            if (status.Equals("Cancelado", StringComparison.OrdinalIgnoreCase))
+                return "admin-status admin-status--canceled";
+
+            return "admin-status";
         }
 
         #endregion

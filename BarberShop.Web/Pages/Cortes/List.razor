@@ -90,27 +90,60 @@
                 Valores
             </MudText>
             <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 18px;">Tabela de Preços</MudText>
-            <MudTable Items="@Catalogo" Hover="true" Style="overflow: hidden; border-radius: 20px; background: #181819;">
-                <HeaderContent>
-                    <MudTh>Corte</MudTh>
-                    <MudTh>Duração</MudTh>
-                    <MudTh>Valor</MudTh>
-                    <MudTh></MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="Corte">@context.Titulo</MudTd>
-                    <MudTd DataLabel="Duração">@FormatDuration(context.DuracaoMinutos)</MudTd>
-                    <MudTd DataLabel="Valor">@FormatPrice(context.Preco)</MudTd>
-                    <MudTd DataLabel="Agendar">
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.Event"
-                                   OnClick="@(() => ScheduleCut(context.Id))">
-                            Agendar
-                        </MudButton>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
+
+            <!-- Visualização Desktop (Tabela Polida) -->
+            <div class="d-none d-md-block">
+                <MudTable Items="@Catalogo" Hover="true" Style="overflow: hidden; border-radius: 20px; background: #181819;">
+                    <HeaderContent>
+                        <MudTh>Corte</MudTh>
+                        <MudTh>Duração</MudTh>
+                        <MudTh>Valor</MudTh>
+                        <MudTh Style="text-align: right;"></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Corte"><strong>@context.Titulo</strong></MudTd>
+                        <MudTd DataLabel="Duração">@FormatDuration(context.DuracaoMinutos)</MudTd>
+                        <MudTd DataLabel="Valor"><span style="color: #ffc107; font-weight: 700;">@FormatPrice(context.Preco)</span></MudTd>
+                        <MudTd Style="text-align: right;">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Event"
+                                       OnClick="@(() => ScheduleCut(context.Id))">
+                                Agendar
+                            </MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+
+            <!-- Visualização Mobile (Cards Separados por Serviço) -->
+            <div class="d-block d-md-none">
+                <div class="price-cards-list">
+                    @foreach (var item in Catalogo)
+                    {
+                        <div class="price-service-card">
+                            <div class="price-service-card__header">
+                                <h4 class="price-service-card__title">@item.Titulo</h4>
+                                <span class="price-service-card__badge">@FormatPrice(item.Preco)</span>
+                            </div>
+                            <div class="price-service-card__footer">
+                                <span class="price-service-card__time">
+                                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" />
+                                    @FormatDuration(item.DuracaoMinutos)
+                                </span>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.Event"
+                                           OnClick="@(() => ScheduleCut(item.Id))">
+                                    Agendar
+                                </MudButton>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </MudPaper>
     }
 </div>

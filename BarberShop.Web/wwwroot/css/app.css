@@ -11,7 +11,6 @@ body,
 html,
 body {
     overflow-x: hidden;
-    overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -2698,6 +2697,67 @@ body {
     font-size: .78rem;
 }
 
+.admin-history-month-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.025);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 12px 20px 16px;
+}
+
+.admin-history-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-history-month-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.admin-history-month-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-history-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.admin-history-stat-pill strong {
+    color: #fff;
+    font-weight: 800;
+}
+
+.admin-history-stat-pill--highlight {
+    background: rgba(255, 193, 7, 0.12);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.28);
+}
+
+.admin-history-stat-pill--highlight strong {
+    color: #ffc107;
+}
+
 .admin-table-scroll {
     flex: 1;
     overflow: auto;
@@ -3050,14 +3110,16 @@ body {
     }
 
     .admin-stats-grid {
-        margin-top: 16px !important;
-        margin-bottom: 16px !important;
+        margin: 12px 0 !important;
+        width: 100% !important;
     }
 
     .admin-stat-card {
-        min-height: 112px;
-        padding: 18px 56px 18px 16px;
-        border-radius: 8px;
+        min-height: 80px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
     }
 
     .admin-stat-card:hover {
@@ -3065,19 +3127,26 @@ body {
     }
 
     .admin-stat-title {
-        max-width: 220px;
-        font-size: .88rem;
+        max-width: 100%;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: rgba(255, 255, 255, 0.75);
     }
 
     .admin-stat-value {
-        margin-top: 6px;
+        margin-top: 4px;
         color: #ffc107;
-        font-size: 1.85rem;
+        font-size: 1.45rem;
+        font-weight: 900;
+        line-height: 1.1;
     }
 
     .admin-stat-icon {
-        top: 18px;
-        right: 16px;
+        top: 10px;
+        right: 10px;
+        font-size: 1.5rem !important;
+        opacity: 0.8;
     }
 
     .admin-grid {
@@ -3136,7 +3205,29 @@ body {
     }
 
     .admin-table-scroll {
-        display: none;
+        display: none !important;
+    }
+
+    .admin-history-month-bar {
+        flex-direction: column;
+        align-items: stretch;
+        margin: 10px 10px 14px;
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .admin-history-month-nav {
+        justify-content: space-between;
+    }
+
+    .admin-history-month-stats {
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .admin-history-stat-pill {
+        font-size: 0.72rem;
+        padding: 4px 8px;
     }
 
     .admin-mobile-list {
@@ -3419,8 +3510,8 @@ body {
     }
 
     .cc-grid {
-        gap: 18px;
-        padding: 18px 0 38px;
+        gap: 28px;
+        padding: 20px 4px 40px;
     }
 
     .cuts-page {
@@ -3452,53 +3543,75 @@ body {
     }
 
     .cc-card {
-        min-height: auto;
-        margin-top: 0;
-        border-radius: 18px;
-        overflow: hidden;
+        position: relative;
+        min-height: 250px;
+        margin-top: 24px;
+        border-radius: 26px;
+        overflow: visible;
+        background: radial-gradient(circle at 82% 4%, rgba(255, 193, 7, .14), transparent 45%),
+                    linear-gradient(145deg, #171719 0%, #0f0f10 62%, #090909 100%);
     }
 
     .cc-card__img-wrap {
-        position: relative;
-        top: auto;
-        right: auto;
-        width: 100%;
-        transform: none;
-        filter: none;
+        position: absolute;
+        top: -6%;
+        right: -2px;
+        width: 44%;
+        max-width: 155px;
+        z-index: 10;
+        transform: rotate(4deg);
+        filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
+        transition: none;
     }
 
     .cc-card:hover .cc-card__img-wrap,
     .cc-card--active .cc-card__img-wrap {
-        transform: none;
-        filter: none;
+        transform: rotate(4deg);
+        filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
     }
 
     .cc-card__img-wrap img {
-        aspect-ratio: 16 / 10;
-        border-radius: 18px 18px 0 0;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        object-position: top center;
+        border-radius: 18px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
     .cc-card__body {
-        min-height: auto;
-        max-width: 100%;
-        padding: 18px;
-        border-radius: 0;
-        background: #111112;
+        position: relative;
+        z-index: 5;
+        min-height: 220px;
+        max-width: 56%;
+        padding: 18px 14px;
+        border-radius: 26px;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 8px;
     }
 
     .cc-card__title {
-        font-size: 1.35rem;
+        font-size: 1.25rem;
+        line-height: 1.1;
     }
 
     .cc-card__desc {
-        max-width: none;
+        font-size: 0.76rem;
+        line-height: 1.35;
+        max-width: 100%;
     }
 
     .cc-card__btn {
-        width: 100%;
-        justify-content: center;
+        width: fit-content;
         opacity: 1;
         transform: none;
+        padding: 8px 18px;
+        font-size: 0.76rem;
+        margin-top: 6px;
     }
 
     .price-section,
@@ -4076,6 +4189,8 @@ html, body {
     min-height: 58px;
     box-sizing: border-box;
     transition: background 0.15s ease, border-color 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .admin-user-card:hover {
@@ -4157,5 +4272,174 @@ html, body {
     min-height: 44px !important;
     padding: 8px !important;
     border-radius: 8px;
+}
+
+/* ============================================================
+   TABELA DE PREÇOS (CORTES) - CARDS MOBILE SEPARADOS
+   ============================================================ */
+.price-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.price-service-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #181819;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.price-service-card:hover {
+    border-color: rgba(255, 193, 7, 0.3);
+    background: #1e1e20;
+}
+
+.price-service-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.price-service-card__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+}
+
+.price-service-card__badge {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffc107;
+    white-space: nowrap;
+}
+
+.price-service-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.price-service-card__time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* ============================================================
+   DASHBOARD - DETALHAMENTO DE SERVIÇOS EM CARDS SEPARADOS
+   ============================================================ */
+.dashboard-services-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-service-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-sizing: border-box;
+}
+
+.dashboard-service-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dashboard-service-card__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.dashboard-service-card__revenue {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffc107;
+    white-space: nowrap;
+}
+
+.dashboard-service-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================================
+   DIAS FECHADOS - DATAS BLOQUEADAS EM CARDS SEPARADOS
+   ============================================================ */
+.blocked-dates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.blocked-date-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-sizing: border-box;
+    min-height: 64px;
+}
+
+.blocked-date-card__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.blocked-date-card__info strong {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.blocked-date-card__day {
+    font-size: 0.76rem;
+    color: #ffc107;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.blocked-date-card__reason {
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 

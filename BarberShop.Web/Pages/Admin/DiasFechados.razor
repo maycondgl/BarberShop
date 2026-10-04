@@ -69,32 +69,59 @@
             }
             else
             {
-                <MudTable Items="@_diasFechados" Hover="true" Dense="true">
-                    <HeaderContent>
-                        <MudTh>Data</MudTh>
-                        <MudTh>Dia da Semana</MudTh>
-                        <MudTh>Motivo</MudTh>
-                        <MudTh Style="text-align: right;">Ação</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Data">
-                            <strong>@context.Data.ToString("dd/MM/yyyy")</strong>
-                        </MudTd>
-                        <MudTd DataLabel="Dia">
-                            @context.Data.ToString("dddd", CultureInfo.GetCultureInfo("pt-BR"))
-                        </MudTd>
-                        <MudTd DataLabel="Motivo">
-                            @(string.IsNullOrWhiteSpace(context.Motivo) ? "Sem motivo informado" : context.Motivo)
-                        </MudTd>
-                        <MudTd Style="text-align: right;">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                           Color="Color.Error"
-                                           Size="Size.Small"
-                                           Title="Desbloquear data"
-                                           OnClick="@(() => RemoverDiaFechadoAsync(context.Id, context.Data))" />
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
+                <!-- Visualização Desktop (Tabela Polida) -->
+                <div class="d-none d-md-block">
+                    <MudTable Items="@_diasFechados" Hover="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Data</MudTh>
+                            <MudTh>Dia da Semana</MudTh>
+                            <MudTh>Motivo</MudTh>
+                            <MudTh Style="text-align: right;">Ação</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Data">
+                                <strong>@context.Data.ToString("dd/MM/yyyy")</strong>
+                            </MudTd>
+                            <MudTd DataLabel="Dia">
+                                @context.Data.ToString("dddd", CultureInfo.GetCultureInfo("pt-BR"))
+                            </MudTd>
+                            <MudTd DataLabel="Motivo">
+                                @(string.IsNullOrWhiteSpace(context.Motivo) ? "Sem motivo informado" : context.Motivo)
+                            </MudTd>
+                            <MudTd Style="text-align: right;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               Title="Desbloquear data"
+                                               OnClick="@(() => RemoverDiaFechadoAsync(context.Id, context.Data))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+
+                <!-- Visualização Mobile (Cards Separados Estilo Histórico) -->
+                <div class="d-block d-md-none">
+                    <div class="blocked-dates-list">
+                        @foreach (var dia in _diasFechados)
+                        {
+                            <div class="blocked-date-card">
+                                <MudAvatar Color="Color.Error" Variant="Variant.Filled" Size="Size.Medium">
+                                    <MudIcon Icon="@Icons.Material.Filled.EventBusy" Size="Size.Small" />
+                                </MudAvatar>
+                                <div class="blocked-date-card__info">
+                                    <strong>@dia.Data.ToString("dd/MM/yyyy")</strong>
+                                    <span class="blocked-date-card__day">@dia.Data.ToString("dddd", CultureInfo.GetCultureInfo("pt-BR"))</span>
+                                    <span class="blocked-date-card__reason">@(string.IsNullOrWhiteSpace(dia.Motivo) ? "Sem motivo informado" : dia.Motivo)</span>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Medium"
+                                               Title="Desbloquear data"
+                                               OnClick="@(() => RemoverDiaFechadoAsync(dia.Id, dia.Data))" />
+                            </div>
+                        }
+                    </div>
+                </div>
             }
         </MudCard>
     </MudItem>

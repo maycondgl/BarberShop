@@ -53,7 +53,7 @@ else
     <!-- Visualização Desktop (Tabela Polida) -->
     <div class="d-none d-md-block">
         <MudPaper Elevation="2" Style="border-radius: 12px; overflow: hidden;">
-            <MudDataGrid Items="@FilteredUsers" Hover="true" Elevation="0">
+            <MudDataGrid Items="@FilteredUsers" Hover="true" Elevation="0" ReadOnly="true">
                 <Columns>
                     <TemplateColumn Title="Usuário" CellClass="py-3" HeaderClass="font-weight-bold">
                         <CellTemplate Context="usuario">
