@@ -54,6 +54,7 @@ else
 
                 <MudItem xs="12" md="6">
                     <MudTextField Label="Nome completo"
+                                  For="@(() => InputModel.Nome)"
                                   @bind-Value="InputModel.Nome"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
@@ -63,21 +64,32 @@ else
 
                 <MudItem xs="12" md="6">
                     <MudTextField Label="E-mail"
+                                  For="@(() => InputModel.Email)"
                                   @bind-Value="InputModel.Email"
+                                  InputType="InputType.Email"
+                                  Required="true"
+                                  RequiredError="Informe o e-mail"
                                   Variant="Variant.Outlined"
                                   Disabled="true"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Email"
                                   FullWidth="true" />
+
                 </MudItem>
 
                 <MudItem xs="12">
                     <MudTextField Label="Telefone"
+                                  For="@(() => InputModel.Telefone)"
                                   @bind-Value="InputModel.Telefone"
+                                  Mask="@PhoneMask"
+                                  InputType="InputType.Telephone"
+                                  Required="true"
+                                  RequiredError="Informe o telefone"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Phone"
                                   FullWidth="true" />
+
                 </MudItem>
 
                 <MudItem xs="12">

@@ -1,4 +1,5 @@
-﻿using BarberShop.Core.Responses.Account;
+﻿using BarberShop.Core.Responses;
+using BarberShop.Core.Responses.Account;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.ComponentModel.DataAnnotations;
@@ -13,6 +14,10 @@ namespace BarberShop.Web.Pages.MeuPerfil
         public bool IsBusy { get; set; }
 
         public EditProfileInputModel InputModel { get; set; } = new();
+        public PatternMask PhoneMask = new PatternMask("(00)00000-0000")
+        {
+            CleanDelimiters = true
+        };
 
         #endregion
 
@@ -85,6 +90,16 @@ namespace BarberShop.Web.Pages.MeuPerfil
             try
             {
                 IsBusy = true;
+
+                if (!string.IsNullOrWhiteSpace(InputModel.Telefone))
+                {
+                    InputModel.Telefone = System.Text.RegularExpressions.Regex.Replace(InputModel.Telefone, @"\D", "");
+                }
+
+                if (!string.IsNullOrWhiteSpace(InputModel.Email))
+                {
+                    InputModel.Email = InputModel.Email.Trim().ToLowerInvariant();
+                }
 
                 var response = await Client.PutAsJsonAsync("v1/identity/update-profile", InputModel);
 
