@@ -79,7 +79,13 @@ namespace BarberShop.Api.common.Api
         {
             builder.Services.AddDbContext<BarberShopContext>(options =>
             {
-                options.UseSqlServer(Configuration.Connection);
+                options.UseSqlServer(Configuration.Connection, sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                });
             });
         }
 

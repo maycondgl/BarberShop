@@ -104,6 +104,23 @@ else
                     <MudText Typo="Typo.body2">Verificando horários disponíveis...</MudText>
                 </div>
             }
+            else if (HasErrorCarregarHorarios)
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-2" Dense="true">
+                    <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                        <MudText Typo="Typo.body2">
+                            Não foi possível carregar os horários disponíveis devido a instabilidade na conexão.
+                        </MudText>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="RecarregarHorariosAsync">
+                            Tentar Novamente
+                        </MudButton>
+                    </div>
+                </MudAlert>
+            }
             else
             {
                 @if (HorariosDisponiveis.Any())

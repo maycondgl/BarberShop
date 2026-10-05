@@ -15,6 +15,7 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public bool IsLoading { get; set; } = true;
         public bool IsBusy { get; set; } = false;
+        public bool HasErrorCarregarHorarios { get; set; } = false;
 
         public CreateAgendamentoRequest InputModel { get; set; } = new();
 
@@ -137,9 +138,18 @@ namespace BarberShop.Web.Pages.Agendamentos
                 || DatasFechadas.Contains(dt.Date);
         }
 
+        public async Task RecarregarHorariosAsync()
+        {
+            if (DataSelecionada.HasValue)
+            {
+                await CarregarHorariosDisponiveisAsync(DataSelecionada.Value);
+            }
+        }
+
         private async Task CarregarHorariosDisponiveisAsync(DateTime data)
         {
             IsBusy = true;
+            HasErrorCarregarHorarios = false;
             try
             {
                 var request = new GetAgendamentoByPeriodRequest
@@ -151,9 +161,17 @@ namespace BarberShop.Web.Pages.Agendamentos
                 };
 
                 var result = await Handler.GetByPeriodAsync(request);
+
+                if (!result.IsSuccess)
+                {
+                    HasErrorCarregarHorarios = true;
+                    Snackbar.Add(result.Message ?? "Falha ao verificar os horários disponíveis.", Severity.Warning);
+                    return;
+                }
+
                 var horariosOcupados = new List<TimeSpan>();
 
-                if (result.IsSuccess && result.Data != null)
+                if (result.Data != null)
                 {
                     horariosOcupados = result.Data
                         .Where(x => x.Data.Date == data.Date
@@ -167,6 +185,7 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
             catch (Exception ex)
             {
+                HasErrorCarregarHorarios = true;
                 Snackbar.Add("Erro ao carregar horários: " + ex.Message, Severity.Error);
             }
             finally
