@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.Models;
+using BarberShop.Api.Models;
 using BarberShop.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,6 +23,16 @@ namespace BarberShop.Api.Data.Mappings
                 .WithMany()
                 .HasForeignKey(x => x.CorteId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Filial)
+                .WithMany()
+                .HasForeignKey(x => x.FilialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Barbeiro)
+                .WithMany()
+                .HasForeignKey(x => x.BarbeiroId)
+                .OnDelete(DeleteBehavior.Restrict);
             
             builder.Property(x => x.Tempo)
                 .IsRequired();
@@ -41,6 +51,9 @@ namespace BarberShop.Api.Data.Mappings
                 .HasColumnType("NVARCHAR")
                 .HasMaxLength(20);
 
+            builder.Property(x => x.DescricaoServicos)
+                .HasMaxLength(500)
+                .IsRequired(false);
         }
     }
 }

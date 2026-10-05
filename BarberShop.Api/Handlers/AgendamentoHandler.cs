@@ -23,17 +23,44 @@ namespace BarberShop.Api.Handlers
             _context = context;
             _notificationService = notificationService;
         }
+        private static bool _columnsChecked = false;
+        private async Task EnsureColumnsExistsAsync()
+        {
+            if (_columnsChecked) return;
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Agendamento' AND COLUMN_NAME = 'DescricaoServicos')
+                    BEGIN
+                        ALTER TABLE [Agendamento] ADD [DescricaoServicos] NVARCHAR(500) NULL;
+                    END
+                ");
+                _columnsChecked = true;
+            }
+            catch
+            {
+                // Silencioso para provedores sem suporte a SQL raw (ex: testes in-memory)
+            }
+        }
+
         public async Task<Response<AgendamentoResponse?>> CreateAsync(CreateAgendamentoRequest request)
         {
             try
             {
-                var corte = await _context.Cortes
-                    .FirstOrDefaultAsync(x => x.Id == request.CorteId);
+                await EnsureColumnsExistsAsync();
+
+                var idsCortes = request.CorteIds != null && request.CorteIds.Any()
+                    ? request.CorteIds.Distinct().ToList()
+                    : new List<long> { request.CorteId };
+
+                var cortes = await _context.Cortes
+                    .Where(x => idsCortes.Contains(x.Id))
+                    .ToListAsync();
 
                 var cliente = await _context.Users
                     .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
-                if (corte is null || cliente is null)
+                if (!cortes.Any() || cliente is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Cliente ou corte não encontrado");
 
                 if (request.Data.Date < DateTime.Today)
@@ -59,8 +86,10 @@ namespace BarberShop.Api.Handlers
                 if (diaFechado)
                     return new Response<AgendamentoResponse?>(null, 400, "A barbearia estará fechada nesta data.");
 
-                var duracaoMinutos = corte.DuracaoMinutos > 0 ? corte.DuracaoMinutos : 40;
+                var duracaoMinutos = cortes.Sum(c => c.DuracaoMinutos > 0 ? c.DuracaoMinutos : 40);
                 var duracao = TimeSpan.FromMinutes(duracaoMinutos);
+                var valorTotal = cortes.Sum(c => c.Preco);
+                var tituloCombinado = string.Join(" + ", cortes.Select(c => c.Titulo));
                 var horaInicio = request.Data.TimeOfDay;
 
                 if (request.Data.DayOfWeek == DayOfWeek.Saturday)
@@ -78,7 +107,8 @@ namespace BarberShop.Api.Handlers
                 var dataFim = dataInicio.AddDays(1);
 
                 var agendamentosDoDia = await _context.Agendamentos
-                    .Where(a => a.Data >= dataInicio && a.Data < dataFim && a.Status != EStatusAgendamento.Cancelado)
+                    .Where(a => a.Data >= dataInicio && a.Data < dataFim && a.Status != EStatusAgendamento.Cancelado
+                        && (!request.BarbeiroId.HasValue || a.BarbeiroId == null || a.BarbeiroId == request.BarbeiroId.Value))
                     .Select(a => new { a.Data, a.Tempo })
                     .ToListAsync();
 
@@ -95,14 +125,35 @@ namespace BarberShop.Api.Handlers
                 if (temConflito)
                     return new Response<AgendamentoResponse?>(null, 400, "Ops! Este horário acabou de ser reservado.");
 
+                var filialNome = "";
+                if (request.FilialId.HasValue)
+                {
+                    filialNome = await _context.Filiais
+                        .Where(f => f.Id == request.FilialId.Value)
+                        .Select(f => f.Nome)
+                        .FirstOrDefaultAsync() ?? "";
+                }
+
+                var barbeiroNome = "";
+                if (request.BarbeiroId.HasValue)
+                {
+                    barbeiroNome = await _context.Barbeiros
+                        .Where(b => b.Id == request.BarbeiroId.Value)
+                        .Select(b => b.Nome)
+                        .FirstOrDefaultAsync() ?? "";
+                }
+
                 var agendamento = new Agendamento
                 {
                     UserId = request.UserId,
-                    CorteId = request.CorteId,
+                    CorteId = cortes.First().Id,
+                    FilialId = request.FilialId,
+                    BarbeiroId = request.BarbeiroId,
                     Data = DateTime.SpecifyKind(request.Data, DateTimeKind.Unspecified),
-                    Valor = corte.Preco,
-                    Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos),
-                    Status = EStatusAgendamento.Pendente
+                    Valor = valorTotal,
+                    Tempo = duracao,
+                    Status = EStatusAgendamento.Pendente,
+                    DescricaoServicos = tituloCombinado
                 };
 
                 _context.Agendamentos.Add(agendamento);
@@ -117,7 +168,11 @@ namespace BarberShop.Api.Handlers
                      (int)agendamento.Tempo.TotalMinutes,
                      agendamento.Status.ToString(),
                      cliente.NomeCompleto,
-                     corte.Titulo
+                     tituloCombinado,
+                     agendamento.FilialId,
+                     filialNome,
+                     agendamento.BarbeiroId,
+                     barbeiroNome
                  );
 
                 await _notificationService.NotifyNovoAgendamentoAsync(response);
@@ -134,6 +189,8 @@ namespace BarberShop.Api.Handlers
         {
             try
             {
+                await EnsureColumnsExistsAsync();
+
                 var agendamento = await _context
                     .Agendamentos
                     .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId);
@@ -141,23 +198,53 @@ namespace BarberShop.Api.Handlers
                 if (agendamento is null)
                     return new Response<AgendamentoResponse?>(null, 404, "Agendamento não encontrado");
 
-                var corte = await _context.Cortes
-                        .FirstOrDefaultAsync(x => x.Id == request.CorteId);
+                var idsCortes = request.CorteIds != null && request.CorteIds.Any()
+                    ? request.CorteIds.Distinct().ToList()
+                    : new List<long> { request.CorteId };
 
-                if (corte is null)
+                var cortes = await _context.Cortes
+                    .Where(x => idsCortes.Contains(x.Id))
+                    .ToListAsync();
+
+                if (!cortes.Any())
                     return new Response<AgendamentoResponse?>(null, 404, "Corte não encontrado");
 
+                var duracaoMinutos = cortes.Sum(c => c.DuracaoMinutos > 0 ? c.DuracaoMinutos : 40);
+                var duracao = TimeSpan.FromMinutes(duracaoMinutos);
+                var valorTotal = cortes.Sum(c => c.Preco);
+                var tituloCombinado = string.Join(" + ", cortes.Select(c => c.Titulo));
 
-                agendamento.CorteId = request.CorteId;
+                agendamento.CorteId = cortes.First().Id;
+                agendamento.FilialId = request.FilialId;
+                agendamento.BarbeiroId = request.BarbeiroId;
                 agendamento.Data = request.Data;
 
-                agendamento.Valor = corte.Preco;
-                agendamento.Tempo = TimeSpan.FromMinutes(corte.DuracaoMinutos);
+                agendamento.Valor = valorTotal;
+                agendamento.Tempo = duracao;
+                agendamento.DescricaoServicos = tituloCombinado;
 
                 agendamento.Status = EStatusAgendamento.Pendente;
 
                 _context.Agendamentos.Update(agendamento);
                 await _context.SaveChangesAsync();
+
+                var filialNome = "";
+                if (agendamento.FilialId.HasValue)
+                {
+                    filialNome = await _context.Filiais
+                        .Where(f => f.Id == agendamento.FilialId.Value)
+                        .Select(f => f.Nome)
+                        .FirstOrDefaultAsync() ?? "";
+                }
+
+                var barbeiroNome = "";
+                if (agendamento.BarbeiroId.HasValue)
+                {
+                    barbeiroNome = await _context.Barbeiros
+                        .Where(b => b.Id == agendamento.BarbeiroId.Value)
+                        .Select(b => b.Nome)
+                        .FirstOrDefaultAsync() ?? "";
+                }
 
                 var response = new AgendamentoResponse(
                     agendamento.Id,
@@ -167,7 +254,12 @@ namespace BarberShop.Api.Handlers
                     agendamento.Valor,
                     (int)agendamento.Tempo.TotalMinutes,
                     agendamento.Status.ToString(),
-                    agendamento.NomeCliente
+                    agendamento.NomeCliente,
+                    tituloCombinado,
+                    agendamento.FilialId,
+                    filialNome,
+                    agendamento.BarbeiroId,
+                    barbeiroNome
                   );
 
                 return new Response<AgendamentoResponse?>(response, 200, "Agendamento atualizado");
@@ -199,7 +291,7 @@ namespace BarberShop.Api.Handlers
                     (int)agendamento.Tempo.TotalMinutes,
                     agendamento.Status.ToString(),
                     agendamento.NomeCliente,
-                    agendamento.Corte?.Titulo ?? "Sem corte"
+                    !string.IsNullOrWhiteSpace(agendamento.DescricaoServicos) ? agendamento.DescricaoServicos : (agendamento.Corte?.Titulo ?? "Sem corte")
                 );
 
                 _context.Agendamentos.Remove(agendamento);
@@ -220,6 +312,9 @@ namespace BarberShop.Api.Handlers
                 var agendamento = await _context
                     .Agendamentos
                     .AsNoTracking()
+                    .Include(x => x.Corte)
+                    .Include(x => x.Filial)
+                    .Include(x => x.Barbeiro)
                     .FirstOrDefaultAsync(x => x.Id == request.Id);
 
                 return agendamento is null
@@ -240,6 +335,8 @@ namespace BarberShop.Api.Handlers
                     .Agendamentos
                     .AsNoTracking()
                     .Include(x => x.Corte)
+                    .Include(x => x.Filial)
+                    .Include(x => x.Barbeiro)
                     .Where(x => x.UserId == request.UserId)
                     .OrderByDescending(x => x.Data);
 
@@ -283,6 +380,9 @@ namespace BarberShop.Api.Handlers
 
             var query = _context.Agendamentos
                 .AsNoTracking()
+                .Include(a => a.Corte)
+                .Include(a => a.Filial)
+                .Include(a => a.Barbeiro)
                 .Where(a => a.Data >= startDate && a.Data <= endDate)
                 .OrderBy(a => a.Data);
 
@@ -306,6 +406,8 @@ namespace BarberShop.Api.Handlers
                     .Agendamentos
                     .AsNoTracking()
                     .Include(x => x.Corte)
+                    .Include(x => x.Filial)
+                    .Include(x => x.Barbeiro)
                     .OrderByDescending(x => x.Data);
 
                 var agendamentos = await query
@@ -316,10 +418,12 @@ namespace BarberShop.Api.Handlers
                 var responses = new List<AgendamentoResponse>();
                 foreach (var a in agendamentos)
                 {
-                    var corteTitulo = await _context.Cortes
-                        .Where(c => c.Id == a.CorteId)
-                        .Select(c => c.Titulo)
-                        .FirstOrDefaultAsync() ?? "Sem corte";
+                    var corteTitulo = !string.IsNullOrWhiteSpace(a.DescricaoServicos)
+                        ? a.DescricaoServicos
+                        : (await _context.Cortes
+                            .Where(c => c.Id == a.CorteId)
+                            .Select(c => c.Titulo)
+                            .FirstOrDefaultAsync() ?? "Sem corte");
 
                     var user = await _context.Users.FindAsync(a.UserId);
                     responses.Add(new AgendamentoResponse(
@@ -331,7 +435,11 @@ namespace BarberShop.Api.Handlers
                         (int)a.Tempo.TotalMinutes,
                         a.Status.ToString(),
                         user?.NomeCompleto ?? "Desconhecido",
-                        corteTitulo
+                        corteTitulo,
+                        a.FilialId,
+                        a.Filial?.Nome ?? "",
+                        a.BarbeiroId,
+                        a.Barbeiro?.Nome ?? ""
                     ));
                 }
 

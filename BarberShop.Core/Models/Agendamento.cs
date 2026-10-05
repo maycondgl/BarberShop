@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Enums;
+using BarberShop.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BarberShop.Core.Models
@@ -15,6 +15,14 @@ namespace BarberShop.Core.Models
         
         public virtual Corte Corte { get; set; } = null!;
 
+        public long? FilialId { get; set; }
+        public virtual Filial? Filial { get; set; }
+
+        public long? BarbeiroId { get; set; }
+        public virtual Barbeiro? Barbeiro { get; set; }
+
+        public string? DescricaoServicos { get; set; }
+        
         [NotMapped]
         public string NomeCliente { get; set; } = string.Empty;
     }

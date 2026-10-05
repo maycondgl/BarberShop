@@ -1,0 +1,321 @@
+@page "/admin/barbeiros"
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Models
+@using BarberShop.Core.Requests.Barbeiros
+@using BarberShop.Core.Requests.Filiais
+@attribute [Authorize(Roles = "Admin")]
+@inject IBarbeiroHandler BarbeiroHandler
+@inject IFilialHandler FilialHandler
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Warning" Size="Size.Medium" />
+            Gerenciar Barbeiros
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Cadastre os profissionais da barbearia, adicione fotos e vincule-os às filiais.
+        </MudText>
+    </div>
+
+    <MudButton Href="/admin/barbeiros/criar"
+               Variant="Variant.Filled"
+               Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Add"
+               Size="Size.Large"
+               Class="font-weight-bold">
+        Novo Barbeiro
+    </MudButton>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="d-flex gap-3 mb-4 flex-wrap">
+    <div class="flex-grow-1">
+        <MudTextField @bind-Value="SearchTerm"
+                      Placeholder="Buscar barbeiro por nome ou filial..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Immediate="true"
+                      IconSize="Size.Medium"
+                      Variant="Variant.Outlined"
+                      Class="w-100" />
+    </div>
+
+    @if (ListaFiliais.Any())
+    {
+        <div style="min-width: 220px;">
+            <MudSelect T="long?"
+                       Label="Filtrar por Filial"
+                       @bind-Value="FiltroFilialId"
+                       Variant="Variant.Outlined"
+                       Dense="true"
+                       Clearable="true">
+                <MudSelectItem T="long?" Value="@((long?)null)">Todas as Unidades</MudSelectItem>
+                @foreach (var filial in ListaFiliais)
+                {
+                    <MudSelectItem T="long?" Value="@((long?)filial.Id)">@filial.Nome</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    }
+</div>
+
+@if (IsBusy && !ListaBarbeiros.Any())
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!BarbeirosFiltrados.Any())
+{
+    <MudPaper Class="pa-8 text-center my-4" Elevation="1" Style="border-radius: 12px;">
+        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+        <MudText Typo="Typo.h6">Nenhum barbeiro encontrado</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Cadastre seu primeiro barbeiro clicando no botão acima." : "Nenhum profissional corresponde aos filtros.")
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <!-- Visualização Desktop -->
+    <div class="d-none d-md-block">
+        <MudPaper Elevation="2" Style="border-radius: 14px; overflow: hidden;">
+            <MudDataGrid Items="@BarbeirosFiltrados" Hover="true" Elevation="0">
+                <Columns>
+                    <TemplateColumn Title="Profissional" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="barbeiro">
+                            <div class="d-flex align-center gap-3">
+                                @if (!string.IsNullOrWhiteSpace(barbeiro.Item.FotoUrl))
+                                {
+                                    <MudAvatar Size="Size.Medium">
+                                        <MudImage Src="@barbeiro.Item.FotoUrl" Alt="@barbeiro.Item.Nome" ObjectFit="ObjectFit.Cover" />
+                                    </MudAvatar>
+                                }
+                                else
+                                {
+                                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" />
+                                    </MudAvatar>
+                                }
+                                <div>
+                                    <MudText Typo="Typo.body1" Class="font-weight-bold">@barbeiro.Item.Nome</MudText>
+                                </div>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Unidade / Filial" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="barbeiro">
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2">
+                                    @(barbeiro.Item.Filial?.Nome ?? GetNomeFilial(barbeiro.Item.FilialId))
+                                </MudText>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Status" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="barbeiro">
+                            <MudChip Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="@(barbeiro.Item.Ativo ? Color.Success : Color.Default)">
+                                @(barbeiro.Item.Ativo ? "Ativo" : "Inativo")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="barbeiro">
+                            <div class="d-flex align-center gap-2">
+                                <MudButton Href="@($"/admin/barbeiros/editar/{barbeiro.Item.Id}")"
+                                           Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Edit">
+                                    Editar
+                                </MudButton>
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               Title="Excluir barbeiro"
+                                               OnClick="@(() => OnDeleteClickedAsync(barbeiro.Item.Id))" />
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </div>
+
+    <!-- Visualização Mobile -->
+    <div class="d-block d-md-none">
+        <div class="admin-corte-mobile-list">
+            @foreach (var barbeiro in BarbeirosFiltrados)
+            {
+                <div class="admin-corte-card">
+                    <div class="d-flex justify-space-between align-center mb-2">
+                        <div class="d-flex align-center gap-3">
+                            @if (!string.IsNullOrWhiteSpace(barbeiro.FotoUrl))
+                            {
+                                <MudAvatar Size="Size.Medium">
+                                    <MudImage Src="@barbeiro.FotoUrl" Alt="@barbeiro.Nome" ObjectFit="ObjectFit.Cover" />
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" />
+                                </MudAvatar>
+                            }
+                            <div>
+                                <div class="font-weight-bold" style="font-size: 1.05rem;">@barbeiro.Nome</div>
+                                <div class="d-flex align-center gap-1 text-secondary" style="font-size: 0.8rem;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" />
+                                    <span>@(barbeiro.Filial?.Nome ?? GetNomeFilial(barbeiro.FilialId))</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <MudChip Size="Size.Small"
+                                 Variant="Variant.Filled"
+                                 Color="@(barbeiro.Ativo ? Color.Success : Color.Default)">
+                            @(barbeiro.Ativo ? "Ativo" : "Inativo")
+                        </MudChip>
+                    </div>
+
+                    <div class="admin-corte-card__actions mt-3">
+                        <MudButton Href="@($"/admin/barbeiros/editar/{barbeiro.Id}")"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Class="flex-1 font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px;">
+                            Editar
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="@(() => OnDeleteClickedAsync(barbeiro.Id))"
+                                   Class="font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px; min-width: 100px;">
+                            Excluir
+                        </MudButton>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    public bool IsBusy { get; set; }
+    public List<Barbeiro> ListaBarbeiros { get; set; } = new();
+    public List<Filial> ListaFiliais { get; set; } = new();
+    public string SearchTerm { get; set; } = string.Empty;
+    public long? FiltroFilialId { get; set; }
+
+    public IEnumerable<Barbeiro> BarbeirosFiltrados => ListaBarbeiros
+        .Where(b => FiltroFilialId == null || b.FilialId == FiltroFilialId)
+        .Where(Filter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDadosAsync();
+    }
+
+    private async Task CarregarDadosAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var filiaisResult = await FilialHandler.GetAllAsync(new GetAllFilialRequest { PageNumber = 1, PageSize = 100 });
+            if (filiaisResult.IsSuccess)
+                ListaFiliais = filiaisResult.Data ?? new();
+
+            var barbeirosResult = await BarbeiroHandler.GetAllAsync(new GetAllBarbeiroRequest { PageNumber = 1, PageSize = 100 });
+            if (barbeirosResult.IsSuccess)
+            {
+                ListaBarbeiros = barbeirosResult.Data ?? new();
+            }
+            else
+            {
+                Snackbar.Add(barbeirosResult.Message ?? "Erro ao carregar barbeiros", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro de conexão: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private string GetNomeFilial(long? filialId)
+    {
+        if (!filialId.HasValue) return "Todas as Unidades";
+        var f = ListaFiliais.FirstOrDefault(x => x.Id == filialId.Value);
+        return f?.Nome ?? "Unidade vinculada";
+    }
+
+    private bool Filter(Barbeiro barbeiro)
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+            return true;
+
+        if (barbeiro.Nome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var nomeFilial = barbeiro.Filial?.Nome ?? GetNomeFilial(barbeiro.FilialId);
+        if (nomeFilial.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private async Task OnDeleteClickedAsync(long id)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Excluir Barbeiro",
+            "Tem certeza que deseja excluir este barbeiro? Os agendamentos associados poderão ser afetados.",
+            yesText: "Sim, Excluir",
+            cancelText: "Cancelar"
+        );
+
+        if (confirm == true)
+        {
+            IsBusy = true;
+            try
+            {
+                var result = await BarbeiroHandler.DeleteAsync(id);
+                if (result.IsSuccess)
+                {
+                    ListaBarbeiros.RemoveAll(x => x.Id == id);
+                    Snackbar.Add("Barbeiro excluído com sucesso!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add(result.Message ?? "Não foi possível excluir o barbeiro", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+}

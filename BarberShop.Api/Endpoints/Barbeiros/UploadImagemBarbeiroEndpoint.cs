@@ -1,0 +1,67 @@
+using BarberShop.Api.common.Api;
+using BarberShop.Core;
+using BarberShop.Core.Responses;
+using BarberShop.Core.Responses.Barbeiro;
+
+namespace BarberShop.Api.Endpoints.Barbeiros;
+
+public class UploadImagemBarbeiroEndpoint : IEndpoint
+{
+    public static void Map(IEndpointRouteBuilder app)
+        => app.MapPost("/upload-imagem", HandleAsync)
+              .WithName("Barbeiros: Upload Imagem")
+              .WithSummary("Faz upload da foto do barbeiro")
+              .WithOrder(6)
+              .Produces<UploadBarbeiroImagemResponse>(200)
+              .Produces(400);
+
+    private static async Task<IResult> HandleAsync(
+        HttpRequest request,
+        IWebHostEnvironment environment)
+    {
+        try
+        {
+            var form = await request.ReadFormAsync();
+            var file = form.Files["file"];
+
+            if (file is null || file.Length == 0)
+                return Results.BadRequest(new { message = "Imagem inválida" });
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+                return Results.BadRequest(new { message = "Formato de imagem inválido" });
+
+            var fileName = $"{Guid.NewGuid()}{extension}";
+
+            var webRootPath = environment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRootPath))
+                webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            var folder = Path.Combine(webRootPath, "Imgs", "barbeiros");
+            Directory.CreateDirectory(folder);
+
+            var path = Path.Combine(folder, fileName);
+
+            await using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            var backendUrl = $"{request.Scheme}://{request.Host}";
+            if (!string.IsNullOrWhiteSpace(Configuration.BackendUrl) &&
+                !request.Host.Host.Contains("localhost", StringComparison.OrdinalIgnoreCase))
+            {
+                backendUrl = Configuration.BackendUrl.TrimEnd('/');
+            }
+
+            return Results.Ok(new UploadBarbeiroImagemResponse
+            {
+                ImagemUrl = $"{backendUrl}/Imgs/barbeiros/{fileName}"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
+    }
+}

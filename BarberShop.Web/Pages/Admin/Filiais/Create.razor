@@ -1,0 +1,128 @@
+@page "/admin/filiais/criar"
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Requests.Filiais
+@attribute [Authorize(Roles = "Admin")]
+@inject IFilialHandler FilialHandler
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<div class="mb-4">
+    <MudText Typo="Typo.h3" Class="font-weight-bold d-flex align-center gap-2">
+        <MudIcon Icon="@Icons.Material.Filled.Store" Color="Color.Warning" Size="Size.Medium" />
+        Nova Filial
+    </MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Cadastre uma nova unidade da barbearia com nome, endereço e telefone.
+    </MudText>
+</div>
+
+<MudPaper Class="pa-6 mt-4" Elevation="2" Style="border-radius: 14px;">
+    <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+        <DataAnnotationsValidator />
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Nome da Filial / Unidade"
+                              @bind-Value="InputModel.Nome"
+                              For="@(() => InputModel.Nome)"
+                              Variant="Variant.Outlined"
+                              Placeholder="Ex: Unidade Centro, BarberShop Shopping..."
+                              Required="true" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Telefone de Contato"
+                              @bind-Value="InputModel.Telefone"
+                              For="@(() => InputModel.Telefone)"
+                              Variant="Variant.Outlined"
+                              Placeholder="Ex: (11) 98765-4321" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField Label="Endereço / Localização Completa"
+                              @bind-Value="InputModel.Localizacao"
+                              For="@(() => InputModel.Localizacao)"
+                              Variant="Variant.Outlined"
+                              Placeholder="Ex: Rua das Flores, 123 - Centro"
+                              Required="true"
+                              Lines="2" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudSwitch @bind-Value="InputModel.Ativo"
+                           Color="Color.Success"
+                           Label="@(InputModel.Ativo ? "Filial Ativa (disponível para agendamento)" : "Filial Inativa")" />
+            </MudItem>
+
+            <!-- Card de Pré-visualização -->
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mb-2">Pré-visualização do Card de Seleção:</MudText>
+                <div class="selector-preview-card selector-preview-card--filled" style="max-width: 500px;">
+                    <div class="d-flex align-center gap-3">
+                        <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                            <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+                        </MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                @(string.IsNullOrWhiteSpace(InputModel.Nome) ? "Nome da Filial" : InputModel.Nome)
+                            </MudText>
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @(string.IsNullOrWhiteSpace(InputModel.Localizacao) ? "Endereço da unidade..." : InputModel.Localizacao)
+                                </MudText>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex justify-end gap-3 mt-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Href="/admin/filiais">
+                    Voltar
+                </MudButton>
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Disabled="@IsBusy"
+                           Class="font-weight-bold px-6">
+                    @(IsBusy ? "Cadastrando..." : "Cadastrar Filial")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>
+
+@code {
+    public bool IsBusy { get; set; } = false;
+    public CreateFilialRequest InputModel { get; set; } = new();
+
+    private async Task OnValidSubmitAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var result = await FilialHandler.CreateAsync(InputModel);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Filial cadastrada com sucesso!", Severity.Success);
+                NavigationManager.NavigateTo("/admin/filiais");
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Erro ao cadastrar filial", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}

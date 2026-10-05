@@ -8,10 +8,10 @@
     <div>
         <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
             <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Warning" Size="Size.Medium" />
-            Gerenciar Cortes
+            Gerenciar Serviços
         </MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">
-            Cadastre novos serviços, edite valores e gerencie os cortes do catálogo.
+            Cadastre novos serviços, edite valores e gerencie os serviços do catálogo.
         </MudText>
     </div>
 
@@ -21,14 +21,14 @@
                StartIcon="@Icons.Material.Filled.Add"
                Size="Size.Large"
                Class="admin-new-corte-btn font-weight-bold">
-        Novo Corte
+        Novo Serviço
     </MudButton>
 </div>
 
 <!-- Barra de Busca Rápida -->
 <div class="mb-4">
     <MudTextField @bind-Value="SearchTerm"
-                  Placeholder="Buscar corte por nome ou descrição..."
+                  Placeholder="Buscar serviço por nome ou descrição..."
                   Adornment="Adornment.Start"
                   AdornmentIcon="@Icons.Material.Filled.Search"
                   Immediate="true"
@@ -49,7 +49,7 @@ else if (!ListaCortes.Where(Filter).Any())
         <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
         <MudText Typo="Typo.h6">Nenhum corte encontrado</MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">
-            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Cadastre seu primeiro corte clicando no botão acima." : "Nenhum corte corresponde ao termo pesquisado.")
+            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Cadastre seu primeiro serviço clicando no botão acima." : "Nenhum serviço corresponde ao termo pesquisado.")
         </MudText>
     </MudPaper>
 }
@@ -60,7 +60,7 @@ else
         <MudPaper Elevation="2" Style="border-radius: 14px; overflow: hidden;">
             <MudDataGrid Items="@ListaCortes.Where(Filter)" Hover="true" Elevation="0">
                 <Columns>
-                    <TemplateColumn Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold">
+                    <TemplateColumn Title="Serviço" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold">
                         <CellTemplate Context="corte">
                             <div class="d-flex align-center gap-3">
                                 @if (!string.IsNullOrWhiteSpace(corte.Item.ImagemUrl))
@@ -117,7 +117,7 @@ else
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                Color="Color.Error"
                                                Size="Size.Small"
-                                               Title="Excluir corte"
+                                               Title="Excluir serviço"
                                                OnClick="@(() => OnDeleteClickedAsync(corte.Item.Id))" />
                             </div>
                         </CellTemplate>

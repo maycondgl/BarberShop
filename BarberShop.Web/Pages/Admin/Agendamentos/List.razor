@@ -105,7 +105,9 @@
                                     <tr>
                                         <th>Cliente</th>
                                         <th>Data e Horário</th>
-                                        <th>Corte</th>
+                                        <th>Serviço</th>
+                                        <th>Filial</th>
+                                        <th>Barbeiro</th>
                                         <th>Valor</th>
                                         <th>Minutos</th>
                                         <th>Status</th>
@@ -131,6 +133,8 @@
                                                 </div>
                                             </td>
                                             <td>@agendamento.CorteTitulo</td>
+                                            <td>@(string.IsNullOrWhiteSpace(agendamento.FilialNome) ? "-" : agendamento.FilialNome)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(agendamento.BarbeiroNome) ? "-" : agendamento.BarbeiroNome)</td>
                                             <td>@agendamento.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))</td>
                                             <td>@agendamento.TempoMinutos min</td>
                                             <td>
@@ -183,6 +187,20 @@
                                         <div class="admin-mobile-card__content">
                                             <strong>@agendamento.NomeCliente</strong>
                                             <span>Corte: @agendamento.CorteTitulo</span>
+                                            @if (!string.IsNullOrWhiteSpace(agendamento.FilialNome))
+                                            {
+                                                <span class="d-flex align-center gap-1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" />
+                                                    @agendamento.FilialNome
+                                                </span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(agendamento.BarbeiroNome))
+                                            {
+                                                <span class="d-flex align-center gap-1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                                                    @agendamento.BarbeiroNome
+                                                </span>
+                                            }
                                             <div class="admin-mobile-card__meta">
                                                 <span><MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" /> @agendamento.Data.ToString("dd/MM/yyyy")</span>
                                                 <span><MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" /> @agendamento.Data.ToString("HH:mm")</span>

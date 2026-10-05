@@ -95,7 +95,9 @@ namespace BarberShop.Web.Pages.Admin.Agendamentos
             string.IsNullOrWhiteSpace(SearchTerm) ||
             x.NomeCliente.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
             x.Status.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-            x.CorteTitulo.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase);
+            x.CorteTitulo.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+            x.FilialNome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+            x.BarbeiroNome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase);
 
         public void SetStatusFilter(string status)
         {

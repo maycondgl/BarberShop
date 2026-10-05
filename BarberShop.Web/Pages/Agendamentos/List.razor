@@ -8,7 +8,7 @@
     <div>
         <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">
-            Acompanhe seu próximo horário agendado e visualize seu histórico de cortes.
+            Acompanhe seu próximo horário agendado e visualize seu histórico de serviços.
         </MudText>
     </div>
     <MudButton Variant="Variant.Filled"
@@ -67,6 +67,32 @@ else
 
             <!-- Grid de Detalhes Responsivo -->
             <div class="booking-details-grid">
+                @if (ProximoAgendamento.Filial != null)
+                {
+                    <div class="booking-detail-pill">
+                        <span class="booking-detail-label">
+                            <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" Class="mr-1" />
+                            Unidade
+                        </span>
+                        <span class="booking-detail-value">
+                            @ProximoAgendamento.Filial.Nome
+                        </span>
+                    </div>
+                }
+
+                @if (ProximoAgendamento.Barbeiro != null)
+                {
+                    <div class="booking-detail-pill">
+                        <span class="booking-detail-label">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Class="mr-1" />
+                            Barbeiro
+                        </span>
+                        <span class="booking-detail-value">
+                            @ProximoAgendamento.Barbeiro.Nome
+                        </span>
+                    </div>
+                }
+
                 <div class="booking-detail-pill booking-detail-pill--service">
                     <span class="booking-detail-label">
                         <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Class="mr-1" />
@@ -189,6 +215,22 @@ else
                                      Hover="true">
                             <Columns>
                                 <PropertyColumn Property="x => x.Corte.Titulo" Title="Corte" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold" />
+                                <TemplateColumn Title="Unidade" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                                    <CellTemplate>
+                                        <div class="d-flex align-center gap-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" Color="Color.Secondary" />
+                                            <MudText Typo="Typo.body2">@(context.Item.Filial?.Nome ?? "-")</MudText>
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <TemplateColumn Title="Barbeiro" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                                    <CellTemplate>
+                                        <div class="d-flex align-center gap-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Secondary" />
+                                            <MudText Typo="Typo.body2">@(context.Item.Barbeiro?.Nome ?? "-")</MudText>
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
                                 <TemplateColumn Title="Data e Horário" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                                     <CellTemplate>
                                         <MudText Typo="Typo.body1" Class="font-weight-medium">@context.Item.Data.ToString("dd/MM/yyyy HH:mm")</MudText>
@@ -270,6 +312,26 @@ else
                                             @item.Valor.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
                                         </span>
                                     </div>
+
+                                    @if (item.Filial != null || item.Barbeiro != null)
+                                    {
+                                        <div class="d-flex align-center flex-wrap gap-3 my-1" style="font-size: 0.8rem; opacity: 0.85;">
+                                            @if (item.Filial != null)
+                                            {
+                                                <span class="d-flex align-center gap-1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" />
+                                                    @item.Filial.Nome
+                                                </span>
+                                            }
+                                            @if (item.Barbeiro != null)
+                                            {
+                                                <span class="d-flex align-center gap-1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                                                    @item.Barbeiro.Nome
+                                                </span>
+                                            }
+                                        </div>
+                                    }
 
                                     <div class="d-flex justify-end align-center gap-2 pt-2 border-t border-solid mud-border-lines-default">
                                         @if (item.Status == EStatusAgendamento.Concluido)

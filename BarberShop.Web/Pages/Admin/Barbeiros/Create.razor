@@ -1,0 +1,223 @@
+@page "/admin/barbeiros/criar"
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Models
+@using BarberShop.Core.Requests.Barbeiros
+@using BarberShop.Core.Requests.Filiais
+@using BarberShop.Core.Responses.Barbeiro
+@using System.Net.Http.Json
+@attribute [Authorize(Roles = "Admin")]
+@inject IBarbeiroHandler BarbeiroHandler
+@inject IFilialHandler FilialHandler
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="mb-4">
+    <MudText Typo="Typo.h3" Class="font-weight-bold d-flex align-center gap-2">
+        <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Color="Color.Warning" Size="Size.Medium" />
+        Novo Barbeiro
+    </MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Cadastre um novo profissional da barbearia, defina a foto e vincule à sua filial.
+    </MudText>
+</div>
+
+<MudPaper Class="pa-6 mt-4" Elevation="2" Style="border-radius: 14px;">
+    <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+        <DataAnnotationsValidator />
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Nome Completo do Barbeiro"
+                              @bind-Value="InputModel.Nome"
+                              For="@(() => InputModel.Nome)"
+                              Variant="Variant.Outlined"
+                              Placeholder="Ex: Carlos Oliveira, Mateus Silva..."
+                              Required="true" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudSelect T="long?"
+                           Label="Vincular à Filial / Unidade"
+                           @bind-Value="InputModel.FilialId"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Clearable="true">
+                    <MudSelectItem T="long?" Value="@((long?)null)">Todas as Unidades (Geral)</MudSelectItem>
+                    @foreach (var filial in ListaFiliais)
+                    {
+                        <MudSelectItem T="long?" Value="@((long?)filial.Id)">@filial.Nome</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField Label="URL da Foto do Barbeiro"
+                              @bind-Value="InputModel.FotoUrl"
+                              For="@(() => InputModel.FotoUrl)"
+                              Variant="Variant.Outlined"
+                              Placeholder="https://... ou anexe um arquivo abaixo" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <InputFile OnChange="UploadFotoBarbeiroAsync" accept="image/*" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudSwitch @bind-Value="InputModel.Ativo"
+                           Color="Color.Success"
+                           Label="@(InputModel.Ativo ? "Barbeiro Ativo (disponível para agendamento)" : "Barbeiro Inativo")" />
+            </MudItem>
+
+            <!-- Card de Pré-visualização na barra de agendamento -->
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mb-2">Pré-visualização no Fluxo de Agendamento:</MudText>
+                <div class="selector-preview-card selector-preview-card--filled" style="max-width: 500px;">
+                    <div class="d-flex align-center gap-3">
+                        @if (!string.IsNullOrWhiteSpace(InputModel.FotoUrl))
+                        {
+                            <MudAvatar Size="Size.Medium">
+                                <MudImage Src="@InputModel.FotoUrl" ObjectFit="ObjectFit.Cover" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            </MudAvatar>
+                        }
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                @(string.IsNullOrWhiteSpace(InputModel.Nome) ? "Nome do Barbeiro" : InputModel.Nome)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(GetNomeFilial(InputModel.FilialId))
+                            </MudText>
+                        </div>
+                    </div>
+                </div>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex justify-end gap-3 mt-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Href="/admin/barbeiros">
+                    Voltar
+                </MudButton>
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Disabled="@IsBusy"
+                           Class="font-weight-bold px-6">
+                    @(IsBusy ? "Cadastrando..." : "Cadastrar Barbeiro")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>
+
+@code {
+    public bool IsBusy { get; set; } = false;
+    public CreateBarbeiroRequest InputModel { get; set; } = new();
+    public List<Filial> ListaFiliais { get; set; } = new();
+
+    private readonly List<string> FotosSugeridas = new()
+    {
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var filiaisResult = await FilialHandler.GetAllAsync(new GetAllFilialRequest { PageNumber = 1, PageSize = 100 });
+            if (filiaisResult.IsSuccess)
+                ListaFiliais = filiaisResult.Data ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao carregar filiais: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private string GetNomeFilial(long? filialId)
+    {
+        if (!filialId.HasValue) return "Todas as Unidades (Geral)";
+        var f = ListaFiliais.FirstOrDefault(x => x.Id == filialId.Value);
+        return f?.Nome ?? "Unidade vinculada";
+    }
+
+    private async Task UploadFotoBarbeiroAsync(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            IsBusy = true;
+            Snackbar.Add("Enviando foto...", Severity.Info);
+
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(file.OpenReadStream(5_000_000));
+            var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "image/png" : file.ContentType;
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+            content.Add(streamContent, "file", file.Name);
+
+            var client = HttpClientFactory.CreateClient(Configuration.HttpClientName);
+            var response = await client.PostAsync("v1/barbeiros/upload-imagem", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorMsg = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Erro ao enviar imagem: {errorMsg}", Severity.Error);
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<UploadBarbeiroImagemResponse>();
+            if (result != null && !string.IsNullOrWhiteSpace(result.ImagemUrl))
+            {
+                InputModel.FotoUrl = result.ImagemUrl;
+                Snackbar.Add("Foto enviada com sucesso!", Severity.Success);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao fazer upload da imagem: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var result = await BarbeiroHandler.CreateAsync(InputModel);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Barbeiro cadastrado com sucesso!", Severity.Success);
+                NavigationManager.NavigateTo("/admin/barbeiros");
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Erro ao cadastrar barbeiro", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}

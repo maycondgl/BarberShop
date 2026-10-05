@@ -25,6 +25,8 @@ namespace BarberShop.Api.Data
         public DbSet<Corte> Cortes { get; set; } = null!;
         public DbSet<PushSubscriptionDevice> PushSubscriptionDevices { get; set; } = null!;
         public DbSet<DiaFechado> DiasFechados { get; set; } = null!;
+        public DbSet<Filial> Filiais { get; set; } = null!;
+        public DbSet<Barbeiro> Barbeiros { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

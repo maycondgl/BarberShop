@@ -1,0 +1,280 @@
+@page "/admin/filiais"
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Models
+@using BarberShop.Core.Requests.Filiais
+@attribute [Authorize(Roles = "Admin")]
+@inject IFilialHandler FilialHandler
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.Store" Color="Color.Warning" Size="Size.Medium" />
+            Gerenciar Filiais
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Cadastre novas unidades, edite endereços e gerencie as filiais da barbearia.
+        </MudText>
+    </div>
+
+    <MudButton Href="/admin/filiais/criar"
+               Variant="Variant.Filled"
+               Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Add"
+               Size="Size.Large"
+               Class="font-weight-bold">
+        Nova Filial
+    </MudButton>
+</div>
+
+<!-- Barra de Busca Rápida -->
+<div class="mb-4">
+    <MudTextField @bind-Value="SearchTerm"
+                  Placeholder="Buscar filial por nome, endereço ou telefone..."
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Immediate="true"
+                  IconSize="Size.Medium"
+                  Variant="Variant.Outlined"
+                  Class="w-100" />
+</div>
+
+@if (IsBusy && !ListaFiliais.Any())
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!ListaFiliais.Where(Filter).Any())
+{
+    <MudPaper Class="pa-8 text-center my-4" Elevation="1" Style="border-radius: 12px;">
+        <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+        <MudText Typo="Typo.h6">Nenhuma filial encontrada</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @(string.IsNullOrWhiteSpace(SearchTerm) ? "Cadastre sua primeira filial clicando no botão acima." : "Nenhuma filial corresponde ao termo pesquisado.")
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <!-- Visualização Desktop -->
+    <div class="d-none d-md-block">
+        <MudPaper Elevation="2" Style="border-radius: 14px; overflow: hidden;">
+            <MudDataGrid Items="@ListaFiliais.Where(Filter)" Hover="true" Elevation="0">
+                <Columns>
+                    <TemplateColumn Title="Unidade" CellClass="py-3 font-weight-bold" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="filial">
+                            <div class="d-flex align-center gap-3">
+                                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                    <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.body1" Class="font-weight-bold">@filial.Item.Nome</MudText>
+                                </div>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Endereço / Localização" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="filial">
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2">@filial.Item.Localizacao</MudText>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Telefone" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="filial">
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2">@(string.IsNullOrWhiteSpace(filial.Item.Telefone) ? "Não informado" : filial.Item.Telefone)</MudText>
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Status" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="filial">
+                            <MudChip Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="@(filial.Item.Ativo ? Color.Success : Color.Default)">
+                                @(filial.Item.Ativo ? "Ativa" : "Inativa")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
+                        <CellTemplate Context="filial">
+                            <div class="d-flex align-center gap-2">
+                                <MudButton Href="@($"/admin/filiais/editar/{filial.Item.Id}")"
+                                           Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Edit">
+                                    Editar
+                                </MudButton>
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               Title="Excluir filial"
+                                               OnClick="@(() => OnDeleteClickedAsync(filial.Item.Id))" />
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </div>
+
+    <!-- Visualização Mobile -->
+    <div class="d-block d-md-none">
+        <div class="admin-corte-mobile-list">
+            @foreach (var filial in ListaFiliais.Where(Filter))
+            {
+                <div class="admin-corte-card">
+                    <div class="d-flex justify-space-between align-center mb-2">
+                        <div class="d-flex align-center gap-2">
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                                <MudIcon Icon="@Icons.Material.Filled.Storefront" Size="Size.Small" />
+                            </MudAvatar>
+                            <span class="font-weight-bold" style="font-size: 1.05rem;">@filial.Nome</span>
+                        </div>
+                        <MudChip Size="Size.Small"
+                                 Variant="Variant.Filled"
+                                 Color="@(filial.Ativo ? Color.Success : Color.Default)">
+                            @(filial.Ativo ? "Ativa" : "Inativa")
+                        </MudChip>
+                    </div>
+
+                    <div class="d-flex align-center gap-2 mb-2 text-secondary" style="font-size: 0.85rem;">
+                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" />
+                        <span>@filial.Localizacao</span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(filial.Telefone))
+                    {
+                        <div class="d-flex align-center gap-2 mb-3 text-secondary" style="font-size: 0.85rem;">
+                            <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" />
+                            <span>@filial.Telefone</span>
+                        </div>
+                    }
+
+                    <div class="admin-corte-card__actions mt-3">
+                        <MudButton Href="@($"/admin/filiais/editar/{filial.Id}")"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Class="flex-1 font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px;">
+                            Editar
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="@(() => OnDeleteClickedAsync(filial.Id))"
+                                   Class="font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px; min-width: 100px;">
+                            Excluir
+                        </MudButton>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    public bool IsBusy { get; set; }
+    public List<Filial> ListaFiliais { get; set; } = new();
+    public string SearchTerm { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarFiliaisAsync();
+    }
+
+    private async Task CarregarFiliaisAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var request = new GetAllFilialRequest { PageNumber = 1, PageSize = 100 };
+            var result = await FilialHandler.GetAllAsync(request);
+            if (result.IsSuccess)
+            {
+                ListaFiliais = result.Data ?? new List<Filial>();
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Erro ao carregar filiais", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao conectar ao servidor: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private bool Filter(Filial filial)
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+            return true;
+
+        if (filial.Nome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (filial.Localizacao.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(filial.Telefone) && filial.Telefone.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private async Task OnDeleteClickedAsync(long id)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Excluir Filial",
+            "Tem certeza que deseja excluir esta filial? Os agendamentos e barbeiros vinculados a ela poderão ser afetados.",
+            yesText: "Sim, Excluir",
+            cancelText: "Cancelar"
+        );
+
+        if (confirm == true)
+        {
+            IsBusy = true;
+            try
+            {
+                var result = await FilialHandler.DeleteAsync(id);
+                if (result.IsSuccess)
+                {
+                    ListaFiliais.RemoveAll(x => x.Id == id);
+                    Snackbar.Add("Filial excluída com sucesso!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add(result.Message ?? "Não foi possível excluir a filial", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+}

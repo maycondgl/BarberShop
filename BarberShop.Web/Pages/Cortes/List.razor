@@ -1,7 +1,7 @@
 @page "/cortes"
 @inherits ListCortesPage
 
-<PageTitle>Cortes</PageTitle>
+<PageTitle>Serviços</PageTitle>
 
 <div class="cuts-page">
     <MudPaper Elevation="0"
@@ -9,16 +9,16 @@
         <div class="cuts-hero-layout">
             <div>
                 <MudText Typo="Typo.overline" Style="color: #ffc107; letter-spacing: .18em; font-weight: 800;">
-                    Catálogo de cortes
+                    Catálogo de serviços
                 </MudText>
                 <MudText Typo="Typo.h2" Style="font-weight: 800; line-height: 1; margin-top: 8px;">
-                    Cortes
+                    Serviços
                 </MudText>
                 <MudText Typo="Typo.h5" Style="color: #ffc107; font-weight: 700; margin-top: 10px;">
                     Escolha seu estilo
                 </MudText>
                 <MudText Typo="Typo.body1" Style="max-width: 660px; color: rgba(255,255,255,.72); margin-top: 8px;">
-                    Veja referências de cortes, compare valores e escolha o visual ideal antes de agendar.
+                    Veja referências de serviços, compare valores e escolha o visual ideal antes de agendar.
                 </MudText>
             </div>
             <div class="cuts-hero-count">
@@ -43,7 +43,7 @@
     else if (!Cortes.Any())
     {
         <MudAlert Severity="Severity.Info" Class="mt-6">
-            Nenhum corte encontrado. Cadastre os cortes na API para montar o catálogo.
+            Nenhum serviço encontrado. Cadastre os serviços para montar o catálogo.
         </MudAlert>
     }
     else
@@ -95,13 +95,13 @@
             <div class="d-none d-md-block">
                 <MudTable Items="@Catalogo" Hover="true" Style="overflow: hidden; border-radius: 20px; background: #181819;">
                     <HeaderContent>
-                        <MudTh>Corte</MudTh>
+                        <MudTh>Serviço</MudTh>
                         <MudTh>Duração</MudTh>
                         <MudTh>Valor</MudTh>
                         <MudTh Style="text-align: right;"></MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Corte"><strong>@context.Titulo</strong></MudTd>
+                        <MudTd DataLabel="Serviço"><strong>@context.Titulo</strong></MudTd>
                         <MudTd DataLabel="Duração">@FormatDuration(context.DuracaoMinutos)</MudTd>
                         <MudTd DataLabel="Valor"><span style="color: #ffc107; font-weight: 700;">@FormatPrice(context.Preco)</span></MudTd>
                         <MudTd Style="text-align: right;">

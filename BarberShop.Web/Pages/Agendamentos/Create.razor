@@ -4,7 +4,7 @@
 
 <MudText Typo="Typo.h4" Class="mb-2 font-weight-bold">Novo Agendamento</MudText>
 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
-    Selecione o corte, a data e o horário desejado para o seu atendimento.
+    Selecione a Filial, o seu Barbeiro, serviço, a data e o horário desejado para o seu atendimento.
 </MudText>
 
 @if (IsLoading)
@@ -19,72 +19,173 @@ else
         <EditForm Model="@InputModel" OnSubmit="OnSubmitAsync">
             <DataAnnotationsValidator />
 
-            <!-- 1. Seleção de Corte em Lista -->
+            <!-- 1. Seleção de Filial -->
             <div class="d-flex align-center gap-2 mb-2">
-                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Primary" />
-                <MudText Typo="Typo.h6">1. Escolha o Corte do Catálogo</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Store" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">1. Escolha a Filial</MudText>
             </div>
 
-            @if (!Cortes.Any())
-            {
-                <MudAlert Severity="Severity.Info" Class="my-2">
-                    Nenhum corte disponível no catálogo no momento.
-                </MudAlert>
-            }
-            else
-            {
-                <MudSelect T="long"
-                           Label="Selecione o Corte"
-                           @bind-Value="InputModel.CorteId"
-                           Variant="Variant.Outlined"
-                           AnchorOrigin="Origin.BottomCenter"
-                           Required="true"
-                           Class="mt-2 mb-3">
-                    @foreach (var corte in Cortes)
-                    {
-                        <MudSelectItem T="long" Value="@corte.Id">
-                            <div class="d-flex justify-space-between align-center w-100 gap-4">
-                                <span><strong>@corte.Titulo</strong></span>
-                                <span style="color: var(--mud-palette-success); font-weight: bold;">
-                                    @corte.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-                                </span>
-                            </div>
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-
-                @if (CorteSelecionado != null)
-                {
-                    <MudPaper Outlined="true" Class="pa-3 mb-4 d-flex justify-space-between align-center flex-wrap gap-2" Style="background-color: rgba(255,255,255,0.03);">
+            <div class="selector-preview-card @(FilialSelecionada != null ? "selector-preview-card--filled" : "") mb-4"
+                 @onclick="AbrirFilialSheet">
+                <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+                    <div class="d-flex align-center gap-3">
+                        <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                            <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+                        </MudAvatar>
                         <div>
-                            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="font-weight-bold">
-                                @CorteSelecionado.Titulo
-                            </MudText>
-                            @if (!string.IsNullOrWhiteSpace(CorteSelecionado.Descricao))
+                            @if (FilialSelecionada != null)
                             {
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @CorteSelecionado.Descricao
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                    @FilialSelecionada.Nome
+                                </MudText>
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @FilialSelecionada.Localizacao
+                                    </MudText>
+                                </div>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                                    Toque para selecionar a unidade da barbearia...
                                 </MudText>
                             }
                         </div>
-                        <div class="d-flex align-center gap-2">
-                            <MudChip Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">
-                                @CorteSelecionado.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
-                            </MudChip>
-                            <MudChip Size="Size.Small" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AccessTime">
-                                @(CorteSelecionado.DuracaoMinutos > 0 ? CorteSelecionado.DuracaoMinutos : 40) min
-                            </MudChip>
+                    </div>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               OnClick="AbrirFilialSheet"
+                               StartIcon="@Icons.Material.Filled.KeyboardArrowUp">
+                        @(FilialSelecionada != null ? "Alterar Filial" : "Escolher")
+                    </MudButton>
+                </div>
+            </div>
+
+            <MudDivider Class="my-4" />
+
+            <!-- 2. Seleção de Barbeiro -->
+            <div class="d-flex align-center gap-2 mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">2. Escolha o Barbeiro</MudText>
+            </div>
+
+            <div class="selector-preview-card @(BarbeiroSelecionado != null ? "selector-preview-card--filled" : "") mb-4"
+                 @onclick="AbrirBarbeiroSheet">
+                <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+                    <div class="d-flex align-center gap-3">
+                        @if (BarbeiroSelecionado != null && !string.IsNullOrWhiteSpace(BarbeiroSelecionado.FotoUrl))
+                        {
+                            <MudAvatar Size="Size.Medium">
+                                <MudImage Src="@BarbeiroSelecionado.FotoUrl" Alt="@BarbeiroSelecionado.Nome" ObjectFit="ObjectFit.Cover" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            </MudAvatar>
+                        }
+                        <div>
+                            @if (BarbeiroSelecionado != null)
+                            {
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                    @BarbeiroSelecionado.Nome
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @(FilialSelecionada?.Nome ?? "Barbeiro Profissional")
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                                    Toque para escolher o seu barbeiro...
+                                </MudText>
+                            }
                         </div>
-                    </MudPaper>
-                }
-            }
+                    </div>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               OnClick="AbrirBarbeiroSheet"
+                               StartIcon="@Icons.Material.Filled.KeyboardArrowUp">
+                        @(BarbeiroSelecionado != null ? "Alterar Barbeiro" : "Escolher")
+                    </MudButton>
+                </div>
+            </div>
 
-            <MudDivider Class="my-5" />
+            <MudDivider Class="my-4" />
 
-            <!-- 2. Data e Horário -->
+            <!-- 3. Seleção de Serviço do Catálogo -->
+            <div class="d-flex align-center gap-2 mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">3. Escolha o Serviço do Catálogo</MudText>
+            </div>
+
+            <div class="selector-preview-card @(CortesSelecionados.Any() ? "selector-preview-card--filled" : "") mb-4"
+                 @onclick="AbrirServicoSheet">
+                <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+                    <div class="d-flex align-center gap-3">
+                        @if (CortesSelecionados.Count == 1 && !string.IsNullOrWhiteSpace(CortesSelecionados.First().ImagemUrl))
+                        {
+                            <MudAvatar Size="Size.Medium">
+                                <MudImage Src="@CortesSelecionados.First().ImagemUrl" Alt="@CortesSelecionados.First().Titulo" ObjectFit="ObjectFit.Cover" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Filled.ContentCut" />
+                            </MudAvatar>
+                        }
+                        <div>
+                            @if (CortesSelecionados.Any())
+                            {
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                    @TituloServicosSelecionados
+                                </MudText>
+                                <div class="d-flex align-center gap-2 flex-wrap mt-1">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @DuracaoTotalServicos min
+                                    </MudText>
+                                    <span style="opacity: 0.4">•</span>
+                                    <MudText Typo="Typo.caption" Color="Color.Success" Class="font-weight-bold">
+                                        @PrecoTotalServicos.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                    </MudText>
+                                    @if (CortesSelecionados.Count > 1)
+                                    {
+                                        <span style="opacity: 0.4">•</span>
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Dark" Class="pa-1 text-uppercase" Style="font-size: 0.7rem; height: 20px;">
+                                            @CortesSelecionados.Count serviços
+                                        </MudChip>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                                    Toque para escolher o serviço no catálogo...
+                                </MudText>
+                            }
+                        </div>
+                    </div>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               OnClick="AbrirServicoSheet"
+                               StartIcon="@Icons.Material.Filled.KeyboardArrowUp">
+                        @(CortesSelecionados.Any() ? "Alterar Serviços" : "Escolher")
+                    </MudButton>
+                </div>
+            </div>
+
+            <MudDivider Class="my-4" />
+
+            <!-- 4. Data e Horário -->
             <div class="d-flex align-center gap-2 mb-2">
                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" />
-                <MudText Typo="Typo.h6">2. Escolha o Dia e Horário</MudText>
+                <MudText Typo="Typo.h6">4. Escolha o Dia e Horário</MudText>
             </div>
 
             <MudDatePicker Label="Data do Agendamento"
@@ -157,12 +258,213 @@ else
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"
                            Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.CheckCircle"
-                           Size="Size.Large"
-                           Disabled="@(IsBusy || HorarioSelecionado == null || InputModel.CorteId == 0)">
-                    @(IsBusy ? "Processando..." : "Confirmar Agendamento")
+                           Disabled="@(IsBusy || HorarioSelecionado == null || !CortesSelecionadosIds.Any() || !InputModel.FilialId.HasValue || !InputModel.BarbeiroId.HasValue)">
+                    @if (IsBusy)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <span class="ms-2">Processando...</span>
+                    }
+                    else
+                    {
+                        <span>Confirmar Agendamento</span>
+                    }
                 </MudButton>
             </div>
         </EditForm>
     </MudPaper>
+}
+
+<!-- BOTTOM SHEET FILIAL -->
+@if (IsFilialSheetOpen)
+{
+    <div class="bottom-sheet-overlay" @onclick="FecharFilialSheet">
+        <div class="bottom-sheet-panel" @onclick:stopPropagation="true">
+            <div class="bottom-sheet-drag-handle"></div>
+            <div class="bottom-sheet-header">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Store" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold">Selecione a Filial</MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="FecharFilialSheet" />
+            </div>
+            <div class="bottom-sheet-body">
+                @if (!Filiais.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Class="my-2">Nenhuma filial disponível no momento.</MudAlert>
+                }
+                else
+                {
+                    @foreach (var filial in Filiais)
+                    {
+                        bool isSelected = InputModel.FilialId == filial.Id;
+                        <div class="bottom-sheet-item-card @(isSelected ? "bottom-sheet-item-card--selected" : "")"
+                             @onclick="@(() => SelecionarFilialAsync(filial))">
+                            <MudAvatar Color="@(isSelected ? Color.Primary : Color.Dark)" Variant="Variant.Filled" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+                            </MudAvatar>
+                            <div class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="@(isSelected ? Color.Primary : Color.Inherit)">
+                                    @filial.Nome
+                                </MudText>
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @filial.Localizacao
+                                    </MudText>
+                                </div>
+                            </div>
+                            @if (isSelected)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- BOTTOM SHEET BARBEIRO -->
+@if (IsBarbeiroSheetOpen)
+{
+    <div class="bottom-sheet-overlay" @onclick="FecharBarbeiroSheet">
+        <div class="bottom-sheet-panel" @onclick:stopPropagation="true">
+            <div class="bottom-sheet-drag-handle"></div>
+            <div class="bottom-sheet-header">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold">Selecione o Barbeiro</MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="FecharBarbeiroSheet" />
+            </div>
+            <div class="bottom-sheet-body">
+                @if (!Barbeiros.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Class="my-2">Nenhum barbeiro encontrado para esta filial.</MudAlert>
+                }
+                else
+                {
+                    @foreach (var barbeiro in Barbeiros)
+                    {
+                        bool isSelected = InputModel.BarbeiroId == barbeiro.Id;
+                        <div class="bottom-sheet-item-card @(isSelected ? "bottom-sheet-item-card--selected" : "")"
+                             @onclick="@(() => SelecionarBarbeiroAsync(barbeiro))">
+                            @if (!string.IsNullOrWhiteSpace(barbeiro.FotoUrl))
+                            {
+                                <MudAvatar Size="Size.Large">
+                                    <MudImage Src="@barbeiro.FotoUrl" Alt="@barbeiro.Nome" ObjectFit="ObjectFit.Cover" />
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Color="@(isSelected ? Color.Primary : Color.Dark)" Variant="Variant.Filled" Size="Size.Large">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" />
+                                </MudAvatar>
+                            }
+                            <div class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="@(isSelected ? Color.Primary : Color.Inherit)">
+                                    @barbeiro.Nome
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @(barbeiro.Filial?.Nome ?? FilialSelecionada?.Nome ?? "Barbeiro Profissional")
+                                </MudText>
+                            </div>
+                            @if (isSelected)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- BOTTOM SHEET SERVIÇO / CORTE -->
+@if (IsServicoSheetOpen)
+{
+    <div class="bottom-sheet-overlay" @onclick="FecharServicoSheet">
+        <div class="bottom-sheet-panel" @onclick:stopPropagation="true">
+            <div class="bottom-sheet-drag-handle"></div>
+            <div class="bottom-sheet-header">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.ContentCut" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold">Selecione os Serviços</MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="FecharServicoSheet" />
+            </div>
+            <div class="bottom-sheet-body">
+                @if (!Cortes.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Class="my-2">Nenhum serviço disponível no momento.</MudAlert>
+                }
+                else
+                {
+                    @foreach (var corte in Cortes)
+                    {
+                        bool isSelected = CortesSelecionadosIds.Contains(corte.Id);
+                        <div class="bottom-sheet-item-card @(isSelected ? "bottom-sheet-item-card--selected" : "")"
+                             @onclick="@(() => AlternarSelecaoServico(corte))">
+                            @if (!string.IsNullOrWhiteSpace(corte.ImagemUrl))
+                            {
+                                <MudAvatar Size="Size.Large">
+                                    <MudImage Src="@corte.ImagemUrl" Alt="@corte.Titulo" ObjectFit="ObjectFit.Cover" />
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Color="@(isSelected ? Color.Primary : Color.Dark)" Variant="Variant.Filled" Size="Size.Large">
+                                    <MudIcon Icon="@Icons.Material.Filled.ContentCut" />
+                                </MudAvatar>
+                            }
+                            <div class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="@(isSelected ? Color.Primary : Color.Inherit)">
+                                    @corte.Titulo
+                                </MudText>
+                                @if (!string.IsNullOrWhiteSpace(corte.Descricao))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="max-width: 300px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @corte.Descricao
+                                    </MudText>
+                                }
+                                <div class="d-flex align-center gap-2 mt-1">
+                                    <span style="font-size: 0.8rem; opacity: 0.7;">
+                                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Style="font-size: 0.9rem;" />
+                                        @(corte.DuracaoMinutos > 0 ? corte.DuracaoMinutos : 40) min
+                                    </span>
+                                    <span style="opacity: 0.4">•</span>
+                                    <span style="color: var(--mud-palette-success); font-weight: bold; font-size: 0.85rem;">
+                                        @corte.Preco.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))
+                                    </span>
+                                </div>
+                            </div>
+                            @if (isSelected)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+                            }
+                        </div>
+                    }
+                }
+            </div>
+            <div class="bottom-sheet-footer">
+                <div class="d-flex flex-column">
+                    <span style="font-size: 0.85rem; font-weight: bold; color: var(--mud-palette-primary);">
+                        @(CortesSelecionadosIds.Count) @(CortesSelecionadosIds.Count == 1 ? "serviço selecionado" : "serviços selecionados")
+                    </span>
+                    <span style="font-size: 0.75rem; opacity: 0.8;">
+                        Total: @PrecoTotalServicos.ToString("C2", CultureInfo.GetCultureInfo("pt-BR")) (@DuracaoTotalServicos min)
+                    </span>
+                </div>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Check"
+                           Disabled="@(!CortesSelecionadosIds.Any())"
+                           OnClick="ConfirmarSelecaoServicosAsync">
+                    Confirmar
+                </MudButton>
+            </div>
+        </div>
+    </div>
 }

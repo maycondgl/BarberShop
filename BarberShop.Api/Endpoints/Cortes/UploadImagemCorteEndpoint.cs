@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.common.Api;
 using BarberShop.Core;
 using BarberShop.Core.Responses;
 using BarberShop.Core.Responses.Corte;
@@ -50,11 +50,11 @@ public class UploadImagemCorteEndpoint : IEndpoint
             await using var stream = new FileStream(path, FileMode.Create);
             await file.CopyToAsync(stream);
 
-            var backendUrl = Configuration.BackendUrl.TrimEnd('/');
-
-            if (string.IsNullOrWhiteSpace(backendUrl))
+            var backendUrl = $"{request.Scheme}://{request.Host}";
+            if (!string.IsNullOrWhiteSpace(Configuration.BackendUrl) &&
+                !request.Host.Host.Contains("localhost", StringComparison.OrdinalIgnoreCase))
             {
-                backendUrl = $"{request.Scheme}://{request.Host}";
+                backendUrl = Configuration.BackendUrl.TrimEnd('/');
             }
 
             return Results.Ok(new UploadCorteImagemResponse

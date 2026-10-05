@@ -5,7 +5,7 @@
 @attribute [Authorize(Roles = "Admin")]
 
 
-<MudText Typo="Typo.h3">Criar Corte</MudText>
+<MudText Typo="Typo.h3">Criar Serviços</MudText>
 
 <MudPaper Class="pa-6 mt-4" Elevation="2">
     <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
@@ -13,7 +13,7 @@
 
         <MudGrid>
             <MudItem xs="12" md="6">
-                <MudTextField Label="Nome do corte"
+                <MudTextField Label="Nome do Serviço"
                               @bind-Value="InputModel.Titulo"
                               Variant="Variant.Outlined" />
             </MudItem>
@@ -82,7 +82,7 @@
                            Variant="Variant.Filled"
                            Color="Color.Warning"
                            Disabled="@IsBusy">
-                    Criar Corte
+                    Criar Serviço
                 </MudButton>
             </MudItem>
         </MudGrid>

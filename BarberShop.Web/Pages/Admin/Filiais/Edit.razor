@@ -1,0 +1,172 @@
+@page "/admin/filiais/editar/{id:long}"
+@using BarberShop.Core.Handlers
+@using BarberShop.Core.Requests.Filiais
+@attribute [Authorize(Roles = "Admin")]
+@inject IFilialHandler FilialHandler
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<div class="mb-4">
+    <MudText Typo="Typo.h3" Class="font-weight-bold d-flex align-center gap-2">
+        <MudIcon Icon="@Icons.Material.Filled.EditLocation" Color="Color.Warning" Size="Size.Medium" />
+        Editar Filial
+    </MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Atualize os dados e a localização da unidade.
+    </MudText>
+</div>
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-center my-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else
+{
+    <MudPaper Class="pa-6 mt-4" Elevation="2" Style="border-radius: 14px;">
+        <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
+            <DataAnnotationsValidator />
+
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Nome da Filial / Unidade"
+                                  @bind-Value="InputModel.Nome"
+                                  For="@(() => InputModel.Nome)"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Telefone de Contato"
+                                  @bind-Value="InputModel.Telefone"
+                                  For="@(() => InputModel.Telefone)"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Label="Endereço / Localização Completa"
+                                  @bind-Value="InputModel.Localizacao"
+                                  For="@(() => InputModel.Localizacao)"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  Lines="2" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudSwitch @bind-Value="InputModel.Ativo"
+                               Color="Color.Success"
+                               Label="@(InputModel.Ativo ? "Filial Ativa (disponível para agendamento)" : "Filial Inativa")" />
+                </MudItem>
+
+                <!-- Card de Pré-visualização -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold mb-2">Pré-visualização do Card de Seleção:</MudText>
+                    <div class="selector-preview-card selector-preview-card--filled" style="max-width: 500px;">
+                        <div class="d-flex align-center gap-3">
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+                            </MudAvatar>
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                                    @(string.IsNullOrWhiteSpace(InputModel.Nome) ? "Nome da Filial" : InputModel.Nome)
+                                </MudText>
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @(string.IsNullOrWhiteSpace(InputModel.Localizacao) ? "Endereço da unidade..." : InputModel.Localizacao)
+                                    </MudText>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-end gap-3 mt-4">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               Href="/admin/filiais">
+                        Voltar
+                    </MudButton>
+
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               Disabled="@IsBusy"
+                               Class="font-weight-bold px-6">
+                        @(IsBusy ? "Salvando..." : "Salvar Alterações")
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    public bool IsLoading { get; set; } = true;
+    public bool IsBusy { get; set; } = false;
+    public UpdateFilialRequest InputModel { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await FilialHandler.GetByIdAsync(new GetFilialByIdRequest { Id = Id });
+            if (result.IsSuccess && result.Data != null)
+            {
+                InputModel = new UpdateFilialRequest
+                {
+                    Id = result.Data.Id,
+                    Nome = result.Data.Nome,
+                    Localizacao = result.Data.Localizacao,
+                    Telefone = result.Data.Telefone,
+                    Ativo = result.Data.Ativo
+                };
+            }
+            else
+            {
+                Snackbar.Add("Filial não encontrada", Severity.Error);
+                NavigationManager.NavigateTo("/admin/filiais");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao buscar filial: " + ex.Message, Severity.Error);
+            NavigationManager.NavigateTo("/admin/filiais");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var result = await FilialHandler.UpdateAsync(InputModel);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Filial atualizada com sucesso!", Severity.Success);
+                NavigationManager.NavigateTo("/admin/filiais");
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Erro ao atualizar filial", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}

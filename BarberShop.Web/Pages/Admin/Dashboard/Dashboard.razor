@@ -133,7 +133,7 @@ else if (_dashboardData != null)
                                         </div>
                                     </div>
                                     <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">
-                                        @cliente.TotalAgendamentos corte(s)
+                                        @cliente.TotalAgendamentos serviço(s)
                                     </MudChip>
                                 </div>
                             }
@@ -196,7 +196,7 @@ else if (_dashboardData != null)
                                     </div>
                                     <div class="text-right">
                                         <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">
-                                            @servico.Quantidade corte(s) (@servico.Porcentagem.ToString("N1", PtBr)%)
+                                            @servico.Quantidade serviço(s) (@servico.Porcentagem.ToString("N1", PtBr)%)
                                         </MudChip>
                                     </div>
                                 </div>
@@ -324,17 +324,17 @@ else if (_dashboardData != null)
             </MudCard>
         </MudItem>
 
-        <!-- Gráfico 2: Agendamentos por Corte com Hastes e Porcentagens -->
+        <!-- Gráfico 2: Agendamentos por Serviço com Hastes e Porcentagens -->
         <MudItem xs="12" lg="6" Class="d-flex">
             <MudCard Elevation="3" Class="pa-4 d-flex flex-column justify-space-between flex-grow-1">
                 <div>
                     <!-- Cabeçalho -->
                     <MudText Typo="Typo.h6" Class="font-weight-bold mb-1">
                         <MudIcon Icon="@Icons.Material.Filled.PieChart" Color="Color.Secondary" Class="mr-2" />
-                        Agendamentos por Corte
+                        Agendamentos por Serviço
                     </MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3 d-block">
-                        Distribuição da quantidade e porcentagem (%) para cada corte do catálogo
+                        Distribuição da quantidade e porcentagem (%) para cada serviço do catálogo
                     </MudText>
 
                     <!-- Gráfico SVG com Hastes Anti-Colisão -->
@@ -397,7 +397,7 @@ else if (_dashboardData != null)
         </MudItem>
     </MudGrid>
 
-    <!-- 4. TABELA DE DETALHAMENTO DOS CORTES DO CATÁLOGO -->
+    <!-- 4. TABELA DE DETALHAMENTO DOS SERVIÇO DO CATÁLOGO -->
     <MudCard Elevation="3" Class="pa-4">
         <MudText Typo="Typo.h6" Class="font-weight-bold mb-3">
             <MudIcon Icon="@Icons.Material.Filled.ListAlt" Color="Color.Primary" Class="mr-2" />
@@ -413,7 +413,7 @@ else if (_dashboardData != null)
                     <MudTh Style="text-align: right;">Receita Acumulada</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Corte">
+                    <MudTd DataLabel="Serviço">
                         <div class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Color="Color.Secondary" />
                             <span class="font-weight-bold">@context.Titulo</span>
@@ -433,7 +433,7 @@ else if (_dashboardData != null)
                 </RowTemplate>
                 <NoRecordsContent>
                     <MudText Typo="Typo.body2" Class="pa-3 text-center" Color="Color.Secondary">
-                        Nenhum corte cadastrado no catálogo.
+                        Nenhum serviço cadastrado no catálogo.
                     </MudText>
                 </NoRecordsContent>
             </MudTable>
@@ -444,7 +444,7 @@ else if (_dashboardData != null)
             @if (!_dashboardData.CortesMetricas.Any())
             {
                 <MudText Typo="Typo.body2" Class="pa-3 text-center" Color="Color.Secondary">
-                    Nenhum corte cadastrado no catálogo.
+                    Nenhum serviço cadastrado no catálogo.
                 </MudText>
             }
             else
@@ -586,7 +586,7 @@ else if (_dashboardData != null)
                             <tr>
                                 <th>Cliente</th>
                                 <th>Data e Horário</th>
-                                <th>Corte</th>
+                                <th>Serviço</th>
                                 <th>Valor</th>
                                 <th>Minutos</th>
                                 <th>Status</th>

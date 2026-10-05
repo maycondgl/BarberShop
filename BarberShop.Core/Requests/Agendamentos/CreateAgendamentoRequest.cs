@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace BarberShop.Core.Requests.Agendamentos
 {
@@ -11,6 +11,16 @@ namespace BarberShop.Core.Requests.Agendamentos
         [Required(ErrorMessage = "O corte é obrigatório")]
         [Range(1, long.MaxValue, ErrorMessage = "ID do corte inválido")]
         public long CorteId { get; set; }
+
+        public List<long> CorteIds { get; set; } = new();
+
+        [Required(ErrorMessage = "A filial é obrigatória")]
+        [Range(1, long.MaxValue, ErrorMessage = "ID da filial inválido")]
+        public long? FilialId { get; set; }
+
+        [Required(ErrorMessage = "O barbeiro é obrigatório")]
+        [Range(1, long.MaxValue, ErrorMessage = "ID do barbeiro inválido")]
+        public long? BarbeiroId { get; set; }
 
         [Required(ErrorMessage = "A data e hora são obrigatórias")]
         [DataType(DataType.DateTime)]

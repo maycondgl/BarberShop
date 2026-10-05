@@ -4,7 +4,7 @@
 @attribute [Authorize(Roles = "Admin")]
 @inherits UpdatePageCorte
 
-<MudText Typo="Typo.h3">Editar Corte</MudText>
+<MudText Typo="Typo.h3">Editar Serviço</MudText>
 
 <MudPaper Class="pa-6 mt-4" Elevation="2">
     <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
@@ -12,7 +12,7 @@
 
         <MudGrid>
             <MudItem xs="12" md="6">
-                <MudTextField Label="Nome do corte"
+                <MudTextField Label="Nome do serviço"
                               @bind-Value="InputModel.Titulo"
                               Variant="Variant.Outlined" />
             </MudItem>

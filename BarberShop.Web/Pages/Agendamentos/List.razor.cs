@@ -132,6 +132,12 @@ namespace BarberShop.Web.Pages.Agendamentos
             if (agendamento.Corte != null && agendamento.Corte.Titulo.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
                 return true;
 
+            if (agendamento.Filial != null && agendamento.Filial.Nome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (agendamento.Barbeiro != null && agendamento.Barbeiro.Nome.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                return true;
+
             if (agendamento.Data.ToString("dd/MM/yyyy HH:mm").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
                 return true;
 
