@@ -14,12 +14,28 @@
     </MudNavLink>
 
     <MudNavLink Href="/avaliacoes" Icon="@Icons.Material.Filled.StarRate" IconSize="Size.Medium">
-        Avaliações
+        Minhas Avaliações
     </MudNavLink>
 
     <MudNavLink Href="/perfil" Icon="@Icons.Material.Filled.AccountCircle" IconSize="Size.Medium">
         Perfil
     </MudNavLink>
+
+    <AuthorizeView Roles="Barbeiro,Admin">
+        <Authorized>
+            <MudNavGroup Title="Área do Barbeiro" Icon="@Icons.Material.Filled.ContentCut" IconSize="Size.Medium" Expanded="false">
+                <MudNavLink Href="/barbeiro/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
+                    Meu Painel
+                </MudNavLink>
+                <MudNavLink Href="/barbeiro/agendamentos" Icon="@Icons.Material.Filled.CalendarMonth" IconSize="Size.Medium">
+                    Meus Agendamentos
+                </MudNavLink>
+                <MudNavLink Href="/barbeiro/avaliacoes" Icon="@Icons.Material.Filled.StarHalf" IconSize="Size.Medium">
+                    Minhas Avaliações
+                </MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
 
     <AuthorizeView Roles="Admin">
         <Authorized>
@@ -36,11 +52,17 @@
                 <MudNavLink Href="/admin/filiais" Icon="@Icons.Material.Filled.Store" IconSize="Size.Medium">
                     Filiais
                 </MudNavLink>
+                <MudNavLink Href="/admin/funcionamento" Icon="@Icons.Material.Filled.AccessTime" IconSize="Size.Medium">
+                    Horários & Funcionamento
+                </MudNavLink>
                 <MudNavLink Href="/admin/barbeiros" Icon="@Icons.Material.Filled.Person" IconSize="Size.Medium">
                     Barbeiros
                 </MudNavLink>
                 <MudNavLink Href="/admin/usuarios" Icon="@Icons.Material.Filled.ManageAccounts" IconSize="Size.Medium">
                     Usuários
+                </MudNavLink>
+                <MudNavLink Href="/admin/avaliacoes" Icon="@Icons.Material.Filled.RateReview" IconSize="Size.Medium">
+                    Avaliações
                 </MudNavLink>
                 <MudNavLink Href="/admin/dias-fechados" Icon="@Icons.Material.Filled.EventBusy" IconSize="Size.Medium">
                     Dias Fechados

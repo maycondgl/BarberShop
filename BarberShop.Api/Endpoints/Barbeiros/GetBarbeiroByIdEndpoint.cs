@@ -9,7 +9,7 @@ namespace BarberShop.Api.Endpoints.Barbeiros
     public class GetBarbeiroByIdEndpoint : IEndpoint
     {
         public static void Map(IEndpointRouteBuilder app)
-            => app.MapGet("/{id}", HandleAsync)
+            => app.MapGet("/{id:long}", HandleAsync)
                 .WithName("Barbeiros: Get By Id")
                 .WithSummary("Obter barbeiro por ID")
                 .WithDescription("Recupera os detalhes de um barbeiro")

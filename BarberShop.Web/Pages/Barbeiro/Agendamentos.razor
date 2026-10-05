@@ -1,0 +1,176 @@
+@page "/barbeiro/agendamentos"
+@using BarberShop.Core.Responses.Agendamento
+@using BarberShop.Web.Pages.AreaBarbeiro
+@using MudBlazor
+@inherits BarbeiroAgendamentosPage
+@attribute [Authorize(Roles = "Barbeiro,Admin")]
+
+<PageTitle>BarberShop - Meus Agendamentos (Barbeiro)</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold">Meus Agendamentos</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Acompanhe sua escala de clientes e horários (Modo Leitura).
+        </MudText>
+    </div>
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Refresh"
+               Disabled="IsBusy"
+               OnClick="CarregarDadosAsync">
+        @(IsBusy ? "Atualizando..." : "Atualizar")
+    </MudButton>
+</div>
+
+<MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+    Como barbeiro, sua visão é apenas de consulta. O aceite, conclusão ou cancelamento de agendamentos é realizado exclusivamente pelo administrador.
+</MudAlert>
+
+@if (IsBusy && DashboardData == null)
+{
+    <div class="d-flex justify-center align-center my-12">
+        <MudProgressCircular Color="Color.Warning" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (DashboardData != null)
+{
+    <MudCard Elevation="3" Class="pa-4 mb-6">
+        <!-- CONTROLES DE FILTRO POR PERÍODO -->
+        <div class="d-flex justify-space-between align-center flex-wrap gap-3 mb-4">
+            <MudButtonGroup Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small">
+                <MudButton Variant="@(FiltroPeriodo == "Dia" ? Variant.Filled : Variant.Outlined)"
+                           OnClick="@(() => SetPeriodo("Dia"))">
+                    Dia (@ObterContagemPeriodo("Dia"))
+                </MudButton>
+                <MudButton Variant="@(FiltroPeriodo == "Semana" ? Variant.Filled : Variant.Outlined)"
+                           OnClick="@(() => SetPeriodo("Semana"))">
+                    Semana (@ObterContagemPeriodo("Semana"))
+                </MudButton>
+                <MudButton Variant="@(FiltroPeriodo == "Mes" ? Variant.Filled : Variant.Outlined)"
+                           OnClick="@(() => SetPeriodo("Mes"))">
+                    Mês (@ObterContagemPeriodo("Mes"))
+                </MudButton>
+                <MudButton Variant="@(FiltroPeriodo == "Ano" ? Variant.Filled : Variant.Outlined)"
+                           OnClick="@(() => SetPeriodo("Ano"))">
+                    Ano (@ObterContagemPeriodo("Ano"))
+                </MudButton>
+                <MudButton Variant="@(FiltroPeriodo == "Todos" ? Variant.Filled : Variant.Outlined)"
+                           OnClick="@(() => SetPeriodo("Todos"))">
+                    Todos (@ObterContagemPeriodo("Todos"))
+                </MudButton>
+            </MudButtonGroup>
+
+            <div style="min-width: 250px;">
+                <MudTextField @bind-Value="BuscaTexto"
+                              Placeholder="Buscar cliente, corte ou status..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              IconSize="Size.Small"
+                              Margin="Margin.Dense"
+                              Variant="Variant.Outlined" />
+            </div>
+        </div>
+
+        @if (FiltroPeriodo != "Todos")
+        {
+            <!-- BARRA DE NAVEGAÇÃO TEMPORAL (< DATA >) -->
+            <div class="d-flex justify-space-between align-center flex-wrap gap-2 px-3 py-2 rounded mb-4"
+                 style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-center gap-2">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   Title="Período anterior"
+                                   OnClick="@(() => NavegarPeriodo(-1))" />
+
+                    <div class="d-flex align-center gap-2">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Warning" />
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold">
+                            @PeriodoFormatado
+                        </MudText>
+                    </div>
+
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   Title="Próximo período"
+                                   OnClick="@(() => NavegarPeriodo(1))" />
+                </div>
+
+                @if (!IsPeriodoAtual)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Size="Size.Small"
+                               Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Today"
+                               OnClick="IrParaHoje">
+                        Voltar para Hoje
+                    </MudButton>
+                }
+            </div>
+        }
+
+        @{
+            var lista = ObterAgendamentosFiltrados();
+        }
+
+        @if (!lista.Any())
+        {
+            <div class="pa-8 text-center" style="opacity: 0.7;">
+                <MudIcon Icon="@Icons.Material.Filled.EventBusy" Size="Size.Large" Class="mb-2" />
+                <MudText Typo="Typo.body1">Nenhum agendamento encontrado para <strong>@PeriodoFormatado</strong>.</MudText>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var ag in lista)
+                {
+                    <div class="d-flex justify-space-between align-center pa-3 rounded flex-wrap gap-2"
+                         style="background: rgba(255, 255, 255, 0.03); border-left: 4px solid #FFC107;">
+                        <div class="d-flex align-center gap-3">
+                            <div class="text-center px-3 py-2 rounded" style="background: rgba(255, 193, 7, 0.12);">
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="color: #FFC107;">
+                                    @ag.Data.ToString("HH:mm")
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @ag.Data.ToString("dd/MM/yyyy")
+                                </MudText>
+                            </div>
+                            <div>
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Warning" />
+                                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold">
+                                        @(!string.IsNullOrWhiteSpace(ag.NomeCliente) ? ag.NomeCliente : "Cliente")
+                                    </MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Class="mr-1" />
+                                    @ag.CorteTitulo (@ag.TempoMinutos min)
+                                </MudText>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-center gap-4">
+                            <div class="text-right">
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="color: #4CAF50;">
+                                    @ag.Valor.ToString("C", PtBr)
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Duração: @ag.TempoMinutos min
+                                </MudText>
+                            </div>
+                            <span class="px-3 py-1 rounded font-weight-bold" style="@GetStatusColor(ag.Status); font-size: 0.8rem;">
+                                @GetStatusLabel(ag.Status)
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </MudCard>
+}

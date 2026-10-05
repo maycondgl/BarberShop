@@ -108,6 +108,14 @@ else
                     <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                         <CellTemplate Context="filial">
                             <div class="d-flex align-center gap-2">
+                                <MudButton Href="@($"/admin/filiais/{filial.Item.Id}/horarios")"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Warning"
+                                           StartIcon="@Icons.Material.Filled.AccessTime">
+                                    Horários
+                                </MudButton>
+
                                 <MudButton Href="@($"/admin/filiais/editar/{filial.Item.Id}")"
                                            Size="Size.Small"
                                            Variant="Variant.Filled"
@@ -163,6 +171,16 @@ else
                     }
 
                     <div class="admin-corte-card__actions mt-3">
+                        <MudButton Href="@($"/admin/filiais/{filial.Id}/horarios")"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   Size="Size.Medium"
+                                   StartIcon="@Icons.Material.Filled.AccessTime"
+                                   Class="flex-1 font-weight-bold"
+                                   Style="min-height: 44px; border-radius: 8px;">
+                            Horários
+                        </MudButton>
+
                         <MudButton Href="@($"/admin/filiais/editar/{filial.Id}")"
                                    Variant="Variant.Filled"
                                    Color="Color.Primary"

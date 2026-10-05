@@ -1,6 +1,7 @@
 using BarberShop.Core.Enums;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
+using Barbeiro = BarberShop.Core.Models.Barbeiro;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Barbeiros;
 using BarberShop.Core.Requests.Cortes;
@@ -25,10 +26,10 @@ namespace BarberShop.Web.Pages.Agendamentos
         public string Id { get; set; } = string.Empty;
 
         public List<Filial> Filiais { get; set; } = new();
-        public List<Barbeiro> Barbeiros { get; set; } = new();
+        public List<BarberShop.Core.Models.Barbeiro> Barbeiros { get; set; } = new();
 
         public Filial? FilialSelecionada => Filiais.FirstOrDefault(f => f.Id == InputModel.FilialId);
-        public Barbeiro? BarbeiroSelecionado => Barbeiros.FirstOrDefault(b => b.Id == InputModel.BarbeiroId);
+        public BarberShop.Core.Models.Barbeiro? BarbeiroSelecionado => Barbeiros.FirstOrDefault(b => b.Id == InputModel.BarbeiroId);
 
         public bool IsFilialSheetOpen { get; set; } = false;
         public bool IsBarbeiroSheetOpen { get; set; } = false;
@@ -180,7 +181,7 @@ namespace BarberShop.Web.Pages.Agendamentos
         public void AbrirBarbeiroSheet() => IsBarbeiroSheetOpen = true;
         public void FecharBarbeiroSheet() => IsBarbeiroSheetOpen = false;
 
-        public async Task SelecionarBarbeiroAsync(Barbeiro barbeiro)
+        public async Task SelecionarBarbeiroAsync(BarberShop.Core.Models.Barbeiro barbeiro)
         {
             InputModel.BarbeiroId = barbeiro.Id;
             FecharBarbeiroSheet();
@@ -329,23 +330,28 @@ namespace BarberShop.Web.Pages.Agendamentos
                     return;
                 }
 
-                var horariosOcupados = new List<TimeSpan>();
+                var intervalosOcupados = new List<(TimeSpan Inicio, TimeSpan Fim)>();
 
                 long currentId = long.TryParse(Id, out var parsedId) ? parsedId : 0;
 
                 if (result.Data != null)
                 {
-                    horariosOcupados = result.Data
+                    intervalosOcupados = result.Data
                         .Where(x => x.Id != currentId
                             && x.Data.Date == data.Date
                             && x.Status != "Cancelado"
                             && x.Status != EStatusAgendamento.Cancelado.ToString()
                             && (!InputModel.BarbeiroId.HasValue || x.BarbeiroId == null || x.BarbeiroId == InputModel.BarbeiroId.Value))
-                        .Select(x => new TimeSpan(x.Data.Hour, x.Data.Minute, 0))
+                        .Select(x =>
+                        {
+                            var inicio = x.Data.TimeOfDay;
+                            var duracao = TimeSpan.FromMinutes(x.TempoMinutos > 0 ? x.TempoMinutos : 40);
+                            return (Inicio: inicio, Fim: inicio.Add(duracao));
+                        })
                         .ToList();
                 }
 
-                GerarHorarios(data, horariosOcupados);
+                GerarHorarios(data, intervalosOcupados);
 
                 if (HorarioSelecionado.HasValue && !HorariosDisponiveis.Contains(HorarioSelecionado.Value))
                 {
@@ -371,7 +377,7 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
-        private void GerarHorarios(DateTime dataEscolhida, List<TimeSpan> horariosJaOcupadosNoBanco)
+        private void GerarHorarios(DateTime dataEscolhida, List<(TimeSpan Inicio, TimeSpan Fim)> intervalosOcupados)
         {
             HorariosDisponiveis.Clear();
 
@@ -390,14 +396,20 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
 
             var duracaoTotal = DuracaoTotalServicos > 0 ? DuracaoTotalServicos : 40;
+            var duracaoTimeSpan = TimeSpan.FromMinutes(duracaoTotal);
             var intervalo = TimeSpan.FromMinutes(40);
             var horarioAtual = horarioAbertura;
 
-            while (horarioAtual.Add(TimeSpan.FromMinutes(duracaoTotal)) <= horarioFechamento)
+            while (horarioAtual.Add(duracaoTimeSpan) <= horarioFechamento)
             {
+                var slotInicio = horarioAtual;
+                var slotFim = horarioAtual.Add(duracaoTimeSpan);
                 bool horarioJaPassou = dataEscolhida.Date == DateTime.Today.Date && horarioAtual <= DateTime.Now.TimeOfDay;
 
-                if (!horariosJaOcupadosNoBanco.Contains(horarioAtual) && !horarioJaPassou)
+                bool temConflito = intervalosOcupados.Any(ocupado =>
+                    slotInicio < ocupado.Fim && slotFim > ocupado.Inicio);
+
+                if (!temConflito && !horarioJaPassou)
                 {
                     HorariosDisponiveis.Add(horarioAtual);
                 }

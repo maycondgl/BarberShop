@@ -1,12 +1,15 @@
-﻿namespace BarberShop.Core.Responses.Avaliacao
+namespace BarberShop.Core.Responses.Avaliacao
 {
    public record AvaliacaoResponse(
-   long Id,
-   long UserId,
-   long AgendamentoId,
-   int Estrelas,
-   string? Comentario,
-   DateTime Data,
-   string NomeCliente
-);
+       long Id,
+       long UserId,
+       long AgendamentoId,
+       int Estrelas,
+       string? Comentario,
+       DateTime Data,
+       string NomeCliente,
+       string? BarbeiroNome = null,
+       string? ServicoTitulo = null,
+       long? BarbeiroId = null
+   );
 }

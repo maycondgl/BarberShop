@@ -1,0 +1,445 @@
+@page "/barbeiro/dashboard"
+@using BarberShop.Web.Pages.AreaBarbeiro
+@using MudBlazor
+@inherits BarbeiroDashboardPage
+@attribute [Authorize(Roles = "Barbeiro,Admin")]
+
+<PageTitle>BarberShop - Meu Painel do Barbeiro</PageTitle>
+
+@if (IsBusy && DashboardData == null)
+{
+    <div class="d-flex justify-center align-center my-12">
+        <MudProgressCircular Color="Color.Warning" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (DashboardData != null)
+{
+    <!-- 1. CABEÇALHO DO PERFIL DO BARBEIRO COM ATALHOS -->
+    <MudCard Elevation="3" Class="pa-4 mb-6" Style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%); border: 1px solid rgba(255, 193, 7, 0.2);">
+        <div class="d-flex justify-space-between align-center flex-wrap gap-4">
+            <div class="d-flex align-center gap-4">
+                @if (!string.IsNullOrWhiteSpace(DashboardData.FotoUrl))
+                {
+                    <MudAvatar Size="Size.Large" Style="width: 72px; height: 72px; border: 2px solid #FFC107;">
+                        <MudImage Src="@DashboardData.FotoUrl" Alt="@DashboardData.Nome" />
+                    </MudAvatar>
+                }
+                else
+                {
+                    <MudAvatar Color="Color.Warning" Size="Size.Large" Style="width: 72px; height: 72px; font-size: 1.8rem; font-weight: bold;">
+                        @DashboardData.Nome.FirstOrDefault()
+                    </MudAvatar>
+                }
+                <div>
+                    <div class="d-flex align-center gap-2 flex-wrap">
+                        <MudText Typo="Typo.h4" Class="font-weight-bold">@DashboardData.Nome</MudText>
+                        <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled">Barbeiro</MudChip>
+                        @if (!string.IsNullOrWhiteSpace(DashboardData.FilialNome))
+                        {
+                            <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Store">
+                                @DashboardData.FilialNome
+                            </MudChip>
+                        }
+                    </div>
+
+                    <div class="d-flex align-center gap-3 mt-1 flex-wrap">
+                        <div class="d-flex align-center">
+                            <MudRating ReadOnly="true" SelectedValue="@((int)Math.Round(DashboardData.MediaAvaliacoes))" MaxValue="5" Color="Color.Warning" Size="Size.Small" />
+                            <MudText Typo="Typo.body2" Class="ml-1 font-weight-bold" Style="color: #FFC107;">
+                                @DashboardData.MediaAvaliacoes.ToString("N1", PtBr)
+                            </MudText>
+                        </div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            • @DashboardData.TotalAvaliacoes avaliação(ões) de clientes
+                        </MudText>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação e Atalhos para Telas Individuais -->
+            <div class="d-flex align-center gap-2 flex-wrap">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.CalendarMonth"
+                           Href="/barbeiro/agendamentos">
+                    Meus Agendamentos
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.StarRate"
+                           Href="/barbeiro/avaliacoes">
+                    Minhas Avaliações
+                </MudButton>
+
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                               Color="Color.Warning"
+                               Variant="Variant.Outlined"
+                               Title="Atualizar dados"
+                               Disabled="IsBusy"
+                               OnClick="CarregarDashboardAsync" />
+            </div>
+        </div>
+    </MudCard>
+
+    <!-- 2. CARDS DE KPIS FINANCEIROS E ATENDIMENTOS -->
+    <MudGrid Class="mb-6">
+        <!-- Lucro Hoje -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="3" Class="pa-4 h-100" Style="border-left: 5px solid #FFC107; background: rgba(255, 255, 255, 0.02);">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">LUCRO HOJE</MudText>
+                        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="color: #FFC107;">
+                            @DashboardData.LucroHoje.ToString("C", PtBr)
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                            <strong>@DashboardData.TotalAgendamentosHoje</strong> atendimento(s) programado(s)
+                        </MudText>
+                    </div>
+                    <MudAvatar Color="Color.Warning" Variant="Variant.Filled" Size="Size.Medium">
+                        <MudIcon Icon="@Icons.Material.Filled.Today" />
+                    </MudAvatar>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <!-- Lucro Semana -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="3" Class="pa-4 h-100" Style="border-left: 5px solid #4CAF50; background: rgba(255, 255, 255, 0.02);">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">LUCRO DESTA SEMANA</MudText>
+                        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="color: #4CAF50;">
+                            @DashboardData.LucroSemana.ToString("C", PtBr)
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                            <strong>@DashboardData.TotalAgendamentosSemana</strong> atendimento(s) na semana
+                        </MudText>
+                    </div>
+                    <MudAvatar Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium">
+                        <MudIcon Icon="@Icons.Material.Filled.DateRange" />
+                    </MudAvatar>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <!-- Lucro Mês -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="3" Class="pa-4 h-100" Style="border-left: 5px solid #2196F3; background: rgba(255, 255, 255, 0.02);">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">LUCRO DESTE MÊS</MudText>
+                        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="color: #2196F3;">
+                            @DashboardData.LucroMes.ToString("C", PtBr)
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                            <strong>@DashboardData.TotalAgendamentosMes</strong> atendimento(s) no mês
+                        </MudText>
+                    </div>
+                    <MudAvatar Color="Color.Info" Variant="Variant.Filled" Size="Size.Medium">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" />
+                    </MudAvatar>
+                </div>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <!-- 3. GRÁFICO DE FATURAMENTO E DESEMPENHO DE SERVIÇOS -->
+    <MudGrid Class="mb-6">
+        <!-- Gráfico de Lucro Diário / Semanal / Mensal / Anual / Comparativo -->
+        <MudItem xs="12" lg="7" Class="d-flex">
+            <MudCard Elevation="3" Class="pa-4 d-flex flex-column justify-space-between flex-grow-1" Style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <!-- Seletor de Período -->
+                    <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <MudText Typo="Typo.h6" Class="font-weight-bold">
+                                <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Warning" Class="mr-2" />
+                                Faturamento & Lucro
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @_periodoDescricao
+                            </MudText>
+                        </div>
+
+                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small" Color="Color.Warning">
+                            <MudButton Variant="@(_periodoSelecionado == PeriodoTipo.Dia ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => MudarPeriodo(PeriodoTipo.Dia))">
+                                Dia
+                            </MudButton>
+                            <MudButton Variant="@(_periodoSelecionado == PeriodoTipo.Semana ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => MudarPeriodo(PeriodoTipo.Semana))">
+                                Semana
+                            </MudButton>
+                            <MudButton Variant="@(_periodoSelecionado == PeriodoTipo.Mes ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => MudarPeriodo(PeriodoTipo.Mes))">
+                                Mês
+                            </MudButton>
+                            <MudButton Variant="@(_periodoSelecionado == PeriodoTipo.Ano ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => MudarPeriodo(PeriodoTipo.Ano))">
+                                Ano
+                            </MudButton>
+                            <MudButton Variant="@(_periodoSelecionado == PeriodoTipo.Comparativo ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => MudarPeriodo(PeriodoTipo.Comparativo))">
+                                Comparativo
+                            </MudButton>
+                        </MudButtonGroup>
+                    </div>
+
+                    <!-- Barra de Navegação Temporal (< Data/Período >) -->
+                    <div class="d-flex justify-space-between align-center flex-wrap gap-2 px-3 py-2 rounded mb-3"
+                         style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <div class="d-flex align-center gap-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Warning"
+                                           Title="Anterior"
+                                           OnClick="@(() => NavegarPeriodo(-1))" />
+
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Warning" />
+                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold">
+                                    @PeriodoFormatado
+                                </MudText>
+                            </div>
+
+                            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                           Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Warning"
+                                           Title="Próximo"
+                                           OnClick="@(() => NavegarPeriodo(1))" />
+                        </div>
+
+                        @if (!IsPeriodoAtual)
+                        {
+                            <MudButton Variant="Variant.Filled"
+                                       Size="Size.Small"
+                                       Color="Color.Warning"
+                                       StartIcon="@Icons.Material.Filled.Today"
+                                       OnClick="IrParaHoje">
+                                Voltar para Hoje
+                            </MudButton>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-center align-center" style="min-height: 360px; width: 100%;">
+                        @if (_barItems.Any())
+                        {
+                            <svg viewBox="0 0 640 360" style="width: 100%; height: auto; min-height: 360px; overflow: visible;">
+                                <defs>
+                                    <linearGradient id="barberBarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#FFD54F" />
+                                        <stop offset="100%" stop-color="#FFB300" />
+                                    </linearGradient>
+                                </defs>
+
+                                <!-- Linhas horizontais e rótulos do eixo Y -->
+                                @foreach (var tick in _yAxisTicks)
+                                {
+                                    <line x1="65" y1="@tick.Y.ToString(Inv)" x2="605" y2="@tick.Y.ToString(Inv)"
+                                          stroke="rgba(255, 255, 255, 0.08)"
+                                          stroke-dasharray="3,3" />
+
+                                    @((MarkupString)$"<text x=\"58\" y=\"{(tick.Y + 4).ToString(Inv)}\" text-anchor=\"end\" fill=\"rgba(255, 255, 255, 0.5)\" font-size=\"12\">{tick.Label}</text>")
+                                }
+
+                                <!-- Linha de base X -->
+                                <line x1="65" y1="295" x2="605" y2="295" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" />
+
+                                <!-- Barras e Rótulos -->
+                                @foreach (var bar in _barItems)
+                                {
+                                    @if (bar.Height > 0)
+                                    {
+                                        <rect x="@bar.X.ToString(Inv)"
+                                              y="@bar.Y.ToString(Inv)"
+                                              width="@bar.Width.ToString(Inv)"
+                                              height="@bar.Height.ToString(Inv)"
+                                              rx="6"
+                                              fill="url(#barberBarGrad)" />
+
+                                        @((MarkupString)$"<text x=\"{bar.CenterX.ToString(Inv)}\" y=\"{(bar.Y - 8).ToString(Inv)}\" text-anchor=\"middle\" fill=\"#FFC107\" font-size=\"12\" font-weight=\"bold\">{bar.ValorFormatado}</text>")
+                                    }
+                                    else
+                                    {
+                                        <rect x="@bar.X.ToString(Inv)"
+                                              y="293"
+                                              width="@bar.Width.ToString(Inv)"
+                                              height="2"
+                                              rx="1"
+                                              fill="rgba(255,255,255,0.2)" />
+
+                                        @((MarkupString)$"<text x=\"{bar.CenterX.ToString(Inv)}\" y=\"286\" text-anchor=\"middle\" fill=\"rgba(255, 255, 255, 0.35)\" font-size=\"11\">R$ 0</text>")
+                                    }
+
+                                    <!-- Rótulo no Eixo X (Linha 1: Dia da semana ou nome do mês/turno) -->
+                                    @((MarkupString)$"<text x=\"{bar.CenterX.ToString(Inv)}\" y=\"318\" text-anchor=\"middle\" fill=\"#FFFFFF\" font-size=\"12\" font-weight=\"bold\">{bar.RotuloLinha1}</text>")
+
+                                    @if (!string.IsNullOrEmpty(bar.RotuloLinha2))
+                                    {
+                                        <!-- Rótulo no Eixo X (Linha 2: Data em fonte suave) -->
+                                        @((MarkupString)$"<text x=\"{bar.CenterX.ToString(Inv)}\" y=\"336\" text-anchor=\"middle\" fill=\"rgba(255, 255, 255, 0.6)\" font-size=\"11\">{bar.RotuloLinha2}</text>")
+                                    }
+                                }
+                            </svg>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Nenhum faturamento registrado no período selecionado.
+                            </MudText>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex justify-space-between align-center pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        * Apenas agendamentos válidos e não cancelados
+                    </MudText>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Warning"
+                               Size="Size.Small"
+                               EndIcon="@Icons.Material.Filled.ArrowForward"
+                               Href="/barbeiro/agendamentos">
+                        Ver Agenda Completa
+                    </MudButton>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <!-- Top 3 Serviços Mais Realizados & Serviços Executados Hoje -->
+        <MudItem xs="12" lg="5" Class="d-flex flex-column gap-4">
+            <!-- 1. TOP 3 SERVIÇOS MAIS REALIZADOS (HISTÓRICO) -->
+            <MudCard Elevation="3" Class="pa-4" Style="background: rgba(255, 255, 255, 0.02); border-left: 4px solid #FFC107;">
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <div>
+                        <MudText Typo="Typo.h6" Class="font-weight-bold">
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Color="Color.Warning" Class="mr-2" />
+                            Top 3 Serviços Mais Realizados
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Seus serviços com maior número histórico de cortes
+                        </MudText>
+                    </div>
+                </div>
+
+                @{
+                    var top3 = DashboardData.ServicosMaisTrabalhados.Take(3).ToList();
+                }
+
+                @if (top3.Any())
+                {
+                    <div class="d-flex flex-column gap-2 mt-2">
+                        @for (int i = 0; i < top3.Count; i++)
+                        {
+                            var serv = top3[i];
+                            var medalha = i switch { 0 => "🥇 1º", 1 => "🥈 2º", _ => "🥉 3º" };
+                            var corBorda = i switch { 0 => "#FFD700", 1 => "#C0C0C0", _ => "#CD7F32" };
+
+                            <div class="d-flex justify-space-between align-center pa-2 rounded"
+                                 style="background: rgba(255, 255, 255, 0.03); border-left: 3px solid @corBorda;">
+                                <div class="d-flex align-center gap-2">
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@medalha</MudText>
+                                    <div>
+                                        <MudText Typo="Typo.body2" Class="font-weight-bold">@serv.Titulo</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Participação: @serv.Porcentagem.ToString("N1", PtBr)%
+                                        </MudText>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-center gap-2">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled">
+                                        @serv.Quantidade corte(s)
+                                    </MudChip>
+                                    <MudText Typo="Typo.body2" Class="font-weight-bold" Style="color: #4CAF50;">
+                                        @serv.TotalReceita.ToString("C0", PtBr)
+                                    </MudText>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-3 text-center">
+                        Nenhum corte registrado até o momento.
+                    </MudText>
+                }
+            </MudCard>
+
+            <!-- 2. SERVIÇOS EXECUTADOS HOJE (RESET DIÁRIO) -->
+            <MudCard Elevation="3" Class="pa-4 flex-grow-1 d-flex flex-column justify-space-between" Style="background: rgba(255, 255, 255, 0.02); border-left: 4px solid #2196F3;">
+                <div>
+                    <div class="d-flex justify-space-between align-center mb-2">
+                        <div>
+                            <MudText Typo="Typo.h6" Class="font-weight-bold">
+                                <MudIcon Icon="@Icons.Material.Filled.Today" Color="Color.Info" Class="mr-2" />
+                                Serviços Executados Hoje
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Atendimentos computados exclusivamente hoje (@DateTime.Today.ToString("dd/MM/yyyy"))
+                            </MudText>
+                        </div>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
+                            Reset Diário
+                        </MudChip>
+                    </div>
+
+                    @if (DashboardData.ServicosHoje.Any())
+                    {
+                        <div class="d-flex flex-column gap-2 mt-2">
+                            @foreach (var serv in DashboardData.ServicosHoje)
+                            {
+                                <div class="d-flex justify-space-between align-center pa-2 rounded" style="background: rgba(255, 255, 255, 0.03);">
+                                    <div class="d-flex align-center gap-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Color="Color.Info" />
+                                        <MudText Typo="Typo.body2" Class="font-weight-bold">@serv.Titulo</MudText>
+                                    </div>
+                                    <div class="d-flex align-center gap-2">
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Filled">
+                                            @serv.Quantidade atendimento(s)
+                                        </MudChip>
+                                        <MudText Typo="Typo.body2" Class="font-weight-bold" Style="color: #4CAF50;">
+                                            @serv.TotalReceita.ToString("C", PtBr)
+                                        </MudText>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="pa-4 text-center my-auto" style="background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Size="Size.Medium" Color="Color.Default" Class="mb-1" />
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Nenhum atendimento realizado hoje.
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Novos atendimentos do dia aparecerão aqui automaticamente.
+                            </MudText>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-space-between align-center pt-3 mt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div class="d-flex align-center gap-1">
+                        <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Nota: <strong>@DashboardData.MediaAvaliacoes.ToString("N1", PtBr) ★</strong>
+                        </MudText>
+                    </div>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Warning"
+                               Size="Size.Small"
+                               EndIcon="@Icons.Material.Filled.ArrowForward"
+                               Href="/barbeiro/avaliacoes">
+                        Ver Minhas Avaliações
+                    </MudButton>
+                </div>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}

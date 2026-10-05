@@ -1,0 +1,193 @@
+@page "/admin/funcionamento"
+@page "/admin/filiais/{FilialId:long}/horarios"
+@inherits FuncionamentoPage
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>BarberShop - Horários de Funcionamento</PageTitle>
+
+<div class="mb-4">
+    <MudText Typo="Typo.h3" Class="font-weight-bold d-flex align-center gap-2">
+        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Warning" Size="Size.Medium" />
+        Horários de Funcionamento
+    </MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Configure os dias de operação, horários de abertura/fechamento e intervalos de almoço por filial. Os períodos definidos influenciarão diretamente a disponibilidade de agendamentos.
+    </MudText>
+</div>
+
+<!-- Seletor de Filial -->
+<MudPaper Class="pa-4 mb-4" Elevation="2" Style="border-radius: 12px;">
+    <MudGrid AlignItems="Center">
+        <MudItem xs="12" md="6">
+            <MudSelect T="long?"
+                       Label="Selecione a Filial"
+                       Value="@FilialSelecionadaId"
+                       ValueChanged="OnFilialChangedAsync"
+                       Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter">
+                @if (Filiais.Any())
+                {
+                    @foreach (var filial in Filiais)
+                    {
+                        <MudSelectItem T="long?" Value="@((long?)filial.Id)">
+                            @filial.Nome @(filial.Ativo ? "" : " (Inativa)")
+                        </MudSelectItem>
+                    }
+                }
+                else
+                {
+                    <MudSelectItem T="long?" Value="@((long?)null)" Disabled="true">
+                        Nenhuma filial encontrada
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            @if (FilialAtual != null)
+            {
+                <div class="d-flex align-center gap-2 flex-wrap">
+                    <MudChip T="string" Color="@(FilialAtual.Ativo ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Filled">
+                        @(FilialAtual.Ativo ? "Filial Ativa" : "Filial Inativa")
+                    </MudChip>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="vertical-align: middle;" />
+                        @FilialAtual.Localizacao
+                    </MudText>
+                </div>
+            }
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-center my-12">
+        <MudProgressCircular Color="Color.Warning" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (!Filiais.Any())
+{
+    <MudAlert Severity="Severity.Info" Class="mt-4">
+        Nenhuma filial cadastrada. Cadastre uma filial antes de configurar os horários de funcionamento.
+    </MudAlert>
+}
+else if (Horarios.Any())
+{
+    <MudPaper Class="pa-6" Elevation="2" Style="border-radius: 14px;">
+        <div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold">
+                    Grade Semanal de Horários
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Defina se a filial abre no dia, horários de atendimento e se há pausa de almoço.
+                </MudText>
+            </div>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       Disabled="@IsSaving"
+                       OnClick="SalvarHorariosAsync"
+                       Class="font-weight-bold px-6">
+                @(IsSaving ? "Salvando..." : "Salvar Alterações")
+            </MudButton>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            @foreach (var h in Horarios)
+            {
+                <MudCard Elevation="1" Class="pa-4" Style="@(h.Aberto ? "border-left: 4px solid #FFC107;" : "border-left: 4px solid #757575; opacity: 0.85;")">
+                    <MudGrid AlignItems="Center" Spacing="2">
+                        <!-- Dia da Semana e Switch Aberto/Fechado -->
+                        <MudItem xs="12" sm="3" md="2">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">
+                                @h.NomeDiaSemana
+                            </MudText>
+                            <MudSwitch @bind-Value="h.Aberto"
+                                       Color="Color.Success"
+                                       Size="Size.Small"
+                                       Label="@(h.Aberto ? "Aberto" : "Fechado")" />
+                        </MudItem>
+
+                        @if (h.Aberto)
+                        {
+                            <!-- Horário de Funcionamento (Abertura e Fechamento) -->
+                            <MudItem xs="6" sm="4" md="2">
+                                <MudTimePicker Label="Abertura"
+                                               Time="@h.HorarioAbertura"
+                                               TimeChanged="@((TimeSpan? t) => { if (t.HasValue) h.HorarioAbertura = t.Value; })"
+                                               Margin="Margin.Dense"
+                                               Variant="Variant.Outlined" />
+                            </MudItem>
+
+                            <MudItem xs="6" sm="4" md="2">
+                                <MudTimePicker Label="Fechamento"
+                                               Time="@h.HorarioFechamento"
+                                               TimeChanged="@((TimeSpan? t) => { if (t.HasValue) h.HorarioFechamento = t.Value; })"
+                                               Margin="Margin.Dense"
+                                               Variant="Variant.Outlined" />
+                            </MudItem>
+
+                            <!-- Almoço Switch -->
+                            <MudItem xs="12" sm="4" md="2">
+                                <MudSwitch @bind-Value="h.TemAlmoco"
+                                           Color="Color.Warning"
+                                           Size="Size.Small"
+                                           Label="@(h.TemAlmoco ? "Com Almoço" : "Sem Almoço")" />
+                            </MudItem>
+
+                            <!-- Horários de Almoço -->
+                            @if (h.TemAlmoco)
+                            {
+                                <MudItem xs="6" sm="4" md="2">
+                                    <MudTimePicker Label="Início Almoço"
+                                                   Time="@h.AlmocoInicio"
+                                                   TimeChanged="@((TimeSpan? t) => h.AlmocoInicio = t)"
+                                                   Margin="Margin.Dense"
+                                                   Variant="Variant.Outlined" />
+                                </MudItem>
+
+                                <MudItem xs="6" sm="4" md="2">
+                                    <MudTimePicker Label="Fim Almoço"
+                                                   Time="@h.AlmocoFim"
+                                                   TimeChanged="@((TimeSpan? t) => h.AlmocoFim = t)"
+                                                   Margin="Margin.Dense"
+                                                   Variant="Variant.Outlined" />
+                                </MudItem>
+                            }
+                            else
+                            {
+                                <MudItem xs="12" sm="8" md="4" Class="d-flex align-center">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Atendimento contínuo sem bloqueio de almoço.
+                                    </MudText>
+                                </MudItem>
+                            }
+                        }
+                        else
+                        {
+                            <MudItem xs="12" sm="9" md="10">
+                                <MudAlert Severity="Severity.Normal" Dense="true" Class="py-1">
+                                    Filial fechada neste dia. Ninguém poderá realizar agendamentos nesta data.
+                                </MudAlert>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudCard>
+            }
+        </div>
+
+        <div class="d-flex justify-end mt-6">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       Disabled="@IsSaving"
+                       OnClick="SalvarHorariosAsync"
+                       Class="font-weight-bold px-6">
+                @(IsSaving ? "Salvando..." : "Salvar Alterações")
+            </MudButton>
+        </div>
+    </MudPaper>
+}

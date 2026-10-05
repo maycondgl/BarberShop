@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BarberShop.Core.Models
 {
     public class Barbeiro
@@ -8,5 +10,9 @@ namespace BarberShop.Core.Models
         public long? FilialId { get; set; }
         public virtual Filial? Filial { get; set; }
         public bool Ativo { get; set; } = true;
+        public long? UsuarioId { get; set; }
+
+        [NotMapped]
+        public string? Email { get; set; }
     }
 }

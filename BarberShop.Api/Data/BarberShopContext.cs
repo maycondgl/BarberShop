@@ -27,6 +27,7 @@ namespace BarberShop.Api.Data
         public DbSet<DiaFechado> DiasFechados { get; set; } = null!;
         public DbSet<Filial> Filiais { get; set; } = null!;
         public DbSet<Barbeiro> Barbeiros { get; set; } = null!;
+        public DbSet<HorarioFuncionamento> HorariosFuncionamento { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -72,6 +72,8 @@ namespace BarberShop.Web.Pages.Agendamentos
                 var result = await Handler.GetAllAsync(request);
                 if (result.IsSuccess)
                     Agendamentos = result.Data ?? new List<Agendamento>();
+                else
+                    Snackbar.Add(result.Message ?? "Erro ao carregar agendamentos", Severity.Error);
 
                 var avaliacoes = await AvaliacaoHandler.GetAllAsync(
                     new GetAllAvaliacaoRequest { PageNumber = 1, PageSize = 100 });

@@ -11,6 +11,9 @@ namespace BarberShop.Core.Handlers
         Task<Response<BarbeiroResponse?>> UpdateAsync(UpdateBarbeiroRequest request);
         Task<Response<BarbeiroResponse?>> DeleteAsync(long id);
         Task<Response<Barbeiro?>> GetByIdAsync(GetBarbeiroByIdRequest request);
+        Task<Response<Barbeiro?>> GetByUserIdAsync(long userId);
         Task<PagedResponse<List<Barbeiro>>> GetAllAsync(GetAllBarbeiroRequest request);
+        Task<Response<BarbeiroDashboardResponse?>> GetDashboardAsync(long? barbeiroId = null);
+        Task<Response<BarbeiroUsuarioInfoResponse?>> BuscarUsuarioPorEmailAsync(string email);
     }
 }

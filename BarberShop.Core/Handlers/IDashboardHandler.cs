@@ -5,5 +5,5 @@ namespace BarberShop.Core.Handlers;
 
 public interface IDashboardHandler
 {
-    Task<Response<DashboardResponse?>> GetDashboardAsync();
+    Task<Response<DashboardResponse?>> GetDashboardAsync(long? filialId = null);
 }

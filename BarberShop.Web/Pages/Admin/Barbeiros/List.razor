@@ -103,6 +103,13 @@ else
                                 }
                                 <div>
                                     <MudText Typo="Typo.body1" Class="font-weight-bold">@barbeiro.Item.Nome</MudText>
+                                    @if (!string.IsNullOrWhiteSpace(barbeiro.Item.Email))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-flex align-center gap-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" />
+                                            @barbeiro.Item.Email
+                                        </MudText>
+                                    }
                                 </div>
                             </div>
                         </CellTemplate>
@@ -175,6 +182,13 @@ else
                             }
                             <div>
                                 <div class="font-weight-bold" style="font-size: 1.05rem;">@barbeiro.Nome</div>
+                                @if (!string.IsNullOrWhiteSpace(barbeiro.Email))
+                                {
+                                    <div class="d-flex align-center gap-1 text-secondary" style="font-size: 0.75rem;">
+                                        <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" />
+                                        <span>@barbeiro.Email</span>
+                                    </div>
+                                }
                                 <div class="d-flex align-center gap-1 text-secondary" style="font-size: 0.8rem;">
                                     <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" />
                                     <span>@(barbeiro.Filial?.Nome ?? GetNomeFilial(barbeiro.FilialId))</span>

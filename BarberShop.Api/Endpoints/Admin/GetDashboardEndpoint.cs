@@ -17,9 +17,9 @@ public class GetDashboardEndpoint : IEndpoint
             .Produces<Response<DashboardResponse?>>(403)
             .Produces<Response<DashboardResponse?>>(500);
 
-    private static async Task<IResult> HandleAsync(IDashboardHandler handler)
+    private static async Task<IResult> HandleAsync(IDashboardHandler handler, long? filialId = null)
     {
-        var result = await handler.GetDashboardAsync();
+        var result = await handler.GetDashboardAsync(filialId);
         return result.IsSuccess
             ? TypedResults.Ok(result)
             : TypedResults.BadRequest(result);

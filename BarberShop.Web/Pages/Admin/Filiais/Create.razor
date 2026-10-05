@@ -34,8 +34,12 @@
                 <MudTextField Label="Telefone de Contato"
                               @bind-Value="InputModel.Telefone"
                               For="@(() => InputModel.Telefone)"
+                              Mask="@PhoneMask"
+                              InputType="InputType.Telephone"
                               Variant="Variant.Outlined"
-                              Placeholder="Ex: (11) 98765-4321" />
+                              Placeholder="(11) 98765-4321"
+                              Required="true"
+                              RequiredError="Informe o telefone" />
             </MudItem>
 
             <MudItem xs="12">
@@ -99,12 +103,21 @@
 @code {
     public bool IsBusy { get; set; } = false;
     public CreateFilialRequest InputModel { get; set; } = new();
+    public PatternMask PhoneMask = new PatternMask("(00)00000-0000")
+    {
+        CleanDelimiters = true
+    };
 
     private async Task OnValidSubmitAsync()
     {
         IsBusy = true;
         try
         {
+            if (!string.IsNullOrWhiteSpace(InputModel.Telefone))
+            {
+                InputModel.Telefone = System.Text.RegularExpressions.Regex.Replace(InputModel.Telefone, @"\D", "");
+            }
+
             var result = await FilialHandler.CreateAsync(InputModel);
             if (result.IsSuccess)
             {

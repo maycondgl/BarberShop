@@ -22,6 +22,7 @@ public class DashboardResponse
     public List<PeriodoLucroItemResponse> LucroPorSemanaMes { get; set; } = [];
 
     public List<CorteMetricaResponse> CortesMetricas { get; set; } = [];
+    public List<BarbeiroMetricaResponse> BarbeirosMetricas { get; set; } = [];
 }
 
 public class ClienteMetricaResponse
@@ -45,5 +46,15 @@ public class CorteMetricaResponse
     public string Titulo { get; set; } = string.Empty;
     public int Quantidade { get; set; }
     public decimal TotalReceita { get; set; }
+    public double Porcentagem { get; set; }
+}
+
+public class BarbeiroMetricaResponse
+{
+    public long BarbeiroId { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string FotoUrl { get; set; } = string.Empty;
+    public int TotalAgendamentos { get; set; }
+    public decimal TotalLucro { get; set; }
     public double Porcentagem { get; set; }
 }

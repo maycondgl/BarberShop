@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.Data;
+using BarberShop.Api.Data;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests.Avaliacao;
@@ -41,15 +41,29 @@ namespace BarberShop.Api.Handlers
                 await _context.Avaliacoes.AddAsync(avaliacao);
                 await _context.SaveChangesAsync();
 
+                var agendamento = await _context.Agendamentos
+                    .AsNoTracking()
+                    .Include(a => a.Barbeiro)
+                    .Include(a => a.Corte)
+                    .FirstOrDefaultAsync(a => a.Id == request.AgendamentoId);
+
+                var barbeiroNome = agendamento?.Barbeiro?.Nome;
+                var servicoTitulo = !string.IsNullOrWhiteSpace(agendamento?.DescricaoServicos)
+                    ? agendamento.DescricaoServicos
+                    : (agendamento?.Corte?.Titulo ?? "");
+
                 var responseData = new AvaliacaoResponse(
-                  avaliacao.Id,
-                  avaliacao.UserId,
-                  avaliacao.AgendamentoId,
-                  avaliacao.Estrelas,
-                  avaliacao.Comentario,
-                  avaliacao.Data,
-                  avaliacao.NomeCliente
-              );
+                    avaliacao.Id,
+                    avaliacao.UserId,
+                    avaliacao.AgendamentoId,
+                    avaliacao.Estrelas,
+                    avaliacao.Comentario,
+                    avaliacao.Data,
+                    cliente.NomeCompleto ?? avaliacao.NomeCliente,
+                    barbeiroNome,
+                    servicoTitulo,
+                    agendamento?.BarbeiroId
+                );
                 return new Response<AvaliacaoResponse?>(responseData, 201, "Avaliação registrada com sucesso!");
             }
             catch (Exception ex)
@@ -85,6 +99,17 @@ namespace BarberShop.Api.Handlers
                 _context.Avaliacoes.Update(avaliacao);
                 await _context.SaveChangesAsync();
 
+                var agendamento = await _context.Agendamentos
+                    .AsNoTracking()
+                    .Include(a => a.Barbeiro)
+                    .Include(a => a.Corte)
+                    .FirstOrDefaultAsync(a => a.Id == avaliacao.AgendamentoId);
+
+                var barbeiroNome = agendamento?.Barbeiro?.Nome;
+                var servicoTitulo = !string.IsNullOrWhiteSpace(agendamento?.DescricaoServicos)
+                    ? agendamento.DescricaoServicos
+                    : (agendamento?.Corte?.Titulo ?? "");
+
                 var response = new AvaliacaoResponse(
                     avaliacao.Id,
                     avaliacao.UserId,
@@ -92,8 +117,11 @@ namespace BarberShop.Api.Handlers
                     avaliacao.Estrelas,
                     avaliacao.Comentario,
                     avaliacao.Data,
-                    avaliacao.NomeCliente
-                  );
+                    cliente.NomeCompleto ?? avaliacao.NomeCliente,
+                    barbeiroNome,
+                    servicoTitulo,
+                    agendamento?.BarbeiroId
+                );
 
                 return new Response<AvaliacaoResponse?>(response, 200, "Avaliação atualizado");
             }
@@ -161,10 +189,8 @@ namespace BarberShop.Api.Handlers
                 var query = _context
                    .Avaliacoes
                    .AsNoTracking()
-                   //.Include(x => x.UserId)
-                   // .Include(x => x.Comentario)
                    .Where(x => x.UserId == request.UserId)
-                   .OrderBy(x => x.Id);
+                   .OrderByDescending(x => x.Data);
 
                 var avaliacoes = await query
                     .Skip((request.PageNumber - 1) * request.PageSize)
@@ -175,6 +201,17 @@ namespace BarberShop.Api.Handlers
                 foreach (var av in avaliacoes)
                 {
                     var user = await _context.Users.FindAsync(av.UserId);
+                    var agendamento = await _context.Agendamentos
+                        .AsNoTracking()
+                        .Include(a => a.Barbeiro)
+                        .Include(a => a.Corte)
+                        .FirstOrDefaultAsync(a => a.Id == av.AgendamentoId);
+
+                    var barbeiroNome = agendamento?.Barbeiro?.Nome;
+                    var servicoTitulo = !string.IsNullOrWhiteSpace(agendamento?.DescricaoServicos)
+                        ? agendamento.DescricaoServicos
+                        : (agendamento?.Corte?.Titulo ?? "");
+
                     responses.Add(new AvaliacaoResponse(
                         av.Id,
                         av.UserId,
@@ -182,7 +219,10 @@ namespace BarberShop.Api.Handlers
                         av.Estrelas,
                         av.Comentario,
                         av.Data,
-                        user?.NomeCompleto ?? "Desconhecido"
+                        user?.NomeCompleto ?? av.NomeCliente,
+                        barbeiroNome,
+                        servicoTitulo,
+                        agendamento?.BarbeiroId
                     ));
                 }
 
@@ -217,6 +257,17 @@ namespace BarberShop.Api.Handlers
                 foreach (var av in avaliacoes)
                 {
                     var user = await _context.Users.FindAsync(av.UserId);
+                    var agendamento = await _context.Agendamentos
+                        .AsNoTracking()
+                        .Include(a => a.Barbeiro)
+                        .Include(a => a.Corte)
+                        .FirstOrDefaultAsync(a => a.Id == av.AgendamentoId);
+
+                    var barbeiroNome = agendamento?.Barbeiro?.Nome;
+                    var servicoTitulo = !string.IsNullOrWhiteSpace(agendamento?.DescricaoServicos)
+                        ? agendamento.DescricaoServicos
+                        : (agendamento?.Corte?.Titulo ?? "");
+
                     responses.Add(new AvaliacaoResponse(
                         av.Id,
                         av.UserId,
@@ -224,7 +275,10 @@ namespace BarberShop.Api.Handlers
                         av.Estrelas,
                         av.Comentario,
                         av.Data,
-                        user?.NomeCompleto ?? "Desconhecido"
+                        user?.NomeCompleto ?? av.NomeCliente,
+                        barbeiroNome,
+                        servicoTitulo,
+                        agendamento?.BarbeiroId
                     ));
                 }
 
@@ -233,8 +287,104 @@ namespace BarberShop.Api.Handlers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERRO: {ex.Message} | Inner: {ex.InnerException?.Message}");
                 return new PagedResponse<List<AvaliacaoResponse>>(null, 500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetByBarbeiroAsync(long barbeiroId, int pageNumber = 1, int pageSize = 50)
+        {
+            try
+            {
+                var query = from av in _context.Avaliacoes.AsNoTracking()
+                            join ag in _context.Agendamentos.AsNoTracking() on av.AgendamentoId equals ag.Id
+                            where ag.BarbeiroId == barbeiroId
+                            orderby av.Data descending
+                            select new { av, ag };
+
+                var count = await query.CountAsync();
+                var items = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var barbeiro = await _context.Barbeiros.AsNoTracking().FirstOrDefaultAsync(b => b.Id == barbeiroId);
+                var barbeiroNome = barbeiro?.Nome ?? "Barbeiro";
+
+                var responses = new List<AvaliacaoResponse>();
+                foreach (var item in items)
+                {
+                    var user = await _context.Users.FindAsync(item.av.UserId);
+                    var servicoTitulo = !string.IsNullOrWhiteSpace(item.ag.DescricaoServicos)
+                        ? item.ag.DescricaoServicos
+                        : (item.ag.Corte?.Titulo ?? "");
+
+                    responses.Add(new AvaliacaoResponse(
+                        item.av.Id,
+                        item.av.UserId,
+                        item.av.AgendamentoId,
+                        item.av.Estrelas,
+                        item.av.Comentario,
+                        item.av.Data,
+                        user?.NomeCompleto ?? item.av.NomeCliente,
+                        barbeiroNome,
+                        servicoTitulo,
+                        barbeiroId
+                    ));
+                }
+
+                return new PagedResponse<List<AvaliacaoResponse>>(responses, count, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                return new PagedResponse<List<AvaliacaoResponse>>(null, 500, "Erro ao recuperar avaliações do barbeiro: " + ex.Message);
+            }
+        }
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllAdminAsync(int pageNumber = 1, int pageSize = 50)
+        {
+            try
+            {
+                var query = _context.Avaliacoes.AsNoTracking().OrderByDescending(x => x.Data);
+                var count = await query.CountAsync();
+                var avaliacoes = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var responses = new List<AvaliacaoResponse>();
+                foreach (var av in avaliacoes)
+                {
+                    var user = await _context.Users.FindAsync(av.UserId);
+                    var agendamento = await _context.Agendamentos
+                        .AsNoTracking()
+                        .Include(a => a.Barbeiro)
+                        .Include(a => a.Corte)
+                        .FirstOrDefaultAsync(a => a.Id == av.AgendamentoId);
+
+                    var barbeiroNome = agendamento?.Barbeiro?.Nome;
+                    var servicoTitulo = !string.IsNullOrWhiteSpace(agendamento?.DescricaoServicos)
+                        ? agendamento.DescricaoServicos
+                        : (agendamento?.Corte?.Titulo ?? "");
+
+                    responses.Add(new AvaliacaoResponse(
+                        av.Id,
+                        av.UserId,
+                        av.AgendamentoId,
+                        av.Estrelas,
+                        av.Comentario,
+                        av.Data,
+                        user?.NomeCompleto ?? av.NomeCliente,
+                        barbeiroNome,
+                        servicoTitulo,
+                        agendamento?.BarbeiroId
+                    ));
+                }
+
+                return new PagedResponse<List<AvaliacaoResponse>>(responses, count, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                return new PagedResponse<List<AvaliacaoResponse>>(null, 500, "Erro ao recuperar todas as avaliações: " + ex.Message);
             }
         }
     }

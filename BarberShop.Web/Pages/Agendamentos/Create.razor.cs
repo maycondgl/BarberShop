@@ -1,11 +1,13 @@
 using BarberShop.Core.Enums;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
+using Barbeiro = BarberShop.Core.Models.Barbeiro;
 using BarberShop.Core.Requests.Agendamentos;
 using BarberShop.Core.Requests.Barbeiros;
 using BarberShop.Core.Requests.Cortes;
 using BarberShop.Core.Requests.DiasFechados;
 using BarberShop.Core.Requests.Filiais;
+using BarberShop.Core.Requests.HorariosFuncionamento;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -28,10 +30,10 @@ namespace BarberShop.Web.Pages.Agendamentos
         public long? CorteId { get; set; }
 
         public List<Filial> Filiais { get; set; } = new();
-        public List<Barbeiro> Barbeiros { get; set; } = new();
+        public List<BarberShop.Core.Models.Barbeiro> Barbeiros { get; set; } = new();
 
         public Filial? FilialSelecionada => Filiais.FirstOrDefault(f => f.Id == InputModel.FilialId);
-        public Barbeiro? BarbeiroSelecionado => Barbeiros.FirstOrDefault(b => b.Id == InputModel.BarbeiroId);
+        public BarberShop.Core.Models.Barbeiro? BarbeiroSelecionado => Barbeiros.FirstOrDefault(b => b.Id == InputModel.BarbeiroId);
 
         public bool IsFilialSheetOpen { get; set; } = false;
         public bool IsBarbeiroSheetOpen { get; set; } = false;
@@ -41,6 +43,7 @@ namespace BarberShop.Web.Pages.Agendamentos
         public TimeSpan? HorarioSelecionado { get; set; }
         public List<Corte> Cortes { get; set; } = new();
         public HashSet<DateTime> DatasFechadas { get; set; } = new();
+        public List<HorarioFuncionamentoDto> HorariosFilial { get; set; } = new();
 
         public List<long> CortesSelecionadosIds { get; set; } = new();
 
@@ -71,6 +74,7 @@ namespace BarberShop.Web.Pages.Agendamentos
         [Inject] public IDiaFechadoHandler DiaFechadoHandler { get; set; } = null!;
         [Inject] public IFilialHandler FilialHandler { get; set; } = null!;
         [Inject] public IBarbeiroHandler BarbeiroHandler { get; set; } = null!;
+        [Inject] public IHorarioFuncionamentoHandler HorarioHandler { get; set; } = null!;
 
         #endregion
 
@@ -82,6 +86,7 @@ namespace BarberShop.Web.Pages.Agendamentos
             try
             {
                 await CarregarFiliaisAsync();
+                await CarregarHorariosFilialAsync(InputModel.FilialId);
                 await CarregarBarbeirosAsync(InputModel.FilialId);
 
                 var request = new GetAllCorteRequest { PageNumber = 1, PageSize = 100 };
@@ -135,11 +140,14 @@ namespace BarberShop.Web.Pages.Agendamentos
             InputModel.FilialId = filial.Id;
             FecharFilialSheet();
 
+            await CarregarHorariosFilialAsync(filial.Id);
             await CarregarBarbeirosAsync(filial.Id);
             if (!Barbeiros.Any(b => b.Id == InputModel.BarbeiroId))
             {
                 InputModel.BarbeiroId = Barbeiros.FirstOrDefault()?.Id;
             }
+
+            AjustarDataInicial();
 
             if (DataSelecionada.HasValue)
             {
@@ -150,7 +158,7 @@ namespace BarberShop.Web.Pages.Agendamentos
         public void AbrirBarbeiroSheet() => IsBarbeiroSheetOpen = true;
         public void FecharBarbeiroSheet() => IsBarbeiroSheetOpen = false;
 
-        public async Task SelecionarBarbeiroAsync(Barbeiro barbeiro)
+        public async Task SelecionarBarbeiroAsync(BarberShop.Core.Models.Barbeiro barbeiro)
         {
             InputModel.BarbeiroId = barbeiro.Id;
             FecharBarbeiroSheet();
@@ -227,6 +235,28 @@ namespace BarberShop.Web.Pages.Agendamentos
             catch
             {
                 Filiais = new();
+            }
+        }
+
+        private async Task CarregarHorariosFilialAsync(long? filialId)
+        {
+            if (!filialId.HasValue || filialId.Value == 0)
+            {
+                HorariosFilial.Clear();
+                return;
+            }
+
+            try
+            {
+                var result = await HorarioHandler.GetByFilialAsync(filialId.Value);
+                if (result.IsSuccess && result.Data != null)
+                {
+                    HorariosFilial = result.Data;
+                }
+            }
+            catch
+            {
+                HorariosFilial.Clear();
             }
         }
 
@@ -313,10 +343,26 @@ namespace BarberShop.Web.Pages.Agendamentos
 
         public bool IsDateDisabled(DateTime dt)
         {
-            return dt.DayOfWeek == DayOfWeek.Sunday
-                || dt.Date < DateTime.Today
+            if (dt.Date < DateTime.Today
                 || dt.Date > DateTime.Today.AddDays(15)
-                || DatasFechadas.Contains(dt.Date);
+                || DatasFechadas.Contains(dt.Date))
+            {
+                return true;
+            }
+
+            if (HorariosFilial.Any())
+            {
+                var horario = HorariosFilial.FirstOrDefault(h => h.DiaSemana == dt.DayOfWeek);
+                if (horario != null && !horario.Aberto)
+                    return true;
+            }
+            else
+            {
+                if (dt.DayOfWeek == DayOfWeek.Sunday)
+                    return true;
+            }
+
+            return false;
         }
 
         public async Task RecarregarHorariosAsync()
@@ -350,20 +396,25 @@ namespace BarberShop.Web.Pages.Agendamentos
                     return;
                 }
 
-                var horariosOcupados = new List<TimeSpan>();
+                var intervalosOcupados = new List<(TimeSpan Inicio, TimeSpan Fim)>();
 
                 if (result.Data != null)
                 {
-                    horariosOcupados = result.Data
+                    intervalosOcupados = result.Data
                         .Where(x => x.Data.Date == data.Date
                             && x.Status != "Cancelado"
                             && x.Status != EStatusAgendamento.Cancelado.ToString()
                             && (!InputModel.BarbeiroId.HasValue || x.BarbeiroId == null || x.BarbeiroId == InputModel.BarbeiroId.Value))
-                        .Select(x => new TimeSpan(x.Data.Hour, x.Data.Minute, 0))
+                        .Select(x =>
+                        {
+                            var inicio = x.Data.TimeOfDay;
+                            var duracao = TimeSpan.FromMinutes(x.TempoMinutos > 0 ? x.TempoMinutos : 40);
+                            return (Inicio: inicio, Fim: inicio.Add(duracao));
+                        })
                         .ToList();
                 }
 
-                GerarHorarios(data, horariosOcupados);
+                GerarHorarios(data, intervalosOcupados);
             }
             catch (Exception ex)
             {
@@ -376,33 +427,73 @@ namespace BarberShop.Web.Pages.Agendamentos
             }
         }
 
-        private void GerarHorarios(DateTime dataEscolhida, List<TimeSpan> horariosJaOcupadosNoBanco)
+        private void GerarHorarios(DateTime dataEscolhida, List<(TimeSpan Inicio, TimeSpan Fim)> intervalosOcupados)
         {
             HorariosDisponiveis.Clear();
 
+            HorarioFuncionamentoDto? horarioDoDia = null;
+            if (HorariosFilial.Any())
+            {
+                horarioDoDia = HorariosFilial.FirstOrDefault(h => h.DiaSemana == dataEscolhida.DayOfWeek);
+            }
+
+            if (horarioDoDia != null && !horarioDoDia.Aberto)
+            {
+                return;
+            }
+
             TimeSpan horarioAbertura;
             TimeSpan horarioFechamento;
+            bool temAlmoco = false;
+            TimeSpan almocoInicio = TimeSpan.Zero;
+            TimeSpan almocoFim = TimeSpan.Zero;
 
-            if (dataEscolhida.DayOfWeek == DayOfWeek.Saturday)
+            if (horarioDoDia != null)
             {
-                horarioAbertura = new TimeSpan(7, 0, 0);
-                horarioFechamento = new TimeSpan(12, 0, 0);
+                horarioAbertura = horarioDoDia.HorarioAbertura;
+                horarioFechamento = horarioDoDia.HorarioFechamento;
+                temAlmoco = horarioDoDia.TemAlmoco && horarioDoDia.AlmocoInicio.HasValue && horarioDoDia.AlmocoFim.HasValue;
+                if (temAlmoco)
+                {
+                    almocoInicio = horarioDoDia.AlmocoInicio!.Value;
+                    almocoFim = horarioDoDia.AlmocoFim!.Value;
+                }
             }
             else
             {
-                horarioAbertura = new TimeSpan(8, 0, 0);
-                horarioFechamento = new TimeSpan(19, 0, 0);
+                if (dataEscolhida.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    horarioAbertura = new TimeSpan(7, 0, 0);
+                    horarioFechamento = new TimeSpan(12, 0, 0);
+                    temAlmoco = false;
+                }
+                else
+                {
+                    horarioAbertura = new TimeSpan(8, 0, 0);
+                    horarioFechamento = new TimeSpan(19, 0, 0);
+                    temAlmoco = true;
+                    almocoInicio = new TimeSpan(12, 0, 0);
+                    almocoFim = new TimeSpan(13, 0, 0);
+                }
             }
 
             var duracaoTotal = DuracaoTotalServicos > 0 ? DuracaoTotalServicos : 40;
+            var duracaoTimeSpan = TimeSpan.FromMinutes(duracaoTotal);
             var intervalo = TimeSpan.FromMinutes(40);
             var horarioAtual = horarioAbertura;
 
-            while (horarioAtual.Add(TimeSpan.FromMinutes(duracaoTotal)) <= horarioFechamento)
+            while (horarioAtual.Add(duracaoTimeSpan) <= horarioFechamento)
             {
+                var slotInicio = horarioAtual;
+                var slotFim = horarioAtual.Add(duracaoTimeSpan);
                 bool horarioJaPassou = dataEscolhida.Date == DateTime.Today.Date && horarioAtual <= DateTime.Now.TimeOfDay;
 
-                if (!horariosJaOcupadosNoBanco.Contains(horarioAtual) && !horarioJaPassou)
+                bool colideAlmoco = temAlmoco && slotInicio < almocoFim && slotFim > almocoInicio;
+
+                bool temConflito = colideAlmoco || intervalosOcupados.Any(ocupado =>
+                    slotInicio < ocupado.Fim && slotFim > ocupado.Inicio);
+
+                if (!temConflito && !horarioJaPassou)
                 {
                     HorariosDisponiveis.Add(horarioAtual);
                 }

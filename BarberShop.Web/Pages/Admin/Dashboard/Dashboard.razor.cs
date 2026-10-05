@@ -17,6 +17,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
             Dia,
             Semana,
             Mes,
+            Ano,
             Comparativo
         }
 
@@ -78,8 +79,72 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
 
         protected bool _isBusy;
         protected DashboardResponse? _dashboardData;
+        protected List<BarberShop.Core.Models.Filial> _filiais = new();
+        protected long? _filialSelecionadaId;
         protected PeriodoTipo _periodoSelecionado = PeriodoTipo.Comparativo;
         protected string _periodoDescricao = "Comparativo geral: Hoje vs Esta Semana vs Este Mês";
+        protected DateTime _dataReferencia = DateTime.Today;
+
+        public bool IsPeriodoAtual => _periodoSelecionado switch
+        {
+            PeriodoTipo.Dia => _dataReferencia.Date == DateTime.Today,
+            PeriodoTipo.Semana => ObterInicioSemana(_dataReferencia) == ObterInicioSemana(DateTime.Today),
+            PeriodoTipo.Mes => _dataReferencia.Year == DateTime.Today.Year && _dataReferencia.Month == DateTime.Today.Month,
+            PeriodoTipo.Ano => _dataReferencia.Year == DateTime.Today.Year,
+            _ => _dataReferencia.Date == DateTime.Today
+        };
+
+        public string PeriodoFormatado
+        {
+            get
+            {
+                switch (_periodoSelecionado)
+                {
+                    case PeriodoTipo.Dia:
+                        var diaStr = _dataReferencia.ToString("dddd, dd/MM/yyyy", PtBr);
+                        return char.ToUpper(diaStr[0]) + diaStr[1..];
+                    case PeriodoTipo.Semana:
+                        var seg = ObterInicioSemana(_dataReferencia);
+                        var dom = seg.AddDays(6);
+                        return $"Semana de {seg:dd/MM} a {dom:dd/MM/yyyy}";
+                    case PeriodoTipo.Mes:
+                        var mesStr = _dataReferencia.ToString("MMMM 'de' yyyy", PtBr);
+                        return char.ToUpper(mesStr[0]) + mesStr[1..];
+                    case PeriodoTipo.Ano:
+                        return $"Ano de {_dataReferencia.Year}";
+                    case PeriodoTipo.Comparativo:
+                    default:
+                        return $"Referência: {_dataReferencia:dd/MM/yyyy}";
+                }
+            }
+        }
+
+        public static DateTime ObterInicioSemana(DateTime d)
+        {
+            var diff = ((int)d.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+            return d.Date.AddDays(-diff);
+        }
+
+        public void NavegarPeriodo(int direcao)
+        {
+            _dataReferencia = _periodoSelecionado switch
+            {
+                PeriodoTipo.Dia => _dataReferencia.AddDays(direcao),
+                PeriodoTipo.Semana => _dataReferencia.AddDays(direcao * 7),
+                PeriodoTipo.Mes => _dataReferencia.AddMonths(direcao),
+                PeriodoTipo.Ano => _dataReferencia.AddYears(direcao),
+                _ => _dataReferencia.AddMonths(direcao)
+            };
+            CalcularGraficoBarras();
+            StateHasChanged();
+        }
+
+        public void IrParaHoje()
+        {
+            _dataReferencia = DateTime.Today;
+            CalcularGraficoBarras();
+            StateHasChanged();
+        }
 
         protected List<YAxisTick> _yAxisTicks = new();
         protected List<BarVisualItem> _barItems = new();
@@ -107,6 +172,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
         public List<AgendamentoResponse> AgendamentosMesHistorico =>
             _todosAgendamentosHistorico
                 .Where(x => x.Data.Year == _mesHistorico.Year && x.Data.Month == _mesHistorico.Month)
+                .Where(x => !_filialSelecionadaId.HasValue || _filialSelecionadaId.Value == 0 || x.FilialId == _filialSelecionadaId.Value)
                 .OrderByDescending(x => x.Data)
                 .ToList();
 
@@ -161,6 +227,9 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
         public IAgendamentoHandler AgendamentoHandler { get; set; } = null!;
 
         [Inject]
+        public IFilialHandler FilialHandler { get; set; } = null!;
+
+        [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
 
         #endregion
@@ -169,6 +238,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
 
         protected override async Task OnInitializedAsync()
         {
+            await CarregarFiliaisAsync();
             await Task.WhenAll(CarregarDashboardAsync(), CarregarHistoricoAsync());
         }
 
@@ -176,12 +246,42 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
 
         #region Methods
 
+        protected async Task CarregarFiliaisAsync()
+        {
+            try
+            {
+                var req = new BarberShop.Core.Requests.Filiais.GetAllFilialRequest
+                {
+                    PageNumber = 1,
+                    PageSize = 100,
+                    ApenasAtivos = true
+                };
+                var res = await FilialHandler.GetAllAsync(req);
+                if (res.IsSuccess && res.Data != null)
+                {
+                    _filiais = res.Data.OrderBy(f => f.Nome).ToList();
+                }
+            }
+            catch
+            {
+                _filiais = new();
+            }
+        }
+
+        public async Task OnFilialChangedAsync(long? novoFilialId)
+        {
+            _filialSelecionadaId = novoFilialId;
+            _paginaHistorico = 1;
+            await CarregarDashboardAsync();
+            StateHasChanged();
+        }
+
         protected async Task CarregarDashboardAsync()
         {
             try
             {
                 _isBusy = true;
-                var result = await DashboardHandler.GetDashboardAsync();
+                var result = await DashboardHandler.GetDashboardAsync(_filialSelecionadaId);
 
                 if (result.IsSuccess && result.Data != null)
                 {
@@ -219,53 +319,106 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
 
             if (_dashboardData == null) return;
 
+            var agsValidos = _todosAgendamentosHistorico
+                .Where(a => a.Status != "Cancelado")
+                .Where(a => !_filialSelecionadaId.HasValue || _filialSelecionadaId.Value == 0 || a.FilialId == _filialSelecionadaId.Value)
+                .ToList();
+
             var dadosPeriodo = new List<(string l1, string l2, decimal valor)>();
 
             switch (_periodoSelecionado)
             {
                 case PeriodoTipo.Dia:
-                    _periodoDescricao = "Lucro de hoje detalhado por turno (Manhã, Tarde e Noite)";
-                    dadosPeriodo.Add(("Manhã", "08h-12h", _dashboardData.LucroPorTurnoHoje.ElementAtOrDefault(0)?.Valor ?? 0));
-                    dadosPeriodo.Add(("Tarde", "12h-17h", _dashboardData.LucroPorTurnoHoje.ElementAtOrDefault(1)?.Valor ?? 0));
-                    dadosPeriodo.Add(("Noite", "17h-19h", _dashboardData.LucroPorTurnoHoje.ElementAtOrDefault(2)?.Valor ?? 0));
+                    var diaAlvo = _dataReferencia.Date;
+                    var agsDia = agsValidos.Where(a => a.Data.Date == diaAlvo).ToList();
+                    _periodoDescricao = $"Lucro em {diaAlvo:dd/MM/yyyy} por turno (Manhã, Tarde e Noite)";
+                    dadosPeriodo.Add(("Manhã", "08h-12h", agsDia.Any() ? agsDia.Where(a => a.Data.Hour < 12).Sum(a => a.Valor) : (_dataReferencia.Date == DateTime.Today ? (_dashboardData?.LucroPorTurnoHoje.ElementAtOrDefault(0)?.Valor ?? 0) : 0)));
+                    dadosPeriodo.Add(("Tarde", "12h-17h", agsDia.Any() ? agsDia.Where(a => a.Data.Hour >= 12 && a.Data.Hour < 17).Sum(a => a.Valor) : (_dataReferencia.Date == DateTime.Today ? (_dashboardData?.LucroPorTurnoHoje.ElementAtOrDefault(1)?.Valor ?? 0) : 0)));
+                    dadosPeriodo.Add(("Noite", "17h-19h", agsDia.Any() ? agsDia.Where(a => a.Data.Hour >= 17).Sum(a => a.Valor) : (_dataReferencia.Date == DateTime.Today ? (_dashboardData?.LucroPorTurnoHoje.ElementAtOrDefault(2)?.Valor ?? 0) : 0)));
                     break;
 
                 case PeriodoTipo.Semana:
-                    _periodoDescricao = "Lucro detalhado dia a dia nos últimos 7 dias";
-                    var hoje = DateTime.Today;
-                    for (int i = 6; i >= 0; i--)
+                    var seg = ObterInicioSemana(_dataReferencia);
+                    _periodoDescricao = $"Lucro dia a dia na semana de {seg:dd/MM} a {seg.AddDays(6):dd/MM/yyyy}";
+                    for (int i = 0; i < 7; i++)
                     {
-                        var dia = hoje.AddDays(-i);
-                        var item = _dashboardData.LucroPorDia.ElementAtOrDefault(6 - i);
+                        var dia = seg.AddDays(i);
+                        var agsDoDia = agsValidos.Where(a => a.Data.Date == dia).ToList();
                         var diaNomeRaw = dia.ToString("ddd", PtBr).TrimEnd('.');
                         var diaNome = char.ToUpper(diaNomeRaw[0]) + diaNomeRaw[1..];
-                        dadosPeriodo.Add((diaNome, dia.ToString("dd/MM"), item?.Valor ?? 0));
+                        var valor = agsDoDia.Any() ? agsDoDia.Sum(a => a.Valor) : (agsValidos.Any() ? 0 : (_dashboardData?.LucroPorDia.ElementAtOrDefault(i)?.Valor ?? 0));
+                        dadosPeriodo.Add((diaNome, dia.ToString("dd/MM"), valor));
                     }
                     break;
 
                 case PeriodoTipo.Mes:
-                    _periodoDescricao = "Lucro do mês vigente consolidado por semanas";
-                    dadosPeriodo.Add(("Sem 1", "01 a 07", _dashboardData.LucroPorSemanaMes.ElementAtOrDefault(0)?.Valor ?? 0));
-                    dadosPeriodo.Add(("Sem 2", "08 a 14", _dashboardData.LucroPorSemanaMes.ElementAtOrDefault(1)?.Valor ?? 0));
-                    dadosPeriodo.Add(("Sem 3", "15 a 21", _dashboardData.LucroPorSemanaMes.ElementAtOrDefault(2)?.Valor ?? 0));
-                    dadosPeriodo.Add(("Sem 4", "22 a fim", _dashboardData.LucroPorSemanaMes.ElementAtOrDefault(3)?.Valor ?? 0));
+                    var anoAlvoMes = _dataReferencia.Year;
+                    var mesAlvo = _dataReferencia.Month;
+                    var totalDiasMes = DateTime.DaysInMonth(anoAlvoMes, mesAlvo);
+                    var mesNome = _dataReferencia.ToString("MMMM", PtBr);
+                    mesNome = char.ToUpper(mesNome[0]) + mesNome[1..];
+                    _periodoDescricao = $"Lucro de {mesNome} de {anoAlvoMes} consolidado por semanas";
+
+                    var semanasDef = new (int ini, int fim, string rotulo1, string rotulo2)[]
+                    {
+                        (1, 7, "Sem 1", "01 a 07"),
+                        (8, 14, "Sem 2", "08 a 14"),
+                        (15, 21, "Sem 3", "15 a 21"),
+                        (22, totalDiasMes, "Sem 4", $"22 a {totalDiasMes:D2}")
+                    };
+
+                    for (int s = 0; s < semanasDef.Length; s++)
+                    {
+                        var (ini, fim, r1, r2) = semanasDef[s];
+                        var inicioData = new DateTime(anoAlvoMes, mesAlvo, ini);
+                        var fimData = new DateTime(anoAlvoMes, mesAlvo, fim, 23, 59, 59);
+                        var agsSem = agsValidos.Where(a => a.Data >= inicioData && a.Data <= fimData).ToList();
+                        var valor = agsSem.Any() ? agsSem.Sum(a => a.Valor) : (agsValidos.Any() ? 0 : (_dashboardData?.LucroPorSemanaMes.ElementAtOrDefault(s)?.Valor ?? 0));
+                        dadosPeriodo.Add((r1, r2, valor));
+                    }
+                    break;
+
+                case PeriodoTipo.Ano:
+                    var anoAlvo = _dataReferencia.Year;
+                    _periodoDescricao = $"Faturamento mês a mês no ano de {anoAlvo}";
+                    for (int m = 1; m <= 12; m++)
+                    {
+                        var mesNomeRaw = new DateTime(anoAlvo, m, 1).ToString("MMM", PtBr).TrimEnd('.');
+                        var mesAbrev = char.ToUpper(mesNomeRaw[0]) + mesNomeRaw[1..];
+                        var agsMes = agsValidos.Where(a => a.Data.Year == anoAlvo && a.Data.Month == m).ToList();
+                        dadosPeriodo.Add((mesAbrev, anoAlvo.ToString(), agsMes.Sum(a => a.Valor)));
+                    }
                     break;
 
                 case PeriodoTipo.Comparativo:
                 default:
-                    _periodoDescricao = "Comparativo consolidado: Hoje vs Esta Semana vs Este Mês";
-                    dadosPeriodo.Add(("Hoje", "", _dashboardData.LucroDia));
-                    dadosPeriodo.Add(("Semana", "", _dashboardData.LucroSemana));
-                    dadosPeriodo.Add(("Mês", "", _dashboardData.LucroMes));
+                    var diaComp = _dataReferencia.Date;
+                    var segComp = ObterInicioSemana(_dataReferencia);
+                    var domComp = segComp.AddDays(6).AddDays(1).AddTicks(-1);
+                    var mesIni = new DateTime(_dataReferencia.Year, _dataReferencia.Month, 1);
+                    var mesFim = mesIni.AddMonths(1).AddTicks(-1);
+                    var anoIni = new DateTime(_dataReferencia.Year, 1, 1);
+                    var anoFim = anoIni.AddYears(1).AddTicks(-1);
+
+                    var vDia = agsValidos.Any() ? agsValidos.Where(a => a.Data.Date == diaComp).Sum(a => a.Valor) : (_dashboardData?.LucroDia ?? 0);
+                    var vSem = agsValidos.Any() ? agsValidos.Where(a => a.Data >= segComp && a.Data <= domComp).Sum(a => a.Valor) : (_dashboardData?.LucroSemana ?? 0);
+                    var vMes = agsValidos.Any() ? agsValidos.Where(a => a.Data >= mesIni && a.Data <= mesFim).Sum(a => a.Valor) : (_dashboardData?.LucroMes ?? 0);
+                    var vAno = agsValidos.Where(a => a.Data >= anoIni && a.Data <= anoFim).Sum(a => a.Valor);
+
+                    _periodoDescricao = $"Comparativo consolidado em {_dataReferencia:dd/MM/yyyy}: Dia vs Semana vs Mês vs Ano";
+                    dadosPeriodo.Add(("Dia", _dataReferencia.ToString("dd/MM"), vDia));
+                    dadosPeriodo.Add(("Semana", $"{segComp:dd/MM}-{segComp.AddDays(6):dd/MM}", vSem));
+                    dadosPeriodo.Add(("Mês", _dataReferencia.ToString("MMM/yy", PtBr), vMes));
+                    dadosPeriodo.Add(("Ano", _dataReferencia.Year.ToString(), vAno));
                     break;
             }
 
             const double plotLeft = 65.0;
-            const double plotRight = 495.0;
-            const double plotWidth = plotRight - plotLeft; // 430
-            const double plotTop = 30.0;
-            const double plotBaseline = 235.0;
-            const double plotHeight = plotBaseline - plotTop; // 205
+            const double plotRight = 605.0;
+            const double plotWidth = plotRight - plotLeft; // 540
+            const double plotTop = 25.0;
+            const double plotBaseline = 295.0;
+            const double plotHeight = plotBaseline - plotTop; // 270
 
             var maxValorReal = dadosPeriodo.Any() ? (double)dadosPeriodo.Max(x => x.valor) : 0.0;
             double maxTeto;
@@ -310,9 +463,10 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
             var slotWidth = plotWidth / n;
             var barWidth = n switch
             {
-                <= 3 => 44.0,
-                4 => 36.0,
-                _ => 24.0
+                <= 3 => 72.0,
+                4 => 62.0,
+                <= 7 => 42.0,
+                _ => 26.0
             };
 
             for (int i = 0; i < n; i++)
@@ -334,7 +488,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
                     Height: h,
                     RotuloLinha1: item.l1,
                     RotuloLinha2: item.l2,
-                    ValorFormatado: item.valor.ToString("C", PtBr)
+                    ValorFormatado: item.valor.ToString("C0", PtBr)
                 ));
             }
         }
@@ -479,6 +633,7 @@ namespace BarberShop.Web.Pages.Admin.Dashboard
                 if (res.IsSuccess && res.Data != null)
                 {
                     _todosAgendamentosHistorico = res.Data;
+                    CalcularGraficoBarras();
                 }
             }
             catch (Exception ex)

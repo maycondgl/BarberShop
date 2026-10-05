@@ -1,9 +1,27 @@
-﻿@page "/avaliacoes"
+@page "/avaliacoes"
 @using BarberShop.Core.Responses.Avaliacao
 @using BarberShop.Web.Pages.Avaliacoes
+@using MudBlazor
 @inherits ListAvaliacaoPublicPage
+@attribute [Authorize]
 
-<MudText Typo="Typo.h3" Class="mb-6">Avaliações dos Clientes</MudText>
+<PageTitle>BarberShop - Minhas Avaliações</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-2">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold">Minhas Avaliações</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Histórico de avaliações que você enviou para os barbeiros e serviços realizados.
+        </MudText>
+    </div>
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Refresh"
+               Disabled="IsBusy"
+               OnClick="CarregarMinhasAvaliacoesAsync">
+        @(IsBusy ? "Atualizando..." : "Atualizar")
+    </MudButton>
+</div>
 
 @if (IsBusy)
 {
@@ -11,7 +29,7 @@
         @for (int i = 0; i < 6; i++)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard>
+                <MudCard Elevation="2">
                     <MudCardContent>
                         <MudSkeleton Height="24px" Width="60%" />
                         <MudSkeleton Height="20px" Width="40%" Class="mt-2" />
@@ -22,34 +40,56 @@
         }
     </MudGrid>
 }
-else if (!Avaliacoespublic.Any())
+else if (!MinhasAvaliacoes.Any())
 {
-    <MudAlert Severity="Severity.Info">Nenhuma avaliação encontrada.</MudAlert>
+    <div class="pa-8 text-center" style="opacity: 0.7;">
+        <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Large" Class="mb-2" />
+        <MudText Typo="Typo.body1">Você ainda não avaliou nenhum agendamento.</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" Class="mt-4" Href="/agendamentos">
+            Ver Meus Agendamentos
+        </MudButton>
+    </div>
 }
 else
 {
     <MudGrid>
-        @foreach (var av in Avaliacoespublic)
+        @foreach (var av in MinhasAvaliacoes)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="3">
-                    <MudCardContent>
-                        <div class="d-flex align-center gap-2 mb-2">
-                            <MudAvatar Color="Color.Primary" Size="Size.Small">
-                                @av.NomeCliente.FirstOrDefault()
-                            </MudAvatar>
-                            <MudText Typo="Typo.subtitle1"><b>@av.NomeCliente</b></MudText>
+                <MudCard Elevation="3" Class="pa-4 h-100 d-flex flex-column justify-space-between" Style="background: rgba(255, 255, 255, 0.03);">
+                    <div>
+                        <div class="d-flex justify-space-between align-center mb-2">
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Warning" Class="mr-1" />
+                                    @(string.IsNullOrWhiteSpace(av.BarbeiroNome) ? "Barbeiro da Unidade" : av.BarbeiroNome)
+                                </MudText>
+                            </div>
+                            <MudRating ReadOnly="true"
+                                       SelectedValue="@av.Estrelas"
+                                       MaxValue="5"
+                                       Color="Color.Warning"
+                                       Size="Size.Small" />
                         </div>
-                        <MudRating ReadOnly="true"
-                                   SelectedValue="@av.Estrelas"
-                                   MaxValue="5"
-                                   Color="Color.Warning"
-                                   Size="Size.Small" />
-                        <MudText Typo="Typo.body2" Class="mt-2">@av.Comentario</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
-                            @av.Data.ToString("dd/MM/yyyy")
+
+                        @if (!string.IsNullOrWhiteSpace(av.ServicoTitulo))
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.ContentCut" Size="Size.Small" Class="mr-1" />
+                                @av.ServicoTitulo
+                            </MudChip>
+                        }
+
+                        <MudText Typo="Typo.body2" Class="my-2" Style="color: rgba(255, 255, 255, 0.9);">
+                            @(string.IsNullOrWhiteSpace(av.Comentario) ? "Você não deixou comentário por escrito." : av.Comentario)
                         </MudText>
-                    </MudCardContent>
+                    </div>
+
+                    <div class="mt-3 pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Avaliado em: @av.Data.ToString("dd/MM/yyyy HH:mm")
+                        </MudText>
+                    </div>
                 </MudCard>
             </MudItem>
         }

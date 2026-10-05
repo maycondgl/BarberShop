@@ -23,7 +23,7 @@ public class DashboardHandler : IDashboardHandler
         _userManager = userManager;
     }
 
-    public async Task<Response<DashboardResponse?>> GetDashboardAsync()
+    public async Task<Response<DashboardResponse?>> GetDashboardAsync(long? filialId = null)
     {
         try
         {
@@ -38,14 +38,23 @@ public class DashboardHandler : IDashboardHandler
             var monthEnd = today.GetLastDayOfMonth().AddDays(1).AddTicks(-1);
 
             // Consultar agendamentos válidos (não cancelados)
-            var agendamentosValidos = await _context.Agendamentos
+            var agendamentosQuery = _context.Agendamentos
                 .AsNoTracking()
-                .Where(a => a.Status != EStatusAgendamento.Cancelado)
+                .Where(a => a.Status != EStatusAgendamento.Cancelado);
+
+            if (filialId.HasValue && filialId.Value > 0)
+            {
+                agendamentosQuery = agendamentosQuery.Where(a => a.FilialId == filialId.Value);
+            }
+
+            var agendamentosValidos = await agendamentosQuery
                 .Select(a => new
                 {
                     a.Id,
                     a.UserId,
                     a.CorteId,
+                    a.BarbeiroId,
+                    a.FilialId,
                     a.Data,
                     a.Valor
                 })
@@ -213,6 +222,47 @@ public class DashboardHandler : IDashboardHandler
                 });
             }
 
+            // 7. Métricas por Barbeiro (Lucro, Atendimentos e Participação)
+            var barbeirosQuery = _context.Barbeiros.AsNoTracking();
+            if (filialId.HasValue && filialId.Value > 0)
+            {
+                barbeirosQuery = barbeirosQuery.Where(b => b.FilialId == filialId.Value);
+            }
+
+            var allBarbeiros = await barbeirosQuery
+                .OrderBy(b => b.Nome)
+                .ToListAsync();
+
+            var barbeiroGroups = agendamentosValidos
+                .Where(a => a.BarbeiroId.HasValue)
+                .GroupBy(a => a.BarbeiroId!.Value)
+                .ToDictionary(g => g.Key, g => new { Count = g.Count(), TotalLucro = g.Sum(x => x.Valor) });
+
+            var totalLucroBarbeiros = agendamentosValidos.Where(a => a.BarbeiroId.HasValue).Sum(a => a.Valor);
+
+            var barbeirosMetricas = allBarbeiros.Select(b =>
+            {
+                barbeiroGroups.TryGetValue(b.Id, out var stat);
+                var qtd = stat?.Count ?? 0;
+                var lucro = stat?.TotalLucro ?? 0m;
+                var pct = totalLucroBarbeiros > 0
+                    ? Math.Round(((double)lucro / (double)totalLucroBarbeiros) * 100, 1)
+                    : 0.0;
+
+                return new BarbeiroMetricaResponse
+                {
+                    BarbeiroId = b.Id,
+                    Nome = b.Nome,
+                    FotoUrl = b.FotoUrl,
+                    TotalAgendamentos = qtd,
+                    TotalLucro = lucro,
+                    Porcentagem = pct
+                };
+            })
+            .OrderByDescending(b => b.TotalLucro)
+            .ThenByDescending(b => b.TotalAgendamentos)
+            .ToList();
+
             var response = new DashboardResponse
             {
                 TopClienteNome = topClienteNome,
@@ -229,7 +279,8 @@ public class DashboardHandler : IDashboardHandler
                 LucroPorTurnoHoje = lucroPorTurnoHoje,
                 LucroPorDia = lucroPorDia,
                 LucroPorSemanaMes = lucroPorSemanaMes,
-                CortesMetricas = cortesMetricas
+                CortesMetricas = cortesMetricas,
+                BarbeirosMetricas = barbeirosMetricas
             };
 
             return new Response<DashboardResponse?>(response, 200, "Métricas carregadas com sucesso");

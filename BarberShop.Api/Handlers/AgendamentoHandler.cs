@@ -1,5 +1,6 @@
 using BarberShop.Api.Data;
 using BarberShop.Api.Services;
+using BarberShop.Core;
 using BarberShop.Core.Enums;
 using BarberShop.Core.Extensions;
 using BarberShop.Core.Handlers;
@@ -30,6 +31,44 @@ namespace BarberShop.Api.Handlers
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Filial')
+                    BEGIN
+                        CREATE TABLE [Filial] (
+                            [Id] BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [Nome] NVARCHAR(100) NOT NULL,
+                            [Localizacao] NVARCHAR(200) NOT NULL,
+                            [Telefone] NVARCHAR(20) NULL,
+                            [Ativo] BIT NOT NULL DEFAULT 1
+                        );
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Barbeiro')
+                    BEGIN
+                        CREATE TABLE [Barbeiro] (
+                            [Id] BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [Nome] NVARCHAR(100) NOT NULL,
+                            [FotoUrl] NVARCHAR(500) NULL,
+                            [FilialId] BIGINT NULL,
+                            [Ativo] BIT NOT NULL DEFAULT 1,
+                            [UsuarioId] BIGINT NULL
+                        );
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Barbeiro' AND COLUMN_NAME = 'UsuarioId')
+                    BEGIN
+                        ALTER TABLE [Barbeiro] ADD [UsuarioId] BIGINT NULL;
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Agendamento' AND COLUMN_NAME = 'FilialId')
+                    BEGIN
+                        ALTER TABLE [Agendamento] ADD [FilialId] BIGINT NULL;
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Agendamento' AND COLUMN_NAME = 'BarbeiroId')
+                    BEGIN
+                        ALTER TABLE [Agendamento] ADD [BarbeiroId] BIGINT NULL;
+                    END
+
                     IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Agendamento' AND COLUMN_NAME = 'DescricaoServicos')
                     BEGIN
                         ALTER TABLE [Agendamento] ADD [DescricaoServicos] NVARCHAR(500) NULL;
@@ -37,9 +76,9 @@ namespace BarberShop.Api.Handlers
                 ");
                 _columnsChecked = true;
             }
-            catch
+            catch (Exception ex)
             {
-                // Silencioso para provedores sem suporte a SQL raw (ex: testes in-memory)
+                Console.WriteLine($"[AgendamentoHandler EnsureColumnsExistsAsync ERROR]: {ex.Message}");
             }
         }
 
@@ -69,8 +108,34 @@ namespace BarberShop.Api.Handlers
                 if (request.Data.Date > DateTime.Today.AddDays(15))
                     return new Response<AgendamentoResponse?>(null, 400, "Agendamentos só podem ser realizados com até 15 dias de antecedência.");
 
-                if (request.Data.DayOfWeek == DayOfWeek.Sunday)
-                    return new Response<AgendamentoResponse?>(null, 400, "A barbearia não funciona aos domingos.");
+                HorarioFuncionamento? horarioFilial = null;
+                if (request.FilialId.HasValue && request.FilialId.Value > 0)
+                {
+                    try
+                    {
+                        horarioFilial = await _context.HorariosFuncionamento
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(h => h.FilialId == request.FilialId.Value && h.DiaSemana == request.Data.DayOfWeek);
+                    }
+                    catch
+                    {
+                        horarioFilial = null;
+                    }
+                }
+
+                if (horarioFilial != null)
+                {
+                    if (!horarioFilial.Aberto)
+                    {
+                        var nomeDia = BarberShop.Core.Requests.HorariosFuncionamento.HorarioFuncionamentoDto.ObterNomeDia(request.Data.DayOfWeek);
+                        return new Response<AgendamentoResponse?>(null, 400, $"A filial selecionada não funciona no dia {nomeDia}.");
+                    }
+                }
+                else
+                {
+                    if (request.Data.DayOfWeek == DayOfWeek.Sunday)
+                        return new Response<AgendamentoResponse?>(null, 400, "A barbearia não funciona aos domingos.");
+                }
 
                 bool diaFechado = false;
                 try
@@ -92,15 +157,47 @@ namespace BarberShop.Api.Handlers
                 var tituloCombinado = string.Join(" + ", cortes.Select(c => c.Titulo));
                 var horaInicio = request.Data.TimeOfDay;
 
-                if (request.Data.DayOfWeek == DayOfWeek.Saturday)
+                if (horarioFilial != null)
                 {
-                    if (horaInicio < new TimeSpan(7, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(12, 0, 0))
-                        return new Response<AgendamentoResponse?>(null, 400, "Aos sábados, os agendamentos ocorrem entre 07:00 e 12:00.");
+                    if (horaInicio < horarioFilial.HorarioAbertura || horaInicio.Add(duracao) > horarioFilial.HorarioFechamento)
+                    {
+                        return new Response<AgendamentoResponse?>(null, 400, 
+                            $"Os agendamentos para esta filial ocorrem entre {horarioFilial.HorarioAbertura:hh\\:mm} e {horarioFilial.HorarioFechamento:hh\\:mm}.");
+                    }
+
+                    if (horarioFilial.TemAlmoco && horarioFilial.AlmocoInicio.HasValue && horarioFilial.AlmocoFim.HasValue)
+                    {
+                        var almocoInicio = horarioFilial.AlmocoInicio.Value;
+                        var almocoFim = horarioFilial.AlmocoFim.Value;
+                        var horaFim = horaInicio.Add(duracao);
+
+                        if (horaInicio < almocoFim && horaFim > almocoInicio)
+                        {
+                            return new Response<AgendamentoResponse?>(null, 400, 
+                                $"O horário selecionado coincide com o intervalo de almoço ({almocoInicio:hh\\:mm} às {almocoFim:hh\\:mm}).");
+                        }
+                    }
                 }
                 else
                 {
-                    if (horaInicio < new TimeSpan(8, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(19, 0, 0))
-                        return new Response<AgendamentoResponse?>(null, 400, "De segunda a sexta, os agendamentos ocorrem entre 08:00 e 19:00.");
+                    if (request.Data.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        if (horaInicio < new TimeSpan(7, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(12, 0, 0))
+                            return new Response<AgendamentoResponse?>(null, 400, "Aos sábados, os agendamentos ocorrem entre 07:00 e 12:00.");
+                    }
+                    else
+                    {
+                        if (horaInicio < new TimeSpan(8, 0, 0) || horaInicio.Add(duracao) > new TimeSpan(19, 0, 0))
+                            return new Response<AgendamentoResponse?>(null, 400, "De segunda a sexta, os agendamentos ocorrem entre 08:00 e 19:00.");
+
+                        var almocoPadraoInicio = new TimeSpan(12, 0, 0);
+                        var almocoPadraoFim = new TimeSpan(13, 0, 0);
+                        if (horaInicio < almocoPadraoFim && horaInicio.Add(duracao) > almocoPadraoInicio)
+                        {
+                            return new Response<AgendamentoResponse?>(null, 400, 
+                                "O horário selecionado coincide com o intervalo de almoço (12:00 às 13:00).");
+                        }
+                    }
                 }
 
                 var dataInicio = request.Data.Date;
@@ -309,6 +406,8 @@ namespace BarberShop.Api.Handlers
         {
             try
             {
+                await EnsureColumnsExistsAsync();
+
                 var agendamento = await _context
                     .Agendamentos
                     .AsNoTracking()
@@ -321,8 +420,9 @@ namespace BarberShop.Api.Handlers
                     ? new Response<Agendamento?>(null, 404, "Agendamento não encontrado")
                     : new Response<Agendamento?>(agendamento);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[AgendamentoHandler GetByIdAsync ERROR]: {ex.Message} {ex.StackTrace}");
                 return new Response<Agendamento?>(null, 500, "Não foi possível recuperar agendamento");
             }
         }
@@ -331,6 +431,11 @@ namespace BarberShop.Api.Handlers
         {
             try
             {
+                await EnsureColumnsExistsAsync();
+
+                var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+                var pageSize = request.PageSize <= 0 ? Configuration.DefaultPageSize : request.PageSize;
+
                 var query = _context
                     .Agendamentos
                     .AsNoTracking()
@@ -341,8 +446,8 @@ namespace BarberShop.Api.Handlers
                     .OrderByDescending(x => x.Data);
 
                 var agendamentos = await query
-                    .Skip((request.PageNumber - 1) * request.PageSize)
-                    .Take(request.PageSize)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 foreach (var a in agendamentos)
@@ -355,11 +460,12 @@ namespace BarberShop.Api.Handlers
 
                 return new PagedResponse<List<Agendamento>>(agendamentos,
                     count,
-                    request.PageNumber,
-                    request.PageSize);
+                    pageNumber,
+                    pageSize);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[AgendamentoHandler GetAllAsync ERROR]: {ex.Message} {ex.StackTrace}");
                 return new PagedResponse<List<Agendamento>>(null, 500, "Não foi possível consultar os agendamentos");
             }
         }
@@ -367,6 +473,11 @@ namespace BarberShop.Api.Handlers
         public async Task<PagedResponse<List<AgendamentoResponse>?>> GetByPeriodAsync(
             GetAgendamentoByPeriodRequest request)
         {
+            await EnsureColumnsExistsAsync();
+
+            var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+            var pageSize = request.PageSize <= 0 ? Configuration.DefaultPageSize : request.PageSize;
+
             var startDate = request.StartDate ?? DateTime.Now.GetFirstDayOfMonth();
             var endDate = request.EndDate ?? DateTime.Now.GetLastDayOfMonth();
 
@@ -389,19 +500,38 @@ namespace BarberShop.Api.Handlers
             var count = await query.CountAsync();
 
             var agendamentos = await query
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            var userIds = agendamentos.Select(a => a.UserId).Distinct().ToList();
+            var usuarios = await _context.Users
+                .AsNoTracking()
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.NomeCompleto);
+
+            foreach (var a in agendamentos)
+            {
+                if (usuarios.TryGetValue(a.UserId, out var nomeCliente) && !string.IsNullOrWhiteSpace(nomeCliente))
+                    a.NomeCliente = nomeCliente;
+                else
+                    a.NomeCliente = "Cliente";
+            }
 
             return new PagedResponse<List<AgendamentoResponse>?>(
                 agendamentos.Select(a => (AgendamentoResponse)a).ToList(),
-                count, request.PageNumber, request.PageSize);
+                count, pageNumber, pageSize);
         }
 
         public async Task<PagedResponse<List<AgendamentoResponse>>> GetAllAdminAsync(GetAllAgendamentoRequest request)
         {
             try
             {
+                await EnsureColumnsExistsAsync();
+
+                var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+                var pageSize = request.PageSize <= 0 ? Configuration.DefaultPageSize : request.PageSize;
+
                 var query = _context
                     .Agendamentos
                     .AsNoTracking()
@@ -411,8 +541,8 @@ namespace BarberShop.Api.Handlers
                     .OrderByDescending(x => x.Data);
 
                 var agendamentos = await query
-                    .Skip((request.PageNumber - 1) * request.PageSize)
-                    .Take(request.PageSize)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 var responses = new List<AgendamentoResponse>();
@@ -445,10 +575,11 @@ namespace BarberShop.Api.Handlers
 
                 var count = await query.CountAsync();
 
-                return new PagedResponse<List<AgendamentoResponse>>(responses, count, request.PageNumber, request.PageSize);
+                return new PagedResponse<List<AgendamentoResponse>>(responses, count, pageNumber, pageSize);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[AgendamentoHandler GetAllAdminAsync ERROR]: {ex.Message} {ex.StackTrace}");
                 return new PagedResponse<List<AgendamentoResponse>>(null, 500, "Não foi possível consultar os agendamentos");
             }
         }

@@ -41,7 +41,12 @@ else
                     <MudTextField Label="Telefone de Contato"
                                   @bind-Value="InputModel.Telefone"
                                   For="@(() => InputModel.Telefone)"
-                                  Variant="Variant.Outlined" />
+                                  Mask="@PhoneMask"
+                                  InputType="InputType.Telephone"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="(11) 98765-4321"
+                                  Required="true"
+                                  RequiredError="Informe o telefone" />
                 </MudItem>
 
                 <MudItem xs="12">
@@ -109,6 +114,10 @@ else
     public bool IsLoading { get; set; } = true;
     public bool IsBusy { get; set; } = false;
     public UpdateFilialRequest InputModel { get; set; } = new();
+    public PatternMask PhoneMask = new PatternMask("(00)00000-0000")
+    {
+        CleanDelimiters = true
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,6 +158,11 @@ else
         IsBusy = true;
         try
         {
+            if (!string.IsNullOrWhiteSpace(InputModel.Telefone))
+            {
+                InputModel.Telefone = System.Text.RegularExpressions.Regex.Replace(InputModel.Telefone, @"\D", "");
+            }
+
             var result = await FilialHandler.UpdateAsync(InputModel);
             if (result.IsSuccess)
             {

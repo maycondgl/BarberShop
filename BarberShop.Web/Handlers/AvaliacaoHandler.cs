@@ -1,4 +1,4 @@
-﻿using BarberShop.Core.Handlers;
+using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
 using BarberShop.Core.Requests;
 using BarberShop.Core.Requests.Avaliacao;
@@ -64,6 +64,30 @@ namespace BarberShop.Web.Handlers
 
             return await response.Content.ReadFromJsonAsync<PagedResponse<List<AvaliacaoResponse>>>()
                 ?? new PagedResponse<List<AvaliacaoResponse>>(null, 400, "Não foi possível obter as avaliações");
+        }
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetByBarbeiroAsync(long barbeiroId, int pageNumber = 1, int pageSize = 50)
+        {
+            var response = await _client.GetAsync(
+                $"v1/avaliacoes/barbeiro/{barbeiroId}?pageNumber={pageNumber}&pageSize={pageSize}");
+
+            if (!response.IsSuccessStatusCode)
+                return new PagedResponse<List<AvaliacaoResponse>>(null, (int)response.StatusCode, "Não foi possível obter as avaliações do barbeiro");
+
+            return await response.Content.ReadFromJsonAsync<PagedResponse<List<AvaliacaoResponse>>>()
+                ?? new PagedResponse<List<AvaliacaoResponse>>(null, 400, "Não foi possível obter as avaliações do barbeiro");
+        }
+
+        public async Task<PagedResponse<List<AvaliacaoResponse>>> GetAllAdminAsync(int pageNumber = 1, int pageSize = 50)
+        {
+            var response = await _client.GetAsync(
+                $"v1/avaliacoes/admin?pageNumber={pageNumber}&pageSize={pageSize}");
+
+            if (!response.IsSuccessStatusCode)
+                return new PagedResponse<List<AvaliacaoResponse>>(null, (int)response.StatusCode, "Não foi possível obter todas as avaliações");
+
+            return await response.Content.ReadFromJsonAsync<PagedResponse<List<AvaliacaoResponse>>>()
+                ?? new PagedResponse<List<AvaliacaoResponse>>(null, 400, "Não foi possível obter todas as avaliações");
         }
     }
 }

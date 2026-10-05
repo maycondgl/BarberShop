@@ -9,11 +9,15 @@ public class DashboardHandler(IHttpClientFactory httpClientFactory) : IDashboard
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient(Configuration.HttpClientName);
 
-    public async Task<Response<DashboardResponse?>> GetDashboardAsync()
+    public async Task<Response<DashboardResponse?>> GetDashboardAsync(long? filialId = null)
     {
         try
         {
-            var response = await _client.GetAsync("v1/admin/dashboard");
+            var url = filialId.HasValue && filialId.Value > 0
+                ? $"v1/admin/dashboard?filialId={filialId.Value}"
+                : "v1/admin/dashboard";
+
+            var response = await _client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 var errorResponse = await response.Content.ReadFromJsonAsync<Response<DashboardResponse?>>();

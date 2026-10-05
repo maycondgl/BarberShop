@@ -18,23 +18,73 @@
         Novo Barbeiro
     </MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary">
-        Cadastre um novo profissional da barbearia, defina a foto e vincule à sua filial.
+        Vincule uma conta cadastrada como barbeiro informando o e-mail do profissional. O sistema reconhecerá o usuário, preencherá o nome e concederá os acessos da Área do Barbeiro.
     </MudText>
 </div>
+
+<MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+    <strong>Como funciona:</strong> O profissional deve criar uma conta normal no sistema primeiro. Ao informar o e-mail dele abaixo, o sistema recupera seus dados e ativa as permissões de Barbeiro automaticamente.
+</MudAlert>
 
 <MudPaper Class="pa-6 mt-4" Elevation="2" Style="border-radius: 14px;">
     <EditForm Model="@InputModel" OnValidSubmit="OnValidSubmitAsync">
         <DataAnnotationsValidator />
 
         <MudGrid Spacing="3">
+            <!-- 1. CAMPO DE E-MAIL DO USUÁRIO CADASTRADO COM BUSCA AUTOMÁTICA -->
             <MudItem xs="12" md="6">
-                <MudTextField Label="Nome Completo do Barbeiro"
+                <MudTextField Label="E-mail da Conta do Barbeiro"
+                              @bind-Value="InputModel.Email"
+                              For="@(() => InputModel.Email)"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Email"
+                              Placeholder="exemplo@barbearia.com"
+                              Required="true"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(IsSearchingUser ? Icons.Material.Filled.HourglassTop : Icons.Material.Filled.Search)"
+                              AdornmentColor="Color.Warning"
+                              AdornmentAriaLabel="Buscar conta cadastrada"
+                              OnAdornmentClick="BuscarUsuarioAsync"
+                              OnBlur="BuscarUsuarioAsync" />
+            </MudItem>
+
+            <!-- 2. NOME COMPLETO (PREENCHIDO AUTOMATICAMENTE OU PERSONALIZÁVEL) -->
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Nome de Exibição do Barbeiro"
                               @bind-Value="InputModel.Nome"
                               For="@(() => InputModel.Nome)"
                               Variant="Variant.Outlined"
-                              Placeholder="Ex: Carlos Oliveira, Mateus Silva..."
+                              Placeholder="Carregado automaticamente pela conta..."
                               Required="true" />
             </MudItem>
+
+            <!-- STATUS VISUAL DA BUSCA DE USUÁRIO -->
+            @if (UsuarioEncontrado != null)
+            {
+                <MudItem xs="12">
+                    @if (UsuarioEncontrado.JaCadastradoComoBarbeiro)
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Icon="@Icons.Material.Filled.Warning">
+                            Este usuário já está cadastrado como barbeiro (@UsuarioEncontrado.BarbeiroNome).
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Success" Dense="true" Icon="@Icons.Material.Filled.CheckCircle">
+                            Conta localizada: <strong>@UsuarioEncontrado.Nome</strong> (@UsuarioEncontrado.Email).
+                            Ao cadastrar, as permissões de Barbeiro serão ativadas para este usuário de imediato.
+                        </MudAlert>
+                    }
+                </MudItem>
+            }
+            else if (!string.IsNullOrWhiteSpace(ErroBuscaUsuario))
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Warning" Dense="true" Icon="@Icons.Material.Filled.PersonOff">
+                        @ErroBuscaUsuario
+                    </MudAlert>
+                </MudItem>
+            }
 
             <MudItem xs="12" md="6">
                 <MudSelect T="long?"
@@ -51,25 +101,25 @@
                 </MudSelect>
             </MudItem>
 
-            <MudItem xs="12">
-                <MudTextField Label="URL da Foto do Barbeiro"
-                              @bind-Value="InputModel.FotoUrl"
-                              For="@(() => InputModel.FotoUrl)"
-                              Variant="Variant.Outlined"
-                              Placeholder="https://... ou anexe um arquivo abaixo" />
-            </MudItem>
-
-            <MudItem xs="12">
-                <InputFile OnChange="UploadFotoBarbeiroAsync" accept="image/*" />
-            </MudItem>
-
             <MudItem xs="12" md="6">
                 <MudSwitch @bind-Value="InputModel.Ativo"
                            Color="Color.Success"
                            Label="@(InputModel.Ativo ? "Barbeiro Ativo (disponível para agendamento)" : "Barbeiro Inativo")" />
             </MudItem>
 
-            <!-- Card de Pré-visualização na barra de agendamento -->
+            <MudItem xs="12">
+                <MudTextField Label="URL da Foto do Barbeiro"
+                              @bind-Value="InputModel.FotoUrl"
+                              For="@(() => InputModel.FotoUrl)"
+                              Variant="Variant.Outlined"
+                              Placeholder="https://... ou selecione um arquivo abaixo" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <InputFile OnChange="UploadFotoBarbeiroAsync" accept="image/*" />
+            </MudItem>
+
+            <!-- Card de Pré-visualização no Fluxo de Agendamento -->
             <MudItem xs="12">
                 <MudText Typo="Typo.subtitle1" Class="font-weight-bold mb-2">Pré-visualização no Fluxo de Agendamento:</MudText>
                 <div class="selector-preview-card selector-preview-card--filled" style="max-width: 500px;">
@@ -82,12 +132,12 @@
                         }
                         else
                         {
-                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                            <MudAvatar Color="Color.Warning" Variant="Variant.Filled" Size="Size.Medium">
                                 <MudIcon Icon="@Icons.Material.Filled.Person" />
                             </MudAvatar>
                         }
                         <div>
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Primary">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Color="Color.Warning">
                                 @(string.IsNullOrWhiteSpace(InputModel.Nome) ? "Nome do Barbeiro" : InputModel.Nome)
                             </MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -108,7 +158,7 @@
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"
                            Color="Color.Warning"
-                           Disabled="@IsBusy"
+                           Disabled="@(IsBusy || (UsuarioEncontrado != null && UsuarioEncontrado.JaCadastradoComoBarbeiro))"
                            Class="font-weight-bold px-6">
                     @(IsBusy ? "Cadastrando..." : "Cadastrar Barbeiro")
                 </MudButton>
@@ -119,16 +169,12 @@
 
 @code {
     public bool IsBusy { get; set; } = false;
+    public bool IsSearchingUser { get; set; } = false;
     public CreateBarbeiroRequest InputModel { get; set; } = new();
     public List<Filial> ListaFiliais { get; set; } = new();
 
-    private readonly List<string> FotosSugeridas = new()
-    {
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-    };
+    public BarbeiroUsuarioInfoResponse? UsuarioEncontrado { get; set; }
+    public string? ErroBuscaUsuario { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,6 +195,45 @@
         if (!filialId.HasValue) return "Todas as Unidades (Geral)";
         var f = ListaFiliais.FirstOrDefault(x => x.Id == filialId.Value);
         return f?.Nome ?? "Unidade vinculada";
+    }
+
+    private async Task BuscarUsuarioAsync()
+    {
+        if (string.IsNullOrWhiteSpace(InputModel.Email) || !InputModel.Email.Contains('@'))
+            return;
+
+        IsSearchingUser = true;
+        ErroBuscaUsuario = null;
+        UsuarioEncontrado = null;
+
+        try
+        {
+            var result = await BarbeiroHandler.BuscarUsuarioPorEmailAsync(InputModel.Email);
+            if (result.IsSuccess && result.Data != null)
+            {
+                UsuarioEncontrado = result.Data;
+                InputModel.UsuarioId = result.Data.Id;
+                if (string.IsNullOrWhiteSpace(InputModel.Nome))
+                {
+                    InputModel.Nome = result.Data.Nome;
+                }
+            }
+            else
+            {
+                ErroBuscaUsuario = result.Message ?? "Nenhum usuário cadastrado encontrado com este e-mail. Solicite que o profissional crie uma conta primeiro.";
+                InputModel.UsuarioId = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErroBuscaUsuario = "Erro ao consultar usuário: " + ex.Message;
+            InputModel.UsuarioId = null;
+        }
+        finally
+        {
+            IsSearchingUser = false;
+            StateHasChanged();
+        }
     }
 
     private async Task UploadFotoBarbeiroAsync(InputFileChangeEventArgs e)
@@ -197,13 +282,25 @@
 
     private async Task OnValidSubmitAsync()
     {
+        if (string.IsNullOrWhiteSpace(InputModel.Email))
+        {
+            Snackbar.Add("Informe o e-mail do usuário cadastrado.", Severity.Warning);
+            return;
+        }
+
+        if (UsuarioEncontrado != null && UsuarioEncontrado.JaCadastradoComoBarbeiro)
+        {
+            Snackbar.Add("Este usuário já está cadastrado como barbeiro.", Severity.Error);
+            return;
+        }
+
         IsBusy = true;
         try
         {
             var result = await BarbeiroHandler.CreateAsync(InputModel);
             if (result.IsSuccess)
             {
-                Snackbar.Add("Barbeiro cadastrado com sucesso!", Severity.Success);
+                Snackbar.Add("Barbeiro cadastrado com sucesso! As permissões de acesso já foram concedidas ao usuário.", Severity.Success);
                 NavigationManager.NavigateTo("/admin/barbeiros");
             }
             else

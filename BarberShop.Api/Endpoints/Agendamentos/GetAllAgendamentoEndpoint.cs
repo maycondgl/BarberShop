@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.common.Api;
 using BarberShop.Core;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Models;
@@ -25,9 +25,9 @@ namespace BarberShop.Api.Endpoints.Agendamentos
 
         private static async Task<IResult> HandleAsync(
             ClaimsPrincipal user,
-             IAgendamentoHandler handler,
-             [FromQuery]int PageNumber,
-             [FromQuery]int PageSize = Configuration.DefaultPageSize)
+            IAgendamentoHandler handler,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = Configuration.DefaultPageSize)
         {
             var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -37,13 +37,13 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             var request = new GetAllAgendamentoRequest
             {
                 UserId = userId,
-                PageNumber = PageNumber,
-                PageSize = PageSize
+                PageNumber = pageNumber <= 0 ? 1 : pageNumber,
+                PageSize = pageSize <= 0 ? Configuration.DefaultPageSize : pageSize
             };
             var result = await handler.GetAllAsync(request);
             return result.IsSuccess
-              ? TypedResults.Ok(result)
-              : TypedResults.BadRequest(result);
+                ? TypedResults.Ok(result)
+                : TypedResults.Json(result, statusCode: result.Code > 0 ? result.Code : 500);
         }
     }
 }

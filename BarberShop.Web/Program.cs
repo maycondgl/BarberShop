@@ -39,6 +39,7 @@ builder.Services.AddTransient<ICorteHandler, CorteHandler>();
 builder.Services.AddTransient<IDiaFechadoHandler, DiaFechadoHandler>();
 builder.Services.AddTransient<IFilialHandler, FilialHandler>();
 builder.Services.AddTransient<IBarbeiroHandler, BarbeiroHandler>();
+builder.Services.AddTransient<IHorarioFuncionamentoHandler, HorarioFuncionamentoHandler>();
 builder.Services.AddTransient<IDashboardHandler, DashboardHandler>();
 builder.Services.AddScoped<AdminNotificationClient>();
 builder.Services.AddScoped<PushNotificationClient>();

@@ -92,5 +92,67 @@ namespace BarberShop.Web.Handlers
                 return new PagedResponse<List<Barbeiro>>(new List<Barbeiro>(), 0, request.PageNumber, request.PageSize);
             }
         }
+
+        public async Task<Response<Barbeiro?>> GetByUserIdAsync(long userId)
+        {
+            try
+            {
+                var response = await _client.GetAsync($"v1/barbeiros/usuario/{userId}");
+                if (!response.IsSuccessStatusCode)
+                    return new Response<Barbeiro?>(null, (int)response.StatusCode, "Barbeiro não encontrado para o usuário");
+
+                return await response.Content.ReadFromJsonAsync<Response<Barbeiro?>>()
+                    ?? new Response<Barbeiro?>(null, 404, "Barbeiro não encontrado");
+            }
+            catch (Exception ex)
+            {
+                return new Response<Barbeiro?>(null, 500, "Erro de comunicação: " + ex.Message);
+            }
+        }
+
+        public async Task<Response<BarbeiroDashboardResponse?>> GetDashboardAsync(long? barbeiroId = null)
+        {
+            try
+            {
+                var url = barbeiroId.HasValue && barbeiroId.Value > 0
+                    ? $"v1/barbeiros/dashboard?barbeiroId={barbeiroId.Value}"
+                    : "v1/barbeiros/dashboard";
+
+                var response = await _client.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<Response<BarbeiroDashboardResponse?>>();
+                    return errorResult ?? new Response<BarbeiroDashboardResponse?>(null, (int)response.StatusCode, "Falha ao carregar dashboard do barbeiro");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Response<BarbeiroDashboardResponse?>>()
+                    ?? new Response<BarbeiroDashboardResponse?>(null, 404, "Dados do dashboard não encontrados");
+            }
+            catch (Exception ex)
+            {
+                return new Response<BarbeiroDashboardResponse?>(null, 500, "Erro de comunicação: " + ex.Message);
+            }
+        }
+
+        public async Task<Response<BarbeiroUsuarioInfoResponse?>> BuscarUsuarioPorEmailAsync(string email)
+        {
+            try
+            {
+                var encoded = Uri.EscapeDataString(email.Trim());
+                var response = await _client.GetAsync($"v1/barbeiros/buscar-usuario?email={encoded}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<Response<BarbeiroUsuarioInfoResponse?>>();
+                    return errorResult ?? new Response<BarbeiroUsuarioInfoResponse?>(null, (int)response.StatusCode, "Usuário não encontrado.");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Response<BarbeiroUsuarioInfoResponse?>>()
+                    ?? new Response<BarbeiroUsuarioInfoResponse?>(null, 404, "Usuário não encontrado.");
+            }
+            catch (Exception ex)
+            {
+                return new Response<BarbeiroUsuarioInfoResponse?>(null, 500, "Erro ao buscar usuário: " + ex.Message);
+            }
+        }
     }
 }

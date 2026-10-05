@@ -1,4 +1,4 @@
-﻿using BarberShop.Api.common.Api;
+using BarberShop.Api.common.Api;
 using BarberShop.Core;
 using BarberShop.Core.Handlers;
 using BarberShop.Core.Requests.Agendamentos;
@@ -32,7 +32,7 @@ namespace BarberShop.Api.Endpoints.Agendamentos
             var result = await handler.GetAllAdminAsync(request);
             return result.IsSuccess
                 ? TypedResults.Ok(result)
-                : TypedResults.BadRequest(result);
+                : TypedResults.Json(result, statusCode: result.Code > 0 ? result.Code : 500);
         }
     }
 }

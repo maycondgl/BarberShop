@@ -26,6 +26,9 @@ namespace BarberShop.Api.Data.Mappings
 
             builder.Property(x => x.Ativo)
                 .IsRequired();
+
+            builder.Property(x => x.UsuarioId)
+                .IsRequired(false);
         }
     }
 }

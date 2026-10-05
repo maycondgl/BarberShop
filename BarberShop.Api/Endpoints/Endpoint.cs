@@ -7,6 +7,7 @@ using BarberShop.Api.Endpoints.Avaliacao;
 using BarberShop.Api.Endpoints.Cortes;
 using BarberShop.Api.Endpoints.DiasFechados;
 using BarberShop.Api.Endpoints.Filiais;
+using BarberShop.Api.Endpoints.HorariosFuncionamento;
 using BarberShop.Api.Endpoints.Barbeiros;
 using BarberShop.Api.Endpoints.Identity;
 using BarberShop.Api.Endpoints.Notifications;
@@ -51,6 +52,8 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<UpdateAvaliacaoEndpoint>()
                .MapEndpoint<DeleteAvaliacaoEndpoint>()
                .MapEndpoint<GetAvaliacaoByIdEndpoint>()
+               .MapEndpoint<GetAvaliacoesByBarbeiroEndpoint>()
+               .MapEndpoint<GetAllAdminAvaliacoesEndpoint>()
                .MapEndpoint<GetAllAvaliacaoEndpoint>();
 
             endpoints.MapGroup("v1/cortes")
@@ -74,6 +77,8 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<CreateFilialEndpoint>()
                .MapEndpoint<UpdateFilialEndpoint>()
                .MapEndpoint<DeleteFilialEndpoint>()
+               .MapEndpoint<GetHorariosByFilialEndpoint>()
+               .MapEndpoint<SaveHorariosFilialEndpoint>()
                .MapEndpoint<GetFilialByIdEndpoint>()
                .MapEndpoint<GetAllFilialEndpoint>();
 
@@ -83,6 +88,9 @@ namespace BarberShop.Api.Endpoints
                .MapEndpoint<UpdateBarbeiroEndpoint>()
                .MapEndpoint<UploadImagemBarbeiroEndpoint>()
                .MapEndpoint<DeleteBarbeiroEndpoint>()
+               .MapEndpoint<BuscarUsuarioBarbeiroEndpoint>()
+               .MapEndpoint<GetBarbeiroDashboardEndpoint>()
+               .MapEndpoint<GetBarbeiroByUserIdEndpoint>()
                .MapEndpoint<GetBarbeiroByIdEndpoint>()
                .MapEndpoint<GetAllBarbeiroEndpoint>();
 

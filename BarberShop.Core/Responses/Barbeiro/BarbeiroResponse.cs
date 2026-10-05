@@ -6,6 +6,8 @@ namespace BarberShop.Core.Responses.Barbeiro
         string FotoUrl,
         long? FilialId,
         string FilialNome,
-        bool Ativo
+        bool Ativo,
+        long? UsuarioId = null,
+        string Email = ""
     );
 }
