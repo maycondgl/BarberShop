@@ -2,11 +2,16 @@
 @using BarberShop.Core.Handlers
 @using BarberShop.Core.Models
 @using BarberShop.Core.Requests.Filiais
+@using BarberShop.Core.Requests.HorariosFuncionamento
 @attribute [Authorize(Roles = "Admin")]
 @inject IFilialHandler FilialHandler
+@inject IHorarioFuncionamentoHandler HorarioHandler
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>BarberShop - Gerenciar Filiais</PageTitle>
 
 <div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-3">
     <div>
@@ -15,7 +20,7 @@
             Gerenciar Filiais
         </MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">
-            Cadastre novas unidades, edite endereços e gerencie as filiais da barbearia.
+            Cadastre novas unidades, edite endereços, consulte status e configure os horários de funcionamento abaixo.
         </MudText>
     </div>
 
@@ -108,11 +113,11 @@ else
                     <TemplateColumn Title="Ações" CellClass="py-3" HeaderClass="py-3 font-weight-bold">
                         <CellTemplate Context="filial">
                             <div class="d-flex align-center gap-2">
-                                <MudButton Href="@($"/admin/filiais/{filial.Item.Id}/horarios")"
-                                           Size="Size.Small"
-                                           Variant="Variant.Outlined"
+                                <MudButton Size="Size.Small"
+                                           Variant="@(FilialSelecionadaId == filial.Item.Id ? Variant.Filled : Variant.Outlined)"
                                            Color="Color.Warning"
-                                           StartIcon="@Icons.Material.Filled.AccessTime">
+                                           StartIcon="@Icons.Material.Filled.AccessTime"
+                                           OnClick="@(() => SelecionarFilialHorariosAsync(filial.Item.Id))">
                                     Horários
                                 </MudButton>
 
@@ -171,11 +176,11 @@ else
                     }
 
                     <div class="admin-corte-card__actions mt-3">
-                        <MudButton Href="@($"/admin/filiais/{filial.Id}/horarios")"
-                                   Variant="Variant.Outlined"
+                        <MudButton Variant="@(FilialSelecionadaId == filial.Id ? Variant.Filled : Variant.Outlined)"
                                    Color="Color.Warning"
                                    Size="Size.Medium"
                                    StartIcon="@Icons.Material.Filled.AccessTime"
+                                   OnClick="@(() => SelecionarFilialHorariosAsync(filial.Id))"
                                    Class="flex-1 font-weight-bold"
                                    Style="min-height: 44px; border-radius: 8px;">
                             Horários
@@ -207,14 +212,203 @@ else
     </div>
 }
 
+<!-- Seção Integrada: Horários de Funcionamento da Filial -->
+@if (ListaFiliais.Any())
+{
+    <div id="secao-horarios-funcionamento" class="mt-8">
+        <MudDivider Class="my-6" />
+
+        <div class="mb-4">
+            <MudText Typo="Typo.h4" Class="font-weight-bold d-flex align-center gap-2">
+                <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Warning" Size="Size.Medium" />
+                Horários de Funcionamento
+            </MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Configure os dias de operação, horários de abertura/fechamento e intervalos de almoço por filial. Os períodos definidos influenciarão diretamente a disponibilidade de agendamentos.
+            </MudText>
+        </div>
+
+        <!-- Seletor da Filial Ativa -->
+        <MudPaper Class="pa-4 mb-4" Elevation="2" Style="border-radius: 12px;">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" md="6">
+                    <MudSelect T="long?"
+                               Label="Selecione a Filial"
+                               Value="@FilialSelecionadaId"
+                               ValueChanged="OnFilialHorarioChangedAsync"
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var f in ListaFiliais)
+                        {
+                            <MudSelectItem T="long?" Value="@((long?)f.Id)">
+                                @f.Nome @(f.Ativo ? "" : " (Inativa)")
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    @if (FilialSelecionada != null)
+                    {
+                        <div class="d-flex align-center gap-2 flex-wrap">
+                            <MudChip T="string" Color="@(FilialSelecionada.Ativo ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Filled">
+                                @(FilialSelecionada.Ativo ? "Filial Ativa" : "Filial Inativa")
+                            </MudChip>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="vertical-align: middle;" />
+                                @FilialSelecionada.Localizacao
+                            </MudText>
+                        </div>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        @if (IsLoadingHorarios)
+        {
+            <div class="d-flex justify-center my-8">
+                <MudProgressCircular Color="Color.Warning" Size="Size.Large" Indeterminate="true" />
+            </div>
+        }
+        else if (HorariosFilial.Any())
+        {
+            <MudPaper Class="pa-6" Elevation="2" Style="border-radius: 14px;">
+                <div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <MudText Typo="Typo.h6" Class="font-weight-bold">
+                            Grade Semanal de Horários
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Defina se a filial abre no dia, horários de atendimento e se há pausa de almoço.
+                        </MudText>
+                    </div>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               Disabled="@IsSavingHorarios"
+                               OnClick="SalvarHorariosAsync"
+                               Class="font-weight-bold px-6">
+                        @(IsSavingHorarios ? "Salvando..." : "Salvar Alterações")
+                    </MudButton>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var h in HorariosFilial)
+                    {
+                        <MudCard Elevation="1" Class="pa-4" Style="@(h.Aberto ? "border-left: 4px solid #FFC107;" : "border-left: 4px solid #757575; opacity: 0.85;")">
+                            <MudGrid AlignItems="Center" Spacing="2">
+                                <MudItem xs="12" sm="3" md="2">
+                                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold">
+                                        @h.NomeDiaSemana
+                                    </MudText>
+                                    <MudSwitch @bind-Value="h.Aberto"
+                                               Color="Color.Success"
+                                               Size="Size.Small"
+                                               Label="@(h.Aberto ? "Aberto" : "Fechado")" />
+                                </MudItem>
+
+                                @if (h.Aberto)
+                                {
+                                    <MudItem xs="6" sm="4" md="2">
+                                        <MudTimePicker Label="Abertura"
+                                                       Time="@h.HorarioAbertura"
+                                                       TimeChanged="@((TimeSpan? t) => { if (t.HasValue) h.HorarioAbertura = t.Value; })"
+                                                       Margin="Margin.Dense"
+                                                       Variant="Variant.Outlined" />
+                                    </MudItem>
+
+                                    <MudItem xs="6" sm="4" md="2">
+                                        <MudTimePicker Label="Fechamento"
+                                                       Time="@h.HorarioFechamento"
+                                                       TimeChanged="@((TimeSpan? t) => { if (t.HasValue) h.HorarioFechamento = t.Value; })"
+                                                       Margin="Margin.Dense"
+                                                       Variant="Variant.Outlined" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" sm="4" md="2">
+                                        <MudSwitch @bind-Value="h.TemAlmoco"
+                                                   Color="Color.Warning"
+                                                   Size="Size.Small"
+                                                   Label="@(h.TemAlmoco ? "Com Almoço" : "Sem Almoço")" />
+                                    </MudItem>
+
+                                    @if (h.TemAlmoco)
+                                    {
+                                        <MudItem xs="6" sm="4" md="2">
+                                            <MudTimePicker Label="Início Almoço"
+                                                           Time="@h.AlmocoInicio"
+                                                           TimeChanged="@((TimeSpan? t) => h.AlmocoInicio = t)"
+                                                           Margin="Margin.Dense"
+                                                           Variant="Variant.Outlined" />
+                                        </MudItem>
+
+                                        <MudItem xs="6" sm="4" md="2">
+                                            <MudTimePicker Label="Fim Almoço"
+                                                           Time="@h.AlmocoFim"
+                                                           TimeChanged="@((TimeSpan? t) => h.AlmocoFim = t)"
+                                                           Margin="Margin.Dense"
+                                                           Variant="Variant.Outlined" />
+                                        </MudItem>
+                                    }
+                                    else
+                                    {
+                                        <MudItem xs="12" sm="8" md="4" Class="d-flex align-center">
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                Atendimento contínuo sem bloqueio de almoço.
+                                            </MudText>
+                                        </MudItem>
+                                    }
+                                }
+                                else
+                                {
+                                    <MudItem xs="12" sm="9" md="10">
+                                        <MudAlert Severity="Severity.Normal" Dense="true" Class="py-1">
+                                            Filial fechada neste dia. Ninguém poderá realizar agendamentos nesta data.
+                                        </MudAlert>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudCard>
+                    }
+                </div>
+
+                <div class="d-flex justify-end mt-6">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               Disabled="@IsSavingHorarios"
+                               OnClick="SalvarHorariosAsync"
+                               Class="font-weight-bold px-6">
+                        @(IsSavingHorarios ? "Salvando..." : "Salvar Alterações")
+                    </MudButton>
+                </div>
+            </MudPaper>
+        }
+    </div>
+}
+
 @code {
     public bool IsBusy { get; set; }
     public List<Filial> ListaFiliais { get; set; } = new();
     public string SearchTerm { get; set; } = string.Empty;
 
+    // Estado da Seção de Horários de Funcionamento
+    public long? FilialSelecionadaId { get; set; }
+    public Filial? FilialSelecionada => ListaFiliais.FirstOrDefault(f => f.Id == FilialSelecionadaId);
+    public List<HorarioFuncionamentoDto> HorariosFilial { get; set; } = [];
+    public bool IsLoadingHorarios { get; set; } = false;
+    public bool IsSavingHorarios { get; set; } = false;
+
     protected override async Task OnInitializedAsync()
     {
         await CarregarFiliaisAsync();
+
+        if (ListaFiliais.Any())
+        {
+            FilialSelecionadaId = ListaFiliais.First().Id;
+            await CarregarHorariosAsync(FilialSelecionadaId.Value);
+        }
     }
 
     private async Task CarregarFiliaisAsync()
@@ -240,6 +434,125 @@ else
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    public async Task SelecionarFilialHorariosAsync(long filialId)
+    {
+        FilialSelecionadaId = filialId;
+        await CarregarHorariosAsync(filialId);
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('secao-horarios-funcionamento')?.scrollIntoView({ behavior: 'smooth' });");
+        }
+        catch
+        {
+            // Silencioso se scroll não suportado no ambiente
+        }
+    }
+
+    public async Task OnFilialHorarioChangedAsync(long? novaFilialId)
+    {
+        if (novaFilialId == FilialSelecionadaId) return;
+
+        FilialSelecionadaId = novaFilialId;
+        if (FilialSelecionadaId.HasValue)
+        {
+            await CarregarHorariosAsync(FilialSelecionadaId.Value);
+        }
+    }
+
+    private async Task CarregarHorariosAsync(long filialId)
+    {
+        IsLoadingHorarios = true;
+        try
+        {
+            var result = await HorarioHandler.GetByFilialAsync(filialId);
+            if (result.IsSuccess && result.Data != null)
+            {
+                HorariosFilial = result.Data;
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Falha ao carregar horários da filial.", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao buscar horários: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsLoadingHorarios = false;
+            StateHasChanged();
+        }
+    }
+
+    public async Task SalvarHorariosAsync()
+    {
+        if (!FilialSelecionadaId.HasValue)
+        {
+            Snackbar.Add("Selecione uma filial para salvar os horários.", Severity.Warning);
+            return;
+        }
+
+        foreach (var h in HorariosFilial.Where(x => x.Aberto))
+        {
+            if (h.HorarioFechamento <= h.HorarioAbertura)
+            {
+                Snackbar.Add($"No dia {h.NomeDiaSemana}, o horário de fechamento deve ser maior que o de abertura.", Severity.Warning);
+                return;
+            }
+
+            if (h.TemAlmoco)
+            {
+                if (!h.AlmocoInicio.HasValue || !h.AlmocoFim.HasValue)
+                {
+                    Snackbar.Add($"No dia {h.NomeDiaSemana}, informe o início e fim do almoço.", Severity.Warning);
+                    return;
+                }
+
+                if (h.AlmocoFim <= h.AlmocoInicio)
+                {
+                    Snackbar.Add($"No dia {h.NomeDiaSemana}, o término do almoço deve ser maior que o início.", Severity.Warning);
+                    return;
+                }
+
+                if (h.AlmocoInicio < h.HorarioAbertura || h.AlmocoFim > h.HorarioFechamento)
+                {
+                    Snackbar.Add($"No dia {h.NomeDiaSemana}, o horário de almoço deve estar dentro do horário de funcionamento.", Severity.Warning);
+                    return;
+                }
+            }
+        }
+
+        IsSavingHorarios = true;
+        try
+        {
+            var request = new SalvarHorariosFilialRequest
+            {
+                FilialId = FilialSelecionadaId.Value,
+                Horarios = HorariosFilial
+            };
+
+            var result = await HorarioHandler.SaveHorariosAsync(request);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Horários de funcionamento e almoço salvos com sucesso!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Falha ao salvar horários.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Erro ao salvar: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            IsSavingHorarios = false;
+            StateHasChanged();
         }
     }
 
@@ -278,6 +591,18 @@ else
                 if (result.IsSuccess)
                 {
                     ListaFiliais.RemoveAll(x => x.Id == id);
+                    if (FilialSelecionadaId == id)
+                    {
+                        FilialSelecionadaId = ListaFiliais.FirstOrDefault()?.Id;
+                        if (FilialSelecionadaId.HasValue)
+                        {
+                            await CarregarHorariosAsync(FilialSelecionadaId.Value);
+                        }
+                        else
+                        {
+                            HorariosFilial.Clear();
+                        }
+                    }
                     Snackbar.Add("Filial excluída com sucesso!", Severity.Success);
                 }
                 else

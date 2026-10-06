@@ -1,6 +1,7 @@
 @using MudBlazor
 
 <MudNavMenu Class="px-3 py-2 app-nav-menu">
+    <!-- Abas do Cliente (Visíveis para Clientes e Administradores) -->
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" IconSize="Size.Medium">
         Início
     </MudNavLink>
@@ -21,53 +22,58 @@
         Perfil
     </MudNavLink>
 
-    <AuthorizeView Roles="Barbeiro,Admin">
-        <Authorized>
-            <MudNavGroup Title="Área do Barbeiro" Icon="@Icons.Material.Filled.ContentCut" IconSize="Size.Medium" Expanded="false">
-                <MudNavLink Href="/barbeiro/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
-                    Meu Painel
-                </MudNavLink>
-                <MudNavLink Href="/barbeiro/agendamentos" Icon="@Icons.Material.Filled.CalendarMonth" IconSize="Size.Medium">
-                    Meus Agendamentos
-                </MudNavLink>
-                <MudNavLink Href="/barbeiro/avaliacoes" Icon="@Icons.Material.Filled.StarHalf" IconSize="Size.Medium">
-                    Minhas Avaliações
-                </MudNavLink>
-            </MudNavGroup>
+    <!-- Área do Barbeiro: Exclusiva para Barbeiros (Admin NÃO tem acesso) -->
+    <AuthorizeView Roles="Barbeiro">
+        <Authorized Context="barbeiroContext">
+            @if (!barbeiroContext.User.IsInRole("Admin"))
+            {
+                <MudNavGroup Title="Área do Barbeiro" Icon="@Icons.Material.Filled.ContentCut" IconSize="Size.Medium" Expanded="false">
+                    <MudNavLink Href="/barbeiro/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
+                        Meu Painel
+                    </MudNavLink>
+                    <MudNavLink Href="/barbeiro/agendamentos" Icon="@Icons.Material.Filled.CalendarMonth" IconSize="Size.Medium">
+                        Meus Agendamentos
+                    </MudNavLink>
+                    <MudNavLink Href="/barbeiro/avaliacoes" Icon="@Icons.Material.Filled.StarHalf" IconSize="Size.Medium">
+                        Minhas Avaliações
+                    </MudNavLink>
+                </MudNavGroup>
+            }
         </Authorized>
     </AuthorizeView>
 
+    <!-- Área de Administração: Exclusiva para o Administrador -->
     <AuthorizeView Roles="Admin">
         <Authorized>
-            <MudNavGroup Title="Administração" Icon="@Icons.Material.Filled.AdminPanelSettings" IconSize="Size.Medium" Expanded="false">
-                <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
-                    Dashboard
-                </MudNavLink>
-                <MudNavLink Href="/admin/agendamentos" Icon="@Icons.Material.Filled.PendingActions" IconSize="Size.Medium">
-                    Gerenciar Agendamentos
-                </MudNavLink>
-                <MudNavLink Href="/admin/cortes" Icon="@Icons.Material.Filled.DesignServices" IconSize="Size.Medium">
-                    Serviços
-                </MudNavLink>
-                <MudNavLink Href="/admin/filiais" Icon="@Icons.Material.Filled.Store" IconSize="Size.Medium">
-                    Filiais
-                </MudNavLink>
-                <MudNavLink Href="/admin/funcionamento" Icon="@Icons.Material.Filled.AccessTime" IconSize="Size.Medium">
-                    Horários & Funcionamento
-                </MudNavLink>
-                <MudNavLink Href="/admin/barbeiros" Icon="@Icons.Material.Filled.Person" IconSize="Size.Medium">
-                    Barbeiros
-                </MudNavLink>
-                <MudNavLink Href="/admin/usuarios" Icon="@Icons.Material.Filled.ManageAccounts" IconSize="Size.Medium">
-                    Usuários
-                </MudNavLink>
-                <MudNavLink Href="/admin/avaliacoes" Icon="@Icons.Material.Filled.RateReview" IconSize="Size.Medium">
-                    Avaliações
-                </MudNavLink>
-                <MudNavLink Href="/admin/dias-fechados" Icon="@Icons.Material.Filled.EventBusy" IconSize="Size.Medium">
-                    Dias Fechados
-                </MudNavLink>
-            </MudNavGroup>
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.overline" Class="px-3 text-secondary font-weight-bold" Style="letter-spacing: 1px;">
+                ADMINISTRAÇÃO
+            </MudText>
+
+            <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" IconSize="Size.Medium">
+                Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/admin/agendamentos" Icon="@Icons.Material.Filled.PendingActions" IconSize="Size.Medium">
+                Gerenciar Agendamentos
+            </MudNavLink>
+            <MudNavLink Href="/admin/cortes" Icon="@Icons.Material.Filled.DesignServices" IconSize="Size.Medium">
+                Serviços
+            </MudNavLink>
+            <MudNavLink Href="/admin/filiais" Icon="@Icons.Material.Filled.Store" IconSize="Size.Medium">
+                Filiais
+            </MudNavLink>
+            <MudNavLink Href="/admin/barbeiros" Icon="@Icons.Material.Filled.Person" IconSize="Size.Medium">
+                Barbeiros
+            </MudNavLink>
+            <MudNavLink Href="/admin/usuarios" Icon="@Icons.Material.Filled.ManageAccounts" IconSize="Size.Medium">
+                Usuários
+            </MudNavLink>
+            <MudNavLink Href="/admin/avaliacoes" Icon="@Icons.Material.Filled.RateReview" IconSize="Size.Medium">
+                Avaliações
+            </MudNavLink>
+            <MudNavLink Href="/admin/dias-fechados" Icon="@Icons.Material.Filled.EventBusy" IconSize="Size.Medium">
+                Dias Fechados
+            </MudNavLink>
         </Authorized>
     </AuthorizeView>
 
