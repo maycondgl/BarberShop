@@ -380,12 +380,13 @@ else if (DashboardData != null)
                                 Serviços Executados Hoje
                             </MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                Atendimentos computados exclusivamente hoje (@DateTime.Today.ToString("dd/MM/yyyy"))
+                                Atendimentos de hoje (@DateTime.Today.ToString("dd/MM/yyyy")) • Reseta automaticamente a cada virada de dia
                             </MudText>
                         </div>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
-                            Reset Diário
-                        </MudChip>
+                        <div class="d-flex align-center gap-1 text-secondary" style="font-size: 0.8rem;">
+                            <MudIcon Icon="@Icons.Material.Filled.Autorenew" Size="Size.Small" Color="Color.Info" />
+                            <span>Automático</span>
+                        </div>
                     </div>
 
                     @if (DashboardData.ServicosHoje.Any())
